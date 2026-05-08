@@ -4,6 +4,10 @@
 <PageTitle>Solitaire Uno</PageTitle>
 
 <style>
+    body{
+        background-color: lightgray
+    }
+
     /* 1. Classic Solitaire Card Design */
     /* Classic Solitaire Card Design */
     .solitaire-card {
@@ -30,6 +34,7 @@
         transform: translateY(-10px);
         box-shadow: 4px 10px 15px rgba(0,0,0,0.4);
     }
+
 
     /* Traditional Inks */
     .card-red { color: #d62828; }   
@@ -92,6 +97,8 @@
 
 @if (!gameStarted)
     {
+        gameOverMessage = "";
+
         <div class="card p-4 mx-auto shadow-sm mt-4" style="max-width: 350px; background-color: #f8f9fa;">
             <h4 class="mb-3 text-dark">Game Setup</h4>
 
@@ -108,7 +115,7 @@
                 <option value="@GameDifficulty.Hard">Hard</option>
             </select>
 
-            
+
             <label class="form-label fw-bold text-dark text-start">Card Backing Color</label>
             <select class="form-select mb-4" @bind="selectedCardColor" >
                 <option value="yellow">Yellow</option>
@@ -116,7 +123,7 @@
                 <option value="blue">Blue</option>
                 <option value="green">Green</option>
             </select>
-            
+
 
             <div class="form-check mb-4 text-start">
                 <input class="form-check-input" type="checkbox" id="suitEnforcement" @bind="suitEnforcement" />
@@ -133,12 +140,12 @@
         <div class="game-board mt-4">
 
             <div class="p-5 my-4 d-flex flex-column align-items-center" style="background-color: #35654d; border-radius: 12px; box-shadow: inset 0 0 30px rgba(0,0,0,0.6);">
-				<h5 class="text-danger mb-3">Opponent Cards: @MainGame.computer.Hand.Count</h5>
+                <h5 class="text-danger mb-3">Opponent Cards: @gameEngine?.Computer.Hand.Count</h5>
 
-				<div class="alert alert-light border shadow-sm" role="alert" style="font-size: 1.1rem;">
-					@actionLog
-				</div>
-                
+                <div class="alert alert-light border shadow-sm" role="alert" style="font-size: 1.1rem;">
+                    @actionLog
+                </div>
+
                 <div class="d-flex justify-content-center align-items-center gap-5 my-2">
                     <div class="text-center">
                         <div class="solitaire-deck" @onclick='() => PlayTurn("p.u")' style="padding: 0; border: none; background: transparent; box-shadow: none;">
@@ -146,17 +153,17 @@
                         </div>
                     </div>
 
-                    <div class="text-center" @key="MainGame.VisualCard">
+                    <div class="text-center" @key="gameEngine?.VisualCard">
                         <div class="solitaire-card animate-play" style="padding: 0; overflow: hidden; border: none; background: transparent; box-shadow: none;">
-                            <img src="@GetCardImagePath(MainGame.VisualCard)" alt="@MainGame.VisualCard?.ToString()" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
+                            <img src="@GetCardImagePath(gameEngine?.VisualCard)" alt="@gameEngine?.VisualCard?.ToString()" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
                         </div>
                     </div>
 
-                    @if (MainGame.VisualCard is SpecialCard)
+                    @if (gameEngine?.VisualCard is SpecialCard)
                     {
                         <div class="text-center ms-4" style="opacity: 0.7; transform: scale(0.85);">
                             <div class="solitaire-card" style="padding: 0; overflow: hidden; border: none; background: transparent; box-shadow: none;">
-                                <img src="@GetCardImagePath(MainGame.LogicCard)" alt="@MainGame.LogicCard?.ToString()" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
+                                <img src="@GetCardImagePath(gameEngine?.LogicCard)" alt="@gameEngine?.LogicCard?.ToString()" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
                             </div>
                             <span class="text-white mt-2 d-block fw-bold">Underneath</span>
                         </div>
@@ -164,21 +171,47 @@
 
                 </div>
 
-                <div class="text-white mt-4 opacity-75">
-                    Order: @MainGame.GameModeChoice | Deck has @MainGame.GameDeck?.Length() cards left!
-                </div>
+
+                @if (gameEngine?.GameDeck?.Length() > 1)
+                {
+                    <div class="text-white mt-4 opacity-75">
+                        Order: @gameEngine?.GameModeChoice | Deck has @gameEngine?.GameDeck?.Length() cards left!
+                    </div>
+                }
+
+                else if (gameEngine?.GameDeck?.Length() == 1)
+                {
+                     <div class="text-white mt-4 opacity-75">
+                        Order: @gameEngine?.GameModeChoice | Deck has one card left!
+                    </div>
+                }
+
+                else if (gameEngine?.GameDeck?.Length() == 0 && gameEngine?.GameDeck.deckReshuffled == false)
+                {
+                    <div class="text-white mt-4 opacity-75">
+                        Order: @gameEngine?.GameModeChoice | Deck has no more cards left, but someone can pick up to reshuffle!
+                    </div>
+                }
+
+                else
+                {
+                    <div class="text-white mt-4 opacity-75">
+                        Order: @gameEngine?.GameModeChoice | Deck has no more cards left!
+                    </div> 
+                }
+
                 <button class="btn btn-outline-light mt-3 px-4" @onclick='() => PlayTurn("pass")'>Pass Turn</button>
             </div>
 
-            <h4 class="mt-4" style="color: #444;">Your Hand (@MainGame.player.Hand.Count cards) </h4>
+            <h4 class="mt-4" style="color: #444;">Your Hand (@gameEngine?.Player.Hand.Count cards) </h4>
             <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 p-2">
-                @for (int i = 0; i < MainGame.player.Hand.Count; i++)
+                @for (int i = 0; i < gameEngine?.Player.Hand.Count; i++)
                 {
-                    var card = MainGame.player.Hand[i];
+                    var card = gameEngine?.Player.Hand[i];
                     int buttonIndex = i + 1;
 
                     <div @key="card" class="solitaire-card animate-draw" @onclick='() => PlayTurn(buttonIndex.ToString())' style="padding: 0; overflow: hidden; border: none; background: transparent; box-shadow: none;">
-                        <img src="@GetCardImagePath(card)" alt="@card.ToString()" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
+                        <img src="@GetCardImagePath(card)" alt="@card?.ToString()" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
                     </div>
                 }
             </div>
@@ -186,6 +219,9 @@
             @if (gameOverMessage != "")
             {
                 <h2 class="text-success mt-4">@gameOverMessage</h2>
+                <button class="btn btn-outline-light mt-3 px-4" @onclick='() => StartNewGame()'>Play Again</button>
+                <button class="btn btn-outline-light mt-3 px-4" @onclick='() => gameStarted = false'>Main Menu</button>
+                <br />
                 <br />
             }
         </div>
@@ -209,6 +245,8 @@
 
     private void StartNewGame()
     {
+        gameOverMessage = "";
+
         Deck freshDeck = new Deck();
         gameEngine = new MainGame(freshDeck, selectedMode, suitEnforcement, selectedDifficulty);
 
@@ -230,7 +268,7 @@
             actionLog = turnResult;
         }
 
-        if (MainGame.player.Hand.Count == 0)
+        if (gameEngine?.Player.Hand.Count == 0)
         {
             gameOverMessage = "You Win! 🎉";
             return;
@@ -238,10 +276,10 @@
 
         // -------------------------- COMPUTER'S TURN ---------------------------------
 
-        while (!MainGame.IsPlayerTurn && MainGame.computer.Hand.Count > 0)
+        while ( (gameEngine?.IsPlayerTurn == false) && (gameEngine?.Computer.Hand.Count > 0) )
         {
             isComputerThinking = true;
-            actionLog = "Opponent is thinking...";
+           // actionLog = "Opponent is thinking...";
             StateHasChanged();
 
             Random random = new Random();
@@ -272,9 +310,10 @@
                 actionLog = turnResult;
 
 
-            if (MainGame.computer.Hand.Count == 0)
+            if (gameEngine?.Computer.Hand.Count == 0)
             {
                 gameOverMessage = "Opponent Wins!";
+                
                 isComputerThinking = false;
                 return;
             }
@@ -282,8 +321,8 @@
 
         isComputerThinking = false;
         
-        if (MainGame.IsPlayerTurn)
-            actionLog += "\nYour turn.";
+        if (gameEngine?.IsPlayerTurn == true)
+            actionLog += "\n\nYour turn.";
     }
 
     /// <summary>

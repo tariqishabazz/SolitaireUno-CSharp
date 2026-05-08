@@ -4,6 +4,7 @@ namespace SolitaireUno.Tests
 {
     public class ComputerTests
     {
+
         [Fact]
         public static void NullWhenNoMoveFound()
         {
@@ -21,7 +22,7 @@ namespace SolitaireUno.Tests
         [Fact]
         public static void NotNullWhenMoveFoundAsc()
         {
-            MainGame.GameModeChoice = GameMode.Ascending;
+            GameMode GameModeChoice = GameMode.Ascending;
 
             Card currentCard = new RegularCard(Suits.Clubs, Values.Two);
             Card cardInHand = new RegularCard(Suits.Diamonds, Values.Three);
@@ -37,7 +38,7 @@ namespace SolitaireUno.Tests
         [Fact]
         public static void NotNullWhenMoveFoundDesc()
         {
-            MainGame.GameModeChoice = GameMode.Descending;
+            GameMode GameModeChoice = GameMode.Descending;
 
             Card currentCard = new RegularCard(Suits.Clubs, Values.Two);
             Card cardInHand = new RegularCard(Suits.Diamonds, Values.Ace);

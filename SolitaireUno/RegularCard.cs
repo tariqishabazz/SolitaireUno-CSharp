@@ -7,26 +7,7 @@
 
         public override string ToString()
         {
-
-            string suitEmoji = Suit switch
-            {
-                Suits.Hearts => "❤️",
-                Suits.Clubs => "♣",
-                Suits.Diamonds => "🔷",
-                Suits.Spades => "♠️",
-
-                _ => ""
-            };
-
-            string rankEmoji = Value switch
-            {
-                Values.Queen => "👑",
-                Values.King => "👑",
-                
-                _ => ""
-            };
-
-            return $"{Value} of {Suit} {rankEmoji}{suitEmoji}";
+            return $"{Value} of {Suit}";
         }
 
         public bool IsEqual(Card otherCard)

@@ -4,38 +4,42 @@ namespace SolitaireUno
 {
     public class MainGame
     {
-        public static readonly Player player = new();
-        public static readonly Computer computer = new();
-        public static Deck GameDeck { get; set; }
+        public Player Player { get; private set; }
+        public Computer Computer { get; private set; }
+        public Deck GameDeck { get; set; }
 
         internal PlayerTurnHandler _playerTurnHandler;
         internal ComputerTurnHandler _computerTurnHandler;
 
-        public static GameMode GameModeChoice { get; set; }
-        internal static GameDifficulty GameDifficulty { get; set; }
+        public GameMode GameModeChoice { get; set; }
+        internal GameDifficulty GameDifficulty { get; set; }
 
-        public static bool IsPlayerTurn { get; set; }
-        internal static bool SuitEnforcement { get; private set; }
-        public static bool ComputerSkipped { get; set; }
-        public static bool PlayerSkipped { get; set; }
+        public bool IsPlayerTurn { get; set; }
+        internal bool SuitEnforcement { get; private set; }
+        public bool ComputerSkipped { get; set; }
+        public bool PlayerSkipped { get; set; }
 
-        public static Card? LastPlayedCard { get; private set; }
-        public static Card LogicCard;
-        public static Card VisualCard;
-        internal static RegularCard PenaltyCard = new RegularCard(Suits.Spades, Values.Queen);
+        public Card? LastPlayedCard { get; private set; }
+        public Card? LogicCard;
+        public Card? VisualCard;
+        internal RegularCard PenaltyCard { get; private set; }
 
 
         public MainGame(Deck deck, GameMode gameModeChoice, bool suitEnforcement, GameDifficulty gameDifficulty)
         {
+            Player = new Player();
+            Computer = new Computer();
+            PenaltyCard = new RegularCard(Suits.Spades, Values.Queen);
+
             GameDeck = deck;
             GameModeChoice = gameModeChoice;
             GameDifficulty = gameDifficulty;
             SuitEnforcement = suitEnforcement;
 
-            _playerTurnHandler = new PlayerTurnHandler(player, GameDeck);
-            _computerTurnHandler = new ComputerTurnHandler(computer, GameDeck);
+            _playerTurnHandler = new PlayerTurnHandler(Player, GameDeck);
+            _computerTurnHandler = new ComputerTurnHandler(Computer, GameDeck, GameDifficulty);
 
-            GameSetup.SetupGame(player, computer, GameDeck);
+            GameSetup.SetupGame(Player, Computer, GameDeck);
         }
 
         public void StartGame()
@@ -43,7 +47,7 @@ namespace SolitaireUno
             LogicCard = GameDeck.DealCard()!;
             GameDeck.AddToDiscardPile(LogicCard);
 
-            Card? updatedCard = GameMethods.PreventInitalSpecialCard(LogicCard);
+            Card? updatedCard = GameMethods.PreventInitalSpecialCard(LogicCard, GameDeck);
             if (updatedCard is not null)
             {
                 LogicCard = updatedCard;
@@ -63,9 +67,9 @@ namespace SolitaireUno
 
             string uiMessage = "";
 
-            if (IsPlayerTurn && LogicCard is not null)
+            if (IsPlayerTurn && (LogicCard is not null && VisualCard is not null))
             {
-                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, playerDecision);
+                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, playerDecision, GameModeChoice, SuitEnforcement);
 
                 uiMessage = message;
 
@@ -74,7 +78,7 @@ namespace SolitaireUno
                     if (cardPlayed is not null)
                     {
                         LastPlayedCard = cardPlayed;
-                        ComputerSkipped = GameMethods.PotentialPlayerAction();
+                        ComputerSkipped = GameMethods.PotentialPlayerAction(LastPlayedCard, ComputerSkipped, GameDeck, Computer, PenaltyCard);
                     }
 
                     if(!ComputerSkipped)
@@ -82,16 +86,16 @@ namespace SolitaireUno
                 }
             }
 
-            else if (!IsPlayerTurn && LogicCard is not null)
+            else if (!IsPlayerTurn && (LogicCard is not null && VisualCard is not null))
             {
-                var (message, cardPlayed) = _computerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, player.Hand.Count);
+                var (message, cardPlayed) = _computerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, Player.Hand.Count, GameModeChoice, SuitEnforcement);
 
                 uiMessage = message;
 
                 if (cardPlayed is not null)
                 {
                     LastPlayedCard = cardPlayed;
-                    PlayerSkipped = GameMethods.PotentialComputerAction();
+                    PlayerSkipped = GameMethods.PotentialComputerAction(LastPlayedCard, PlayerSkipped, GameDeck, Player, PenaltyCard);
                 }
 
                 if(!PlayerSkipped)

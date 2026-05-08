@@ -7,15 +7,17 @@ using System.Threading.Tasks;
 
 namespace SolitaireUno
 {
-    public class ComputerTurnHandler(Computer computer, Deck deck)
+    public class ComputerTurnHandler(Computer computer, Deck deck, GameDifficulty currentDifficulty)
     {
         private readonly Computer _computer = computer;
         private readonly Deck _deck = deck;
-        private readonly GameDifficulty _gameDifficulty = MainGame.GameDifficulty;
+        private readonly GameDifficulty _gameDifficulty = currentDifficulty;
 
-        public (string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, int opponentHandSize)
+
+        public (string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, int opponentHandSize, GameMode currentGameMode, bool suitEnforcement)
         {
-            Card? potentialComputerPlay = _computer.MakeMove(logicCard, opponentHandSize, _deck.Length(), _gameDifficulty);
+            Card? potentialComputerPlay = _computer.MakeMove(logicCard, opponentHandSize, _deck.Length(), _gameDifficulty, currentGameMode, suitEnforcement);
+            
             if (potentialComputerPlay != null)
             {
                 visualCard = potentialComputerPlay;
@@ -25,6 +27,13 @@ namespace SolitaireUno
 
                 _computer.PlayCard(potentialComputerPlay);
                 _deck.AddToDiscardPile(potentialComputerPlay);
+
+
+                if (potentialComputerPlay is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
+                    return ($"The Computer played: {potentialComputerPlay} and skipped you!", potentialComputerPlay);
+
+                else if ((potentialComputerPlay is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (potentialComputerPlay is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
+                    return ($"The Computer played: {potentialComputerPlay}, so you had to draw!", potentialComputerPlay);
 
                 return ($"The Computer decided to play: {potentialComputerPlay}!", potentialComputerPlay);
             }

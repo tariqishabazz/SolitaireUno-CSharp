@@ -24,7 +24,7 @@ namespace SolitaireUno
         /// </summary>
         /// <param name="currentCard">Reference to the current card in play (may be updated).</param>
         /// <param name="penaltyCard">The penalty card for special rules.</param>
-        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, string playerDecision)
+        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, string playerDecision, GameMode gameMode, bool suitEnforcement)
         {
 
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
@@ -37,7 +37,7 @@ namespace SolitaireUno
                     {
                         Card potentialCard = player.Hand[decisionAsNumber - 1]; // Get selected card
 
-                        if (GameMethods.ValidCard(potentialCard, logicCard, MainGame.GameModeChoice)) // Validate move
+                        if (GameMethods.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement)) // Validate move
                         {
                             player.PlayCard(potentialCard); // Play the card
                             deck.AddToDiscardPile(potentialCard);
@@ -47,11 +47,18 @@ namespace SolitaireUno
                             if (potentialCard is RegularCard)
                                 logicCard = potentialCard; // Update current card
 
-                            return (true, $" You played {potentialCard}!", potentialCard);
+                            if (potentialCard is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
+                                return (true, $"You played: {potentialCard} and skipped the Computer!", potentialCard);
+
+                            else if ((potentialCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (potentialCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
+                                return (true, $"You played: {potentialCard}, so the Computer had to draw!", potentialCard);
+                   
+                            return (true, $" You played: {potentialCard}!", potentialCard);
                         }
+                        
                         else
                         {
-                            return (false, "That is not a valid move", null);
+                            return (false, "That is not a valid move, please choose again", null);
                         }
                     }
                 }
@@ -91,7 +98,7 @@ namespace SolitaireUno
 
                     else if (deck.Length() == 0 && deck.deckReshuffled)
                     {
-                        return (false, "Deck has already been reshuffled.\n Either pass or play!", null);
+                        return (false, "Deck has already been reshuffled. Either pass or play!", null);
                     }
 
                 }

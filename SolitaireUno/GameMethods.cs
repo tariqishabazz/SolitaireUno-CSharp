@@ -14,7 +14,7 @@ namespace SolitaireUno
 {
     public class GameMethods
     {
-        public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameMode gameMode)
+        public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameMode gameMode, bool suitEnforcement)
         {
             if (potentialPlay is RegularCard firstRegularCard && logicCardShown is RegularCard secondRegularCard)
             {
@@ -27,7 +27,7 @@ namespace SolitaireUno
                     return false;
                 }
 
-                return MainGame.SuitEnforcement ? SameColor(firstRegularCard, secondRegularCard) : true;
+                return suitEnforcement ? SameColor(firstRegularCard, secondRegularCard) : true;
             }
 
             else
@@ -108,14 +108,13 @@ namespace SolitaireUno
             return isFirstCardRed != isSecondCardRed;
         }
 
-        public static bool PotentialPlayerAction()
+        public static bool PotentialPlayerAction(Card? lastPlayedCard, bool computerSkipped, Deck gameDeck, Computer computer, Card penaltyCard)
         {
             int actualPickupCount = 0;
-            Card penaltyCard = new RegularCard(Suits.Spades, Values.Queen);
 
-            if (MainGame.LastPlayedCard is not null)
+            if (lastPlayedCard is not null)
             {
-                ActionInstruction message = SpecialCardAction(MainGame.LastPlayedCard);
+                ActionInstruction message = SpecialCardAction(lastPlayedCard);
                 switch (message)
                 {
                     case ActionInstruction.DoNothing:
@@ -131,13 +130,13 @@ namespace SolitaireUno
                     */
 
                     case ActionInstruction.SkipTurn:
-                        MainGame.ComputerSkipped = true;
+                        computerSkipped = true;
                         break;
 
                     case ActionInstruction.DrawFour:
                         for (int i = 0; i < 4; i++)
                         {
-                            Card? drawnCard = MainGame.GameDeck.DealCard();
+                            Card? drawnCard = gameDeck.DealCard();
                             if (drawnCard is not null)
                             {
                                 if (GetPenaltyCount(drawnCard, penaltyCard) > 0)
@@ -146,10 +145,10 @@ namespace SolitaireUno
 
                                     for (int j = 0; j < awardedPenalty; j++)
                                     {
-                                        Card? penaltyDrawnCard = MainGame.GameDeck.DealCard();
+                                        Card? penaltyDrawnCard = gameDeck.DealCard();
                                         if (penaltyDrawnCard is not null)
                                         {
-                                            MainGame.computer.PickupCard(penaltyDrawnCard);
+                                            computer.PickupCard(penaltyDrawnCard);
                                             actualPickupCount++;
                                         }
                                         else
@@ -159,7 +158,7 @@ namespace SolitaireUno
                                     }
                                 }
 
-                                MainGame.computer.PickupCard(drawnCard);
+                                computer.PickupCard(drawnCard);
                                 actualPickupCount++;
                             }
                             else
@@ -168,13 +167,13 @@ namespace SolitaireUno
                             }
                         }
                         
-                        MainGame.ComputerSkipped = true;
+                        computerSkipped = true;
                         break;
 
                     case ActionInstruction.DrawTwo:
                         for (int i = 0; i < 2; i++)
                         {
-                            Card? drawnCard = MainGame.GameDeck.DealCard();
+                            Card? drawnCard = gameDeck.DealCard();
                             if (drawnCard is not null)
                             {
                                 if (GetPenaltyCount(drawnCard, penaltyCard) > 0)
@@ -183,10 +182,10 @@ namespace SolitaireUno
 
                                     for (int j = 0; j < awardedPenalty; j++)
                                     {
-                                        Card? penaltyDrawnCard = MainGame.GameDeck.DealCard();
+                                        Card? penaltyDrawnCard = gameDeck.DealCard();
                                         if (penaltyDrawnCard is not null)
                                         {
-                                            MainGame.computer.PickupCard(penaltyDrawnCard);
+                                            computer.PickupCard(penaltyDrawnCard);
                                             actualPickupCount++;
                                         }
                                         else
@@ -196,7 +195,7 @@ namespace SolitaireUno
                                     }
                                 }
 
-                                MainGame.computer.PickupCard(drawnCard);
+                                computer.PickupCard(drawnCard);
                                 actualPickupCount++;
                             }
                             else
@@ -204,7 +203,7 @@ namespace SolitaireUno
                                 break;
                             }
                         }
-                        MainGame.ComputerSkipped = true;
+                        computerSkipped = true;
                         break;
 
                     default:
@@ -212,16 +211,15 @@ namespace SolitaireUno
                 }
                 ;
             }
-            return MainGame.ComputerSkipped;
+            return computerSkipped;
         }
-        public static bool PotentialComputerAction()
+        public static bool PotentialComputerAction(Card? lastPlayedCard, bool playerSkipped, Deck gameDeck, Player player, Card penaltyCard)
         {
             int actualPickupCount = 0;
-            Card penaltyCard = new RegularCard(Suits.Spades, Values.Queen);
 
-            if (MainGame.LastPlayedCard is not null)
+            if (lastPlayedCard is not null)
             {
-                ActionInstruction message = SpecialCardAction(MainGame.LastPlayedCard);
+                ActionInstruction message = SpecialCardAction(lastPlayedCard);
                 switch (message)
                 {
                     case ActionInstruction.DoNothing:
@@ -238,13 +236,13 @@ namespace SolitaireUno
                     */
 
                     case ActionInstruction.SkipTurn:
-                        MainGame.PlayerSkipped = true;
+                        playerSkipped = true;
                         break;
 
                     case ActionInstruction.DrawFour:
                         for (int i = 0; i < 4; i++)
                         {
-                            Card? drawnCard = MainGame.GameDeck.DealCard();
+                            Card? drawnCard = gameDeck.DealCard();
                             
                             if (drawnCard is not null)
                             {
@@ -254,10 +252,10 @@ namespace SolitaireUno
 
                                     for (int j = 0; j < awardedPenalty; j++)
                                     {
-                                        Card? penaltyDrawnCard = MainGame.GameDeck.DealCard();
+                                        Card? penaltyDrawnCard = gameDeck.DealCard();
                                         if (penaltyDrawnCard is not null)
                                         {
-                                            MainGame.player.PickupCard(penaltyDrawnCard);
+                                            player.PickupCard(penaltyDrawnCard);
                                             actualPickupCount++;
                                         }
                                         else
@@ -267,7 +265,7 @@ namespace SolitaireUno
                                     }
                                 }
 
-                                MainGame.player.PickupCard(drawnCard);
+                                player.PickupCard(drawnCard);
                                 actualPickupCount++;
                             }
                             else
@@ -276,13 +274,13 @@ namespace SolitaireUno
                             }
                         }
 
-                        MainGame.PlayerSkipped = true;
+                        playerSkipped = true;
                         break;
 
                     case ActionInstruction.DrawTwo:
                         for (int i = 0; i < 2; i++)
                         {
-                            Card? drawnCard = MainGame.GameDeck.DealCard();
+                            Card? drawnCard = gameDeck.DealCard();
 
                             if (drawnCard is not null)
                             {
@@ -292,10 +290,10 @@ namespace SolitaireUno
                                     
                                     for (int j = 0; j < awardedPenalty; j++)
                                     {
-                                        Card? penaltyDrawnCard = MainGame.GameDeck.DealCard();
+                                        Card? penaltyDrawnCard = gameDeck.DealCard();
                                         if (penaltyDrawnCard is not null)
                                         {
-                                            MainGame.player.PickupCard(penaltyDrawnCard);
+                                            player.PickupCard(penaltyDrawnCard);
                                             actualPickupCount++;
                                         }
                                         else
@@ -305,7 +303,7 @@ namespace SolitaireUno
                                     }
                                 }
 
-                                MainGame.player.PickupCard(drawnCard);
+                                player.PickupCard(drawnCard);
                                 actualPickupCount++;
                             }
                             else
@@ -314,7 +312,7 @@ namespace SolitaireUno
                             }
                         }
 
-                        MainGame.PlayerSkipped = true;
+                        playerSkipped = true;
                         break;
 
                     default:
@@ -322,10 +320,10 @@ namespace SolitaireUno
                 }
                 ;
             }
-            return MainGame.PlayerSkipped;
+            return playerSkipped;
         }
 
-        public static Card? PreventInitalSpecialCard(Card logicCard)
+        public static Card? PreventInitalSpecialCard(Card logicCard, Deck gameDeck)
         {
             if (logicCard is not null)
             {
@@ -334,11 +332,11 @@ namespace SolitaireUno
                     List<Card> temporarySpecialCards = [];
                     temporarySpecialCards.Add(logicCard);
 
-                    if (MainGame.GameDeck.Length() > 0)
-                        logicCard = MainGame.GameDeck.DealCard()!;
+                    if (gameDeck.Length() > 0)
+                        logicCard = gameDeck.DealCard()!;
 
-                    MainGame.GameDeck.AddRange(temporarySpecialCards);
-                    MainGame.GameDeck.InHouseShuffle();
+                    gameDeck.AddRange(temporarySpecialCards);
+                    gameDeck.InHouseShuffle();
                 }
 
                 return logicCard;

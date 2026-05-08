@@ -5,14 +5,14 @@ namespace SolitaireUno
 {
     public class Computer : Player
     {
-        public Card? MakeMove(Card currentCard, int opponentHandSize, int currentDeckSize, GameDifficulty gameDifficulty)
+        public Card? MakeMove(Card logicCard, int opponentHandSize, int currentDeckSize, GameDifficulty gameDifficulty, GameMode gameMode, bool suitEnforcement)
         {
             Random random = new Random();
             List<Card> validMoves = new List<Card>();
             
-            validMoves.AddRange(from Card card in Hand
-                                where GameMethods.ValidCard(card, currentCard, MainGame.GameModeChoice)
-                                select card);
+            validMoves.AddRange(from Card potentialCard in Hand
+                                where GameMethods.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement)
+                                select potentialCard);
             
             if (validMoves.Count == 0)
                 return null;
