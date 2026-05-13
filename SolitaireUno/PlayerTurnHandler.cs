@@ -26,100 +26,99 @@ namespace SolitaireUno
         /// <param name="penaltyCard">The penalty card for special rules.</param>
         public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, string playerDecision, GameMode gameMode, bool suitEnforcement)
         {
-
+            // playerDecision?. : Checks if the player's input actually exists before trying to do anything to it.
+            // ?? "" : A safety net that says, "If the input was missing or null,
+                // just give me a blank text string ("") instead of crashing the game."
+            
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
 
-            if (playerDecision != null)
+            // -------------------- executes pass logic -----------------------
+            
+            if (playerDecision == "pass" || playerDecision == "p")
             {
-                if (int.TryParse(playerDecision, out int decisionAsNumber)) // If input is a number
-                {
-                    if (decisionAsNumber > 0 && decisionAsNumber <= player.Hand.Count) // Valid card index
-                    {
-                        Card potentialCard = player.Hand[decisionAsNumber - 1]; // Get selected card
+                if (deck.Length() > 0)
+                    return (false, "The deck still has cards!\n Either pick up or play!", null);
 
-                        if (GameMethods.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement)) // Validate move
-                        {
-                            player.PlayCard(potentialCard); // Play the card
-                            deck.AddToDiscardPile(potentialCard);
+                else if (deck.Length() == 0 && !deck.deckReshuffled)
+                    return (false, "The deck hasn't been reshuffled! You can still pick up!", null);
 
-                            visualCard = potentialCard;
-
-                            if (potentialCard is RegularCard)
-                                logicCard = potentialCard; // Update current card
-
-                            if (potentialCard is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
-                                return (true, $"You played: {potentialCard} and skipped the Computer!", potentialCard);
-
-                            else if ((potentialCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (potentialCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
-                                return (true, $"You played: {potentialCard}, so the Computer had to draw!", potentialCard);
-                   
-                            return (true, $" You played: {potentialCard}!", potentialCard);
-                        }
-                        
-                        else
-                        {
-                            return (false, "That is not a valid move, please choose again", null);
-                        }
-                    }
-                }
-               
-                else if (playerDecision == "p.u" || playerDecision == "pu" || playerDecision == "pick up" || playerDecision == "pickup") // Pick up
-                {
-                    if (deck.Length() > 0 || deck.Length() == 0 && !deck.deckReshuffled)
-                    {
-                        Card card = deck.DealCard()!; // Draw a card
-                        player.PickupCard(card); // Add to hand
-
-                        int playerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard); // Check penalty
-
-                        switch (playerPotentialPenaltyCount)
-                        {
-                            case > 0:
-                                int actualPickupCount = 0;
-
-                                for (int i = 0; i < playerPotentialPenaltyCount; i++) // Add penalty cards
-                                {
-                                    Card? additionalPenaltyCard = deck.DealCard();
-
-                                    if (additionalPenaltyCard is not null)
-                                    {
-                                        player.PickupCard(additionalPenaltyCard);
-                                        actualPickupCount++;
-                                    }
-                                }
-                                break;
-
-                            default:
-                                break;
-                        }
-
-                        return (true, "You decided to pick up!", null);
-                    }
-
-                    else if (deck.Length() == 0 && deck.deckReshuffled)
-                    {
-                        return (false, "Deck has already been reshuffled. Either pass or play!", null);
-                    }
-
-                }
-                else if (playerDecision == "pass" || playerDecision == "p") // Pass
-                {
-                    if (deck.Length() > 0)
-                    {
-                        return (false, "The deck still has cards!\n Either pick up or play!", null);
-                    }
-                    else if(deck.Length() == 0 && !deck.deckReshuffled)
-                    {
-                        return (false, "The deck hasn't been reshuffled! You can still pick up!", null);   
-                    }
-                    else
-                    {
-                        return (true, "You decided to pass!", null);
-                    }
-                }
+                else
+                    return (true, "You decided to pass!", null);
             }
 
-            return(false, "You didn't a decision", null);
+            // -------------------- executes pickup logic -----------------------
+
+            else if (playerDecision == "p.u" || playerDecision == "pu" || playerDecision == "pick up" || playerDecision == "pickup") // Pick up
+            {
+                if (deck.Length() > 0 || deck.Length() == 0 && !deck.deckReshuffled)
+                {
+                    Card card = deck.DealCard()!;
+                    player.PickupCard(card);
+
+                    int playerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
+
+                    if (playerPotentialPenaltyCount > 0)
+                    {
+                        int actualPickupCount = 0;
+
+                        for (int i = 0; i < playerPotentialPenaltyCount; i++) // Add penalty cards
+                        {
+                            Card? additionalPenaltyCard = deck.DealCard();
+
+                            if (additionalPenaltyCard is not null)
+                            {
+                                player.PickupCard(additionalPenaltyCard);
+                                actualPickupCount++;
+                            }
+                        }
+
+                        return (true, $"You decided to pick up and found the {penaltyCard}! You picked up {actualPickupCount} additional cards!", null);
+                    }
+
+                    return (true, "You decided to pick up!", null);
+                }
+
+                else if (deck.Length() == 0 && deck.deckReshuffled)
+                    return (false, "Deck has already been reshuffled. Either pass or play!", null);
+            }
+
+
+            // -------------------- if decision doesn't return a number -----------------------
+
+            if (!int.TryParse(playerDecision, out int decisionAsNumber))
+                return (false, "That isn't a valid move, please try again", null);
+
+            // -------------------- if that number isn't within a valid range of cards -----------------------
+
+            if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count)
+                return (false, "Invalid card index", null);
+
+
+            Card potentialCard = player.Hand[decisionAsNumber - 1];
+
+            // -------------------- if ValidCard Returns false -----------------------
+
+            if (!GameMethods.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement))
+                return (false, "That is not a valid move, please try again", null);
+
+
+            // -------------------- Executes Play -----------------------
+
+            player.PlayCard(potentialCard); 
+            deck.AddToDiscardPile(potentialCard);
+
+            visualCard = potentialCard;
+
+            if (potentialCard is RegularCard)
+                logicCard = potentialCard;
+
+            if (potentialCard is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
+                return (true, $"You played: {potentialCard} and skipped the Computer!", potentialCard);
+
+            else if ((potentialCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (potentialCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
+                return (true, $"You played: {potentialCard}, so the Computer had to draw!", potentialCard);
+
+            return (true, $" You played: {potentialCard}!", potentialCard);
         }
     }
 }
