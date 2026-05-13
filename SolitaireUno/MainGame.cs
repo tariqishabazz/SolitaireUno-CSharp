@@ -52,21 +52,17 @@ namespace SolitaireUno
         /// </summary>
         public void StartGame()
         {
-            LogicCard = GameDeck.DealCard()!;
-            GameDeck.AddToDiscardPile(LogicCard);
+            LogicCard = GameDeck.PreventInitalSpecialCard();
 
-            Card? updatedCard = GameMethods.PreventInitalSpecialCard(LogicCard, GameDeck);
-            if (updatedCard is not null)
+            if (LogicCard is not null)
             {
-                LogicCard = updatedCard;
-                VisualCard = updatedCard;
+                GameDeck.AddToDiscardPile(LogicCard);
+                VisualCard = LogicCard;
+
+                IsPlayerTurn = true;
             }
             else
-            {
-                VisualCard = LogicCard;
-            }
-
-            IsPlayerTurn = true;
+                return;
         }
 
         /// <summary>

@@ -10,7 +10,6 @@ namespace SolitaireUno
     {
         DoNothing,
         SkipTurn, 
-        ChangeOrder, 
         DrawTwo, 
         DrawFour
     }

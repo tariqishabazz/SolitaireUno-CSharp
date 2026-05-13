@@ -12,8 +12,10 @@ namespace SolitaireUno
 
         public Player(Deck gameDeck)
         {
-            // sets up hands with 10 cards each
-            for (int i = 0; i < 10; i++)
+            int initialHandSize = 10;
+            
+            // sets up hands with cards
+            for (int i = 0; i < initialHandSize; i++)
             {
                 Card playerCard = gameDeck.DealCard()!;
                 PickupCard(playerCard);

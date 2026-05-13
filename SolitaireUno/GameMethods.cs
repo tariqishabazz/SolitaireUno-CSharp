@@ -18,114 +18,6 @@ namespace SolitaireUno
     public class GameMethods
     {
         /// <summary>
-        /// This is the most important methods of the game. It takes a card, compares it with another, and determines whether it is
-        ///     a valid play based on the game mode chosen, and whether suit enforcement is on.
-        /// </summary>
-        /// <param name="potentialPlay">Represents the card a player wants to play/put down. Compared with logicCardShown </param>
-        /// <param name="logicCardShown">Represents the card that is currently face up on the table</param>
-        /// <param name="gameMode">Represents the current mode of the game</param>
-        /// <param name="suitEnforcement">Represents the suit enforcement mode of the game</param>
-        /// <returns>True if the card a player wants to play is valid, False if it isn't </returns>
-        public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameMode gameMode, bool suitEnforcement)
-        {
-            // Checks to see if the card a player wants to play and the card on the table are both regular cards.
-            if (potentialPlay is RegularCard firstRegularCard && logicCardShown is RegularCard secondRegularCard)
-            {
-                // ... if so, we create an isValidSequence variable that stores if the 
-                    // card is valid based on the IsValidAscending/Descending methods
-                bool isValidSequence = gameMode == GameMode.Descending
-                    ? IsValidDescending(potentialPlay, logicCardShown)
-                    : IsValidAscending(potentialPlay, logicCardShown);
-
-                // if the sequence is not valid, return False to ValidCard()
-                if (!isValidSequence)
-                {
-                    return false;
-                }
-
-                // checks to see if suits are enforced, if so it calls SameColor(), if not and 
-                    // we reached this point, the card is likely valid.
-                return suitEnforcement ? SameColor(firstRegularCard, secondRegularCard) : true;
-            }
-
-            // if either potential play or the card on the table isn't a regular card,
-            //      then we return the value of isSpecialCard(). 
-            else
-            {
-                return IsSpecialCard(potentialPlay);
-            }
-        }
-
-
-        /// <summary>
-        /// This determines if the card is valid based on the descending game mode. 
-        /// </summary>
-        /// <param name="potentialPlay">The card a player wants to play. </param>
-        /// <param name="currentlyShown">The card that's currently face up on the table.  </param>
-        /// <returns>Returns True if the play is valid, False if it isn't</returns>
-        private static bool IsValidDescending(Card potentialPlay, Card currentlyShown)
-        { 
-            // checks to see if cards compared are regular cards, if so, then we check to see if
-            //      the value of the potential play is one less than the value of the card on the table
-            //      if returns True if so.
-            if (potentialPlay is RegularCard potentialCard && currentlyShown is RegularCard currentCard)
-                if ((int)potentialCard.Value == (int)currentCard.Value - 1)
-                    return true;
-
-            // if we havent returned True, IsWrapAround() is called
-            return IsWrapAround(potentialPlay, currentlyShown, GameMode.Descending);
-        }
-
-        /// <summary>
-        /// Works like IsValidDescending, but focuses on the ascending game mode. 
-        /// </summary>
-        /// <param name="potentialPlay">The card the player wants to play. </param>
-        /// <param name="currentlyShown">The card that's currently on the table. </param>
-        /// <returns>Returns True if the play is valid, False if it isn't</returns>
-        private static bool IsValidAscending(Card potentialPlay, Card currentlyShown)
-        {
-            // checks to see if cards compared are regular cards, if so, then we check to see if
-            //      the value of the potential play is one more than the value of the card on the table
-            //      if returns True if so.
-            if (potentialPlay is RegularCard potentialCard && currentlyShown is RegularCard currentCard)
-                if ((int)potentialCard.Value == (int)currentCard.Value + 1)
-                    return true;
-
-            // if we havent returned True, IsWrapAround() is called
-            return IsWrapAround(potentialPlay, currentlyShown, GameMode.Ascending);
-        }
-
-        /// <summary>
-        /// This method checks to see if we are in a wrap around case. A King on an Ace or an Ace on a King.  
-        /// </summary>
-        /// <param name="potentalPlay">The card a player wants to play. </param>
-        /// <param name="currentlyShown">The card that is currently on the table. </param>
-        /// <param name="gameMode"> The current mode of the game. </param>
-        /// <returns></returns>
-        private static bool IsWrapAround(Card potentalPlay, Card currentlyShown, GameMode gameMode)
-        {
-            // checks to see if cards compared are regular cards, if so, then we check to see if
-            //      the mode is Descending, if so, we return whether the potential card's value is a King, and the current card is an ace. 
-            //      But if it's not descending, then it must be ascending, and then we check to see if the card to be played is an Ace while the current card is a King. 
-            if (potentalPlay is RegularCard potentialCard && currentlyShown is RegularCard currentCard)
-                if (gameMode == GameMode.Descending)
-                    return potentialCard.Value == Values.King && currentCard.Value == Values.Ace;
-                else
-                    return potentialCard.Value == Values.Ace && currentCard.Value == Values.King;
-            
-            // if one or both cards are not regular cards, then it/they must be special card(s). 
-            else
-                return false;
-        }
-
-        /// <summary>
-        /// This simply checks to see if a card to be played is a special card. 
-        /// </summary>
-        /// <param name="potentialPlay">The card to be played. </param>
-        /// <returns></returns>
-        public static bool IsSpecialCard(Card potentialPlay) => potentialPlay is SpecialCard;
-
-        /// <summary>
         /// This determines if a dealt card is the penalty card.  
         /// </summary>
         /// <param name="dealtCard">The card dealt. </param>
@@ -163,11 +55,6 @@ namespace SolitaireUno
                     if (specialCard.CardType.Equals(SpecialCardType.Skip))
                         return ActionInstruction.SkipTurn;
 
-                    /*
-                    else if (specialCard.CardType.Equals(SpecialCardType.ChangeOrder))
-                        return ActionInstruction.ChangeOrder;
-                    */
-
                     else if (specialCard.CardType.Equals(SpecialCardType.DrawFour))
                         return ActionInstruction.DrawFour;
 
@@ -179,21 +66,6 @@ namespace SolitaireUno
         }
 
 
-        /// <summary>
-        /// This method takes two cards and compares them depending on their suits. This method is important for the suit enforcement feature. 
-        /// </summary>
-        /// <param name="firstRegularCard"></param>
-        /// <param name="secondRegularCard"></param>
-        /// <returns>True if both the first and second cards aren't red suits, False if they are</returns>
-        private static bool SameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
-        {
-            // IsFirstCardRed and isSecondCardRed looks at the suit and see if it equals a red suit AKA, Heart or diamonds. 
-            bool isFirstCardRed = (firstRegularCard.Suit.Equals(Suits.Hearts) || firstRegularCard.Suit.Equals(Suits.Diamonds));
-            bool isSecondCardRed = (secondRegularCard.Suit.Equals(Suits.Hearts) || secondRegularCard.Suit.Equals(Suits.Diamonds));
-
-            return isFirstCardRed != isSecondCardRed;
-        }
-
         public static bool PotentialPlayerAction(Card? lastPlayedCard, bool computerSkipped, Deck gameDeck, Computer computer, Card penaltyCard)
         {
             if (lastPlayedCard is not null)
@@ -203,15 +75,6 @@ namespace SolitaireUno
                 {
                     case ActionInstruction.DoNothing:
                         break;
-
-                    /*
-                                        case ActionInstruction.ChangeOrder:
-                                            MainGame.GameModeChoice = MainGame.GameModeChoice == GameMode.Ascending ? GameMode.Descending : GameMode.Ascending;
-                                            MainGame.Output.WriteLine($"\nThe game mode is now {MainGame.GameModeChoice}");
-
-                                            MainGame.IsPlayerTurn = false;
-                                            break;
-                    */
 
                     case ActionInstruction.SkipTurn:
                         computerSkipped = true;
@@ -247,16 +110,6 @@ namespace SolitaireUno
                     case ActionInstruction.DoNothing:
                         break;
 
-                    /*
-                        case ActionInstruction.ChangeOrder:
-                            MainGame.GameModeChoice = MainGame.GameModeChoice == GameMode.Ascending ? GameMode.Descending : GameMode.Ascending;
-                            MainGame.Output.WriteLine("\n---------------------------------------------------------------------");
-                            MainGame.Output.WriteLine($"\nThe game mode is now {MainGame.GameModeChoice}");
-
-                            MainGame.IsPlayerTurn = true;
-                            break;
-                    */
-
                     case ActionInstruction.SkipTurn:
                         playerSkipped = true;
                         break;
@@ -282,38 +135,12 @@ namespace SolitaireUno
         }
 
         /// <summary>
-        ///  This prevents the initial card that is dealt from being a special card. 
+        /// This performs the draw 2 and 4 actions on another player.
         /// </summary>
-        /// <param name="logicCard">The card on the table. </param>
-        /// <param name="gameDeck">The game deck being used. </param>
-        /// <returns>The new logic card, or Null</returns>
-        public static Card? PreventInitalSpecialCard(Card logicCard, Deck gameDeck)
-        {
-            // This checks to see that if the logic card even exists and begins a loop that creates an empty list and adds the logic card inside the list it.
-            // Checks to see if the game deck still has cards. If it does, set the new logic card to another Dealt card.
-            // Also adds the temporary special cards list to the game deck and reshuffles it. 
-            if (logicCard is not null)
-            {
-                while (logicCard is SpecialCard)
-                {
-                    List<Card> temporarySpecialCards = [];
-                    temporarySpecialCards.Add(logicCard);
-
-                    if (gameDeck.Length() > 0)
-                        logicCard = gameDeck.DealCard()!;
-
-                    gameDeck.AddRange(temporarySpecialCards);
-                    gameDeck.InHouseShuffle();
-                }
-
-                return logicCard;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
+        /// <param name="drawAmount">how many cards should be initially drawn</param>
+        /// <param name="unfortunateSoul">the unfortunate player subject to penalty</param>
+        /// <param name="gameDeck">the deck to be drawn from</param>
+        /// <param name="penaltyCard">the penalty card for a potential addtional penalty</param>
         private static void ProcessDraw(int drawAmount, Player unfortunateSoul, Deck gameDeck, Card penaltyCard)
         {
             for (int i = 0; i < drawAmount; i++)
@@ -331,21 +158,17 @@ namespace SolitaireUno
                             Card? penaltyDrawnCard = gameDeck.DealCard();
                             
                             if (penaltyDrawnCard is not null)
-                            {
                                 unfortunateSoul.PickupCard(penaltyDrawnCard);
-                            }
+                            
                             else
-                            {
                                 break;
-                            }
                         }
                     }
                     unfortunateSoul.PickupCard(drawnCard);
                 }
+                
                 else
-                {
                     break;
-                }
             }
         }
     }

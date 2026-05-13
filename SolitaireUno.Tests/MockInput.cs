@@ -6,15 +6,8 @@ namespace SolitaireUno.Tests
 {
     public class MockInput
     {
-        public static string SimulatedPass()
-        {
-            return "p";
-        }
-
-        public static string SimulatedPickUp()
-        {
-            return "pu";
-        }
-
+        public static string SimulatedPass() => "p";
+        
+        public static string SimulatedPickUp() => "pu";
     }
 }

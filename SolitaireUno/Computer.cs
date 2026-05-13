@@ -15,7 +15,7 @@ namespace SolitaireUno
             List<Card> validMoves =
             [
                 .. from Card potentialCard in Hand
-                                    where GameMethods.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement)
+                                    where CardValidation.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement)
                                     select potentialCard,
             ];
 

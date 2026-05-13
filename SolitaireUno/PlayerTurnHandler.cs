@@ -98,7 +98,7 @@ namespace SolitaireUno
 
             // -------------------- if ValidCard Returns false -----------------------
 
-            if (!GameMethods.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement))
+            if (!CardValidation.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement))
                 return (false, "That is not a valid move, please try again", null);
 
 
