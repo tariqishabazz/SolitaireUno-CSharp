@@ -52,7 +52,7 @@ namespace SolitaireUno
         /// </summary>
         public void StartGame()
         {
-            LogicCard = GameDeck.PreventInitalSpecialCard();
+            LogicCard = GameDeck.PreventInitialSpecialCard();
 
             if (LogicCard is not null)
             {

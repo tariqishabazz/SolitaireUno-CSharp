@@ -41,10 +41,10 @@ namespace SolitaireUno
             int randomPosition = random.Next(firstPenaltyPositionIndex, secondPenaltyPositionIndex);
             gameDeck.Insert(randomPosition, penaltyCard);
 
-            PreventInitalSpecialCard();
+            PreventInitialSpecialCard();
         }
 
-        public Card? PreventInitalSpecialCard()
+        public Card? PreventInitialSpecialCard()
         {
             Card firstCard = DealCard()!; 
             

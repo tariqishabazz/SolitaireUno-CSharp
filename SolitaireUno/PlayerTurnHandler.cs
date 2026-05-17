@@ -57,7 +57,7 @@ namespace SolitaireUno
 
                     int playerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
 
-                    if (playerPotentialPenaltyCount > 0)
+                    if (playerPotentialPenaltyCount != 0)
                     {
                         int actualPickupCount = 0;
 

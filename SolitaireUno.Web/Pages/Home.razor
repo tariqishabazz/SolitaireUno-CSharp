@@ -124,6 +124,13 @@
                 <option value="green">Green</option>
             </select>
 
+            <label class="form-label fw-bold text-dark text-start">Sorting Method</label>
+            <select class="form-select mb-4" @bind="selectedSortMethod">
+                <option value="values">By Values</option>
+                <option value="suits">By Suits</option>
+                <option value="both">Both</option>
+            </select>
+
 
             <div class="form-check mb-4 text-start">
                 <input class="form-check-input" type="checkbox" id="suitEnforcement" @bind="suitEnforcement" />
@@ -135,6 +142,7 @@
             <button class="btn btn-lg btn-success w-100 fw-bold" @onclick="StartNewGame">Start Game</button>
         </div>
     }
+    
     else
     {
         <div class="game-board mt-4">
@@ -242,15 +250,23 @@
     private GameMode selectedMode = GameMode.Ascending;
     private GameDifficulty selectedDifficulty = GameDifficulty.Easy;
     private string selectedCardColor = "yellow";
+    private string selectedSortMethod = "".ToLower();
 
     private void StartNewGame()
     {
         gameOverMessage = "";
 
         Deck freshDeck = new Deck();
+
+        // find way to store all game settings into one variable and pass that one variable to MainGame
+        // var GameConfiguration = (freshDeck, selectedMode, suitEnforcement, selectedDifficulty);
+
         gameEngine = new MainGame(freshDeck, selectedMode, suitEnforcement, selectedDifficulty);
 
         gameEngine.StartGame();
+
+        SortHand();
+
         gameStarted = true;
         actionLog = "Cards dealt. It is your turn.";
     }
@@ -260,13 +276,28 @@
         if (isComputerThinking || gameOverMessage != "")
             return;
 
+
+
+
+
+
         // -------------------------- PLAYER'S TURN ---------------------------------
+        if (gameEngine?.IsPlayerTurn == true)
+            actionLog += "\n\nYour turn.";
+
+        int? playerHandCountThisRound = gameEngine?.Player.Hand.Count;
 
         string turnResult = gameEngine?.AdvanceTurn(decision) ?? "";
-        if(!string.IsNullOrEmpty(turnResult))
+        if (!string.IsNullOrEmpty(turnResult))
         {
             actionLog = turnResult;
         }
+
+        int? playerHandCountLastRound = gameEngine?.Player.Hand.Count;
+
+        if (playerHandCountThisRound > playerHandCountLastRound)
+            SortHand();
+
 
         if (gameEngine?.Player.Hand.Count == 0)
         {
@@ -274,55 +305,40 @@
             return;
         }
 
+
+
+
+
+
+
         // -------------------------- COMPUTER'S TURN ---------------------------------
 
-        while ( (gameEngine?.IsPlayerTurn == false) && (gameEngine?.Computer.Hand.Count > 0) )
+        while ((gameEngine?.IsPlayerTurn == false) && (gameEngine?.Computer.Hand.Count > 0))
         {
             isComputerThinking = true;
-           // actionLog = "Opponent is thinking...";
+            actionLog = "Opponent is thinking...";
             StateHasChanged();
 
-            Random random = new Random();
-            int randomWaitingPeriod = random.Next(5) + 1;
-
-            switch (randomWaitingPeriod)
-            {
-                case 1:
-                    await Task.Delay(2000);
-                    break;
-
-                case 2:
-                    await Task.Delay(2500);
-                    break;
-
-                case 3:
-                    await Task.Delay(3000);
-                    break;
-
-                default:
-                    await Task.Delay(3500);
-                    break;
-            }
+            await SimulatedComputerThinking();
 
             turnResult = gameEngine?.AdvanceTurn("") ?? "";
-            
-            if(!string.IsNullOrEmpty(turnResult))
+
+            if (!string.IsNullOrEmpty(turnResult))
                 actionLog = turnResult;
 
+            if (playerHandCountThisRound > playerHandCountLastRound)
+                SortHand();
 
             if (gameEngine?.Computer.Hand.Count == 0)
             {
                 gameOverMessage = "Opponent Wins!";
-                
+
                 isComputerThinking = false;
                 return;
             }
         }
 
         isComputerThinking = false;
-        
-        if (gameEngine?.IsPlayerTurn == true)
-            actionLog += "\n\nYour turn.";
     }
 
     /// <summary>
@@ -369,4 +385,52 @@
         }
         return $"images/cards/{selectedCardColor}_backing.png";
     } 
+
+    // improve UI and sorting features
+    private void SortHand()
+    {
+        switch (selectedSortMethod)
+        {
+            case "values":
+                gameEngine?.Player.SortHandByValue();
+                break;
+
+            case "suits":
+                gameEngine?.Player.SortHandBySuit();
+                break;
+
+            case "both":
+                gameEngine?.Player.SortHandBySuitAndValue();
+                break;
+
+            default:
+                break;
+        }
+        ;
+    }
+
+    private async Task SimulatedComputerThinking()
+    {
+        Random random = new Random();
+        int randomWaitingPeriod = random.Next(5) + 1;
+
+        switch (randomWaitingPeriod)
+        {
+            case 1:
+                await Task.Delay(2000);
+                break;
+
+            case 2:
+                await Task.Delay(2500);
+                break;
+
+            case 3:
+                await Task.Delay(3000);
+                break;
+
+            default:
+                await Task.Delay(3500);
+                break;
+        }
+    }
 }
