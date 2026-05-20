@@ -15,12 +15,12 @@ namespace SolitaireUno.Tests
         }
 
         [Fact]
-        public void Length_Returns_A_DeckLength()
+        public void Length_Returns_A_ValidDeckLength()
         {
             Deck testDeck = new Deck();
             int deckLength = testDeck.Length();
 
-            Assert.Equal(testDeck.Length(), deckLength);
+            Assert.True(deckLength >= 0);
         }
 
         [Fact]
@@ -52,7 +52,6 @@ namespace SolitaireUno.Tests
             Card? dealtCard = testDeck.DealCard();
 
             Assert.NotNull(dealtCard);
-
         }
 
         [Fact]
@@ -79,6 +78,5 @@ namespace SolitaireUno.Tests
 
             Assert.NotEmpty(testDeck.DiscardPile);
         }
-
     }
 }

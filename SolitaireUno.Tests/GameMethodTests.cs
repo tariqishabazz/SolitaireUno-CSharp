@@ -4,7 +4,7 @@ using NUnit;
 
 namespace SolitaireUno.Tests
 {
-    public class GameMethodsTests
+    public class GameMethodTests
     {
         [Fact]
         public void PenaltyCardCount_EqualFour_WhenPenaltyFound()
