@@ -39,7 +39,7 @@ namespace SolitaireUno
                 if (deck.Length() > 0)
                     return (false, "The deck still has cards!\n Either pick up or play!", null);
 
-                else if (deck.Length() == 0 && !deck.deckReshuffled)
+                else if (deck.Length() == 0 && !deck.DeckReshuffled)
                     return (false, "The deck hasn't been reshuffled! You can still pick up!", null);
 
                 else
@@ -50,7 +50,7 @@ namespace SolitaireUno
 
             else if (playerDecision == "p.u" || playerDecision == "pu" || playerDecision == "pick up" || playerDecision == "pickup") // Pick up
             {
-                if (deck.Length() > 0 || deck.Length() == 0 && !deck.deckReshuffled)
+                if (deck.Length() > 0 || deck.Length() == 0 && !deck.DeckReshuffled)
                 {
                     Card card = deck.DealCard()!;
                     player.PickupCard(card);
@@ -78,7 +78,7 @@ namespace SolitaireUno
                     return (true, "You decided to pick up!", null);
                 }
 
-                else if (deck.Length() == 0 && deck.deckReshuffled)
+                else if (deck.Length() == 0 && deck.DeckReshuffled)
                     return (false, "Deck has already been reshuffled. Either pass or play!", null);
             }
 

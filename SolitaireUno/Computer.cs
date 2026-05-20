@@ -3,8 +3,13 @@ using System.Linq;
 
 namespace SolitaireUno
 {
-    public class Computer(Deck gameDeck) : Player(gameDeck)
+    public class Computer : Player
     {
+        public Computer(Deck gameDeck) : base(gameDeck)
+        {
+        
+        }
+        
         public Card? MakeMove(Card logicCard, int opponentHandSize, int currentDeckSize, GameDifficulty gameDifficulty, GameMode gameMode, bool suitEnforcement)
         {
             Random random = new Random();

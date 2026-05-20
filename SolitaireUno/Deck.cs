@@ -7,41 +7,57 @@ namespace SolitaireUno
     {
         private readonly Random random = new();
 
-        private readonly List<Card> gameDeck = [];
-        private readonly List<Card> discardPile = [];
+        private List<Card> _GameDeck = [];
+        private List<Card> _DiscardPile = [];
+
+        public List<Card> DiscardPile
+        {
+            get { return _DiscardPile; }  
+            set { _DiscardPile = value; }
+        }
+
+        public List<Card> GameDeck
+        {
+            get { return _GameDeck; }
+            set { _GameDeck = value;  }
+        }
 
         private readonly int addtionalSpecialCards = 1;
 
-        public bool deckReshuffled = false;
+        private bool _DeckReshuffled = false;
+
+        public bool DeckReshuffled
+        {
+            get { return _DeckReshuffled; }
+            set { _DeckReshuffled = value; }
+        }
 
         public Deck()
         {
             foreach (Values value in Enum.GetValues<Values>())
                 foreach (Suits suit in Enum.GetValues<Suits>())
-                    gameDeck.Add(new RegularCard(suit, value));
+                    _GameDeck.Add(new RegularCard(suit, value));
 
             foreach (SpecialCardType specialCard in Enum.GetValues<SpecialCardType>())
             {
-                gameDeck.Add(new SpecialCard(specialCard));
+                _GameDeck.Add(new SpecialCard(specialCard));
 
                 for (int i = 0; i < addtionalSpecialCards; i++)
-                    gameDeck.Add(new SpecialCard(specialCard));
+                    _GameDeck.Add(new SpecialCard(specialCard));
             }
 
             RegularCard penaltyCard = new(Suits.Spades, Values.Queen);
 
             InHouseShuffle();
 
-            int index = gameDeck.FindIndex(card => card is RegularCard regularCard && regularCard.IsEqual(penaltyCard));
-            gameDeck.RemoveAt(index);
+            int index = _GameDeck.FindIndex(card => card is RegularCard regularCard && regularCard.IsEqual(penaltyCard));
+            _GameDeck.RemoveAt(index);
 
             int firstPenaltyPositionIndex = 22;
             int secondPenaltyPositionIndex = 45;
 
             int randomPosition = random.Next(firstPenaltyPositionIndex, secondPenaltyPositionIndex);
-            gameDeck.Insert(randomPosition, penaltyCard);
-
-            PreventInitialSpecialCard();
+            _GameDeck.Insert(randomPosition, penaltyCard);
         }
 
         public Card? PreventInitialSpecialCard()
@@ -65,53 +81,53 @@ namespace SolitaireUno
             return firstCard;
         }
         
-        public void AddRange(List<Card> cardsToAdd) => gameDeck.AddRange(cardsToAdd);
+        public void AddRange(List<Card> cardsToAdd) => _GameDeck.AddRange(cardsToAdd);
 
         public void InHouseShuffle()
         {
-            if (gameDeck is not null)
+            if (_GameDeck is not null)
             {
-                for (int i = gameDeck.Count - 1; i > 0; i--)
+                for (int i = _GameDeck.Count - 1; i > 0; i--)
                 {
                     int randomIndex = random.Next(0, i + 1);
-                    (gameDeck[randomIndex], gameDeck[i]) = (gameDeck[i], gameDeck[randomIndex]);
+                    (_GameDeck[randomIndex], _GameDeck[i]) = (_GameDeck[i], _GameDeck[randomIndex]);
                 }
             }
         }
 
-        public int Length() => gameDeck.Count;
+        public int Length() => _GameDeck.Count;
         
         public Card? DealCard()
         {
-            if (gameDeck is null)
+            if (_GameDeck is null)
                 return null;
 
             else
             {
-                if (gameDeck.Count != 0)
+                if (_GameDeck.Count != 0)
                 {
-                    Card dealtCard = gameDeck[0];
-                    gameDeck.RemoveAt(0);
+                    Card dealtCard = _GameDeck[0];
+                    _GameDeck.RemoveAt(0);
 
                     return dealtCard;
                 }
 
                 else
                 {
-                    if (!deckReshuffled)
+                    if (!_DeckReshuffled)
                     {
-                        int lastCardIndex = discardPile.Count - 1;
-                        Card lastCardOnTable = discardPile[lastCardIndex];
+                        int lastCardIndex = DiscardPile.Count - 1;
+                        Card lastCardOnTable = DiscardPile[lastCardIndex];
 
-                        discardPile.RemoveAt(lastCardIndex);
+                        DiscardPile.RemoveAt(lastCardIndex);
 
-                        gameDeck.AddRange(discardPile);
-                        discardPile.Clear();
+                        _GameDeck.AddRange(DiscardPile);
+                        DiscardPile.Clear();
 
                         InHouseShuffle();
-                        discardPile.Add(lastCardOnTable);
+                        DiscardPile.Add(lastCardOnTable);
 
-                        deckReshuffled = true;
+                        _DeckReshuffled = true;
 
                         return DealCard();
                     }
@@ -122,10 +138,11 @@ namespace SolitaireUno
             }
         }
 
-        public Deck(List<Card> preMadeDeck) => gameDeck = preMadeDeck;
+        public Deck(List<Card> preMadeDeck) => _GameDeck = preMadeDeck;
         
-        public void AddToDiscardPile(Card card) => discardPile.Add(card);
-        
+        public void AddToDiscardPile(Card card) => DiscardPile.Add(card);
+
+        public static void Empty(List<Card> collectionToBeCleared) => collectionToBeCleared.Clear();
     }
 }
 

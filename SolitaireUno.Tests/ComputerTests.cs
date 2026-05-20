@@ -1,1 +1,3 @@
-﻿
+﻿namespace SolitaireUno.Tests
+{
+}

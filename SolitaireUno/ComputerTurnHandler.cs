@@ -19,7 +19,7 @@ namespace SolitaireUno
 
             if (potentialComputerPlay is null)
             {
-                if (_deck.Length() > 0 || _deck.Length() == 0 && !_deck.deckReshuffled)
+                if (_deck.Length() > 0 || _deck.Length() == 0 && !_deck.DeckReshuffled)
                 {
                     Card card = _deck.DealCard()!;
                     _computer.PickupCard(card);
@@ -47,7 +47,7 @@ namespace SolitaireUno
                         return ("The Computer decided to pick up!", null);
                 }
 
-                else if (_deck.Length() == 0 && _deck.deckReshuffled)
+                else if (_deck.Length() == 0 && _deck.DeckReshuffled)
                     return ("The Computer decided to pass!", null);
             }
 

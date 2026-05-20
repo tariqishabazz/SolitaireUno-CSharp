@@ -8,45 +8,29 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
-//Console.OutputEncoding = System.Text.Encoding.UTF8;
-
 namespace SolitaireUno
 {
     /// <summary>
-    /// This class contains all the crucial methods of the SolitaireUno experience.
+    /// Core game logic helpers used by the Solitaire Uno game.
     /// </summary>
     public class GameMethods
     {
         /// <summary>
-        /// This determines if a dealt card is the penalty card.  
+        /// Returns the penalty count if the dealt regular card equals the penalty card; otherwise 0.
         /// </summary>
-        /// <param name="dealtCard">The card dealt. </param>
-        /// <param name="penaltyCard">The assigned penalty card.  </param>
-        /// <returns></returns>
         public static int GetPenaltyCount(Card dealtCard, Card penaltyCard)
-        { 
-            // Here is the set penalty count if the dealt card is the penalty card. 
+        {
             const int PenaltyCardCount = 4;
 
-            // If the dealt card is a regular card, AKA, not a special card, we call the is equal method to see if it is the penalty card.
-            //      If it is, set the penalty count to PenaltyCardCount. If it's not, set it to 0.  
             if (dealtCard is RegularCard regularCard)
                 return regularCard.IsEqual(penaltyCard) ? PenaltyCardCount : 0;
-            
-            // Return zero because special cards don't have penalties. 
-            else
-                return 0;
+
+            return 0;
         }
-        
 
         /// <summary>
-        ///   This method returns an enum depending on the current card, if a special card was placed down.  
-        ///   For instance, if draw four was put down. Return the draw four instruction. 
-        ///   
-        ///     If a regular card was put down then it returns the do nothing instruction. 
+        /// Returns the action instruction associated with a special card; regular cards return DoNothing.
         /// </summary>
-        /// <param name="currentCard">The card currently on the table. </param>
-        /// <returns>An ActionInstruction depending on the card</returns>
         public static ActionInstruction SpecialCardAction(Card currentCard)
         {
             switch (currentCard)
@@ -65,8 +49,10 @@ namespace SolitaireUno
             }
         }
 
-
-        public static bool PotentialPlayerAction(Card? lastPlayedCard, bool computerSkipped, Deck gameDeck, Computer computer, Card penaltyCard)
+        /// <summary>
+        /// Applies special-card effects (skip/draw) to the target player and returns whether they were skipped.
+        /// </summary>
+        public static bool ApplySpecialCardEffect(Card? lastPlayedCard, bool targetSkipped, Deck gameDeck, Player targetPlayer, Card penaltyCard)
         {
             if (lastPlayedCard is not null)
             {
@@ -77,70 +63,30 @@ namespace SolitaireUno
                         break;
 
                     case ActionInstruction.SkipTurn:
-                        computerSkipped = true;
+                        targetSkipped = true;
                         break;
 
                     case ActionInstruction.DrawFour:
-                        ProcessDraw(4, computer, gameDeck, penaltyCard);
-                        
-                        computerSkipped = true;
+                        ProcessDraw(4, targetPlayer, gameDeck, penaltyCard);
+                        targetSkipped = true;
                         break;
 
                     case ActionInstruction.DrawTwo:
-                        ProcessDraw(2, computer, gameDeck, penaltyCard);
-
-                        computerSkipped = true;
+                        ProcessDraw(2, targetPlayer, gameDeck, penaltyCard);
+                        targetSkipped = true;
                         break;
 
                     default:
                         break;
                 }
-                ;
             }
-            return computerSkipped;
-        }
-        
-        public static bool PotentialComputerAction(Card? lastPlayedCard, bool playerSkipped, Deck gameDeck, Player player, Card penaltyCard)
-        {
-            if (lastPlayedCard is not null)
-            {
-                ActionInstruction message = SpecialCardAction(lastPlayedCard);
-                switch (message)
-                {
-                    case ActionInstruction.DoNothing:
-                        break;
 
-                    case ActionInstruction.SkipTurn:
-                        playerSkipped = true;
-                        break;
-
-                    case ActionInstruction.DrawFour:
-                        ProcessDraw(4, player, gameDeck, penaltyCard);
-
-                        playerSkipped = true;
-                        break;
-
-                    case ActionInstruction.DrawTwo:
-                        ProcessDraw(2, player, gameDeck, penaltyCard);
-
-                        playerSkipped = true;
-                        break;
-
-                    default:
-                        break;
-                }
-                ;
-            }
-            return playerSkipped;
+            return targetSkipped;
         }
 
         /// <summary>
-        /// This performs the draw 2 and 4 actions on another player.
+        /// Performs draw operations for penalties, handling chained penalties when penalty card is drawn.
         /// </summary>
-        /// <param name="drawAmount">how many cards should be initially drawn</param>
-        /// <param name="unfortunateSoul">the unfortunate player subject to penalty</param>
-        /// <param name="gameDeck">the deck to be drawn from</param>
-        /// <param name="penaltyCard">the penalty card for a potential addtional penalty</param>
         private static void ProcessDraw(int drawAmount, Player unfortunateSoul, Deck gameDeck, Card penaltyCard)
         {
             for (int i = 0; i < drawAmount; i++)
@@ -156,19 +102,19 @@ namespace SolitaireUno
                         for (int j = 0; j < awardedPenalty; j++)
                         {
                             Card? penaltyDrawnCard = gameDeck.DealCard();
-                            
                             if (penaltyDrawnCard is not null)
                                 unfortunateSoul.PickupCard(penaltyDrawnCard);
-                            
                             else
                                 break;
                         }
                     }
+
                     unfortunateSoul.PickupCard(drawnCard);
                 }
-                
                 else
+                {
                     break;
+                }
             }
         }
     }

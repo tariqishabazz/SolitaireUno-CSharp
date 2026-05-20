@@ -4,25 +4,25 @@ namespace SolitaireUno
 {
     public class MainGame
     {
-        public Player Player { get; private set; } // property represening the human player
-        public Computer Computer { get; private set; } // property representing the computer(s)
-        public Deck GameDeck { get; set; } // represents the game deck
+        public Player Player { get; private set; }
+        public Computer Computer { get; private set; }
+        public Deck GameDeck { get; set; }
 
-        internal PlayerTurnHandler _playerTurnHandler; // represents the turn of the human player
-        internal ComputerTurnHandler _computerTurnHandler; // represents the turn of the computer
+        internal PlayerTurnHandler _playerTurnHandler;
+        internal ComputerTurnHandler _computerTurnHandler;
 
-        public GameMode GameModeChoice { get; set; } // represents the game mode
-        internal GameDifficulty GameDifficulty { get; set; } // represents the game difficulty
+        public GameMode GameModeChoice { get; set; }
+        internal GameDifficulty GameDifficulty { get; set; }
 
-        public bool IsPlayerTurn { get; set; } // represents whether its the human players turn
-        internal bool SuitEnforcement { get; private set; } // represents whether suits are enforced
-        public bool ComputerSkipped { get; set; } // represents if the computer has been skipped
-        public bool PlayerSkipped { get; set; } // represents if the player has been skipped
+        public bool IsPlayerTurn { get; set; }
+        internal bool SuitEnforcement { get; private set; }
+        public bool ComputerSkipped { get; set; }
+        public bool PlayerSkipped { get; set; }
 
-        public Card? LastPlayedCard { get; private set; } // represents the last played card
-        public Card? LogicCard; // represents the logical card
-        public Card? VisualCard; // represents the visual card
-        internal RegularCard PenaltyCard { get; private set; } // represents the penalty card
+        public Card? LastPlayedCard { get; private set; }
+        public Card? LogicCard;
+        public Card? VisualCard;
+        internal RegularCard PenaltyCard { get; private set; }
 
         /// <summary>
         /// Main constructor for a new game. It handles creating new player and computer objects, setting all the game modes/features, initializing the turn handlers,
@@ -47,9 +47,7 @@ namespace SolitaireUno
             _computerTurnHandler = new ComputerTurnHandler(Computer, GameDeck, GameDifficulty);
         }
 
-        /// <summary>
-        /// Starts the game, handles addtional deck setup if needed, and starts the player's turn.
-        /// </summary>
+        /// <summary>Start the game and prepare the initial table card.</summary>
         public void StartGame()
         {
             LogicCard = GameDeck.PreventInitialSpecialCard();
@@ -65,22 +63,17 @@ namespace SolitaireUno
                 return;
         }
 
-        /// <summary>
-        /// This method alternates between the player and computer(s) turns
-        /// </summary>
-        /// <param name="playerDecision"></param>
-        /// <returns></returns>
+        /// <summary>Advance the game by one turn (player or computer).</summary>
+        /// <param name="playerDecision">Player input/command</param>
+        /// <returns>UI message produced during the turn</returns>
         public string AdvanceTurn(string playerDecision = "")
         {
-            // setting both the computer and player skipped to False
             PlayerSkipped = false;
             ComputerSkipped = false;
 
-            // setting the message to empty string
             string uiMessage = "";
 
-
-            // if its the players turn and both the logic and visal card properly exist, go through the players turn
+            // Player's turn
             if (IsPlayerTurn && (LogicCard is not null && VisualCard is not null))
             {
                 var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, playerDecision, GameModeChoice, SuitEnforcement);
@@ -92,10 +85,10 @@ namespace SolitaireUno
                     if (cardPlayed is not null)
                     {
                         LastPlayedCard = cardPlayed;
-                        ComputerSkipped = GameMethods.PotentialPlayerAction(LastPlayedCard, ComputerSkipped, GameDeck, Computer, PenaltyCard);
+                        ComputerSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard, ComputerSkipped, GameDeck, Computer, PenaltyCard);
                     }
 
-                    if(!ComputerSkipped)
+                    if (!ComputerSkipped)
                         IsPlayerTurn = false;
                 }
             }
@@ -109,10 +102,10 @@ namespace SolitaireUno
                 if (cardPlayed is not null)
                 {
                     LastPlayedCard = cardPlayed;
-                    PlayerSkipped = GameMethods.PotentialComputerAction(LastPlayedCard, PlayerSkipped, GameDeck, Player, PenaltyCard);
+                    PlayerSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard, PlayerSkipped, GameDeck, Player, PenaltyCard);
                 }
 
-                if(!PlayerSkipped)
+                if (!PlayerSkipped)
                     IsPlayerTurn = true;
             }
             
