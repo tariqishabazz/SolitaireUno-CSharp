@@ -16,7 +16,7 @@ A decoupled, unit-tested implementation of a hybrid Solitaire-Uno game engine. T
 *   **Automation:** GitHub Actions
 
 ## Testing Strategy
-The project includes a dedicated `SolitaireUno.Tests` suite. I focused on testing "Business Logic" rather than UI(coming soon), specifically:
+The project includes a dedicated `SolitaireUno.Tests` suite. I focused on testing "Business Logic" rather than UI (coming soon), specifically:
 *   Game state transitions after special card plays.
 *   Validation of legal moves based on color/value matching.
 *   Computer AI decision-making logic.
