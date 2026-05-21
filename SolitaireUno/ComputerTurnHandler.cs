@@ -7,15 +7,31 @@ using System.Threading.Tasks;
 
 namespace SolitaireUno
 {
+    /// <summary>
+    /// Handles the computer's turn and applies drawing/penalty logic.
+    /// </summary>
     public class ComputerTurnHandler(Computer computer, Deck deck, GameDifficulty currentDifficulty)
     {
         private readonly Computer _computer = computer;
         private readonly Deck _deck = deck;
         private readonly GameDifficulty _gameDifficulty = currentDifficulty;
 
+        /// <summary>
+        /// Processes the computer's turn and returns a message and the card played if any.
+        /// </summary>
+        /// <param name="logicCard">Reference to the logic card used for validation.</param>
+        /// <param name="visualCard">Reference to the visual card shown to the UI.</param>
+        /// <param name="penaltyCard">The configured penalty card.</param>
+        /// <param name="opponentHandSize">Number of cards the opponent currently holds.</param>
+        /// <param name="currentGameMode">Current game mode for validation.</param>
+        /// <param name="suitEnforcement">Whether suit enforcement is active.</param>
+        /// <returns>Tuple containing a UI message and the card played, if any.</returns>
         public (string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, int opponentHandSize, GameMode currentGameMode, bool suitEnforcement)
         {
             Card? potentialComputerPlay = _computer.MakeMove(logicCard, opponentHandSize, _deck.Length(), _gameDifficulty, currentGameMode, suitEnforcement);
+
+
+            // ----------------- IF COMPUTER HAS NO POTENTIAL PLAY ------------------ //
 
             if (potentialComputerPlay is null)
             {
@@ -24,8 +40,10 @@ namespace SolitaireUno
                     Card card = _deck.DealCard()!;
                     _computer.PickupCard(card);
 
-                    int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
 
+                    // ------------- HANDLES POTENTIAL PENALTY --------------- //
+
+                    int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
                     if (computerPotentialPenaltyCount > 0)
                     {
                         int actualPickupCount = 0;
@@ -51,6 +69,9 @@ namespace SolitaireUno
                     return ("The Computer decided to pass!", null);
             }
 
+
+            // ------------------ COMPUTER HAS VALID PLAY --------------- // 
+
             else
             {
                 visualCard = potentialComputerPlay;
@@ -70,7 +91,7 @@ namespace SolitaireUno
 
                 return ($"The Computer decided to play: {potentialComputerPlay}!", potentialComputerPlay);
             }
-            
+
             return ("The Computer got scared...", null);
         }
     }

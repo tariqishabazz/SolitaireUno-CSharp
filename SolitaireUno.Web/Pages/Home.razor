@@ -279,9 +279,7 @@
 
 
 
-
-
-        // -------------------------- PLAYER'S TURN ---------------------------------
+        // -------------------------- PLAYER'S TURN ----------------------------- //
         if (gameEngine?.IsPlayerTurn == true)
             actionLog += "\n\nYour turn.";
 
@@ -308,10 +306,7 @@
 
 
 
-
-
-
-        // -------------------------- COMPUTER'S TURN ---------------------------------
+        // -------------------------- COMPUTER'S TURN ----------------------------- //
 
         while ((gameEngine?.IsPlayerTurn == false) && (gameEngine?.Computer.Hand.Count > 0))
         {
@@ -360,6 +355,12 @@
         return "card-special";
     }
 
+
+    /// <summary>
+    /// Sets the proper card images to each card based on its Suit or Value, or special card context
+    /// </summary>
+    /// <param name="card">The card to set the image of</param>
+    /// <returns></returns>
     private string GetCardImagePath(Card? card)
     {
         if (card is null)
@@ -386,7 +387,9 @@
         return $"images/cards/{selectedCardColor}_backing.png";
     } 
 
-    // improve UI and sorting features
+    /// <summary>
+    /// Uses the players SortHand methods to properly sort hand cards based on user's desire
+    /// </summary>
     private void SortHand()
     {
         switch (selectedSortMethod)
@@ -409,6 +412,10 @@
         ;
     }
 
+    /// <summary>
+    /// Creates a fake pause to simulate real-time thinking
+    /// </summary>
+    /// <returns>A Task Delay</returns>
     private async Task SimulatedComputerThinking()
     {
         Random random = new Random();

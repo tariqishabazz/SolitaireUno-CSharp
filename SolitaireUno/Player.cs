@@ -7,10 +7,17 @@ using System.Linq;
 
 namespace SolitaireUno
 {
+    /// <summary>
+    /// Represents a game participant that holds a hand of cards and can play or pick up cards.
+    /// </summary>
     public class Player
     {
         public List<Card> Hand = [];
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="Player"/> and deals an initial hand from the game deck.
+        /// </summary>
+        /// <param name="gameDeck">The deck used to draw the initial hand.</param>
         public Player(Deck gameDeck)
         {
             int initialHandSize = 10;
@@ -23,16 +30,27 @@ namespace SolitaireUno
             }
         }
         
+        /// <summary>
+        /// Adds a card to the player's hand.
+        /// </summary>
+        /// <param name="card">The card to pick up.</param>
         public void PickupCard(Card card)
         {
             Hand.Add(card);
         }
         
+        /// <summary>
+        /// Removes a card from the player's hand, representing play.
+        /// </summary>
+        /// <param name="card">The card to play.</param>
         public void PlayCard(Card card)
         {
             Hand.Remove(card);
         }
 
+        /// <summary>
+        /// Sorts the player's hand by the numerical value of regular cards while preserving special cards.
+        /// </summary>
         public void SortHandByValue()
         {
             IEnumerable<RegularCard> allPlayersRegularCards = Hand.OfType<RegularCard>();
@@ -51,6 +69,9 @@ namespace SolitaireUno
             Hand = sortedHand;
         }
 
+        /// <summary>
+        /// Sorts the player's hand by suit order and appends special cards.
+        /// </summary>
         public void SortHandBySuit()
         {
             IEnumerable<RegularCard> allPlayersRegularCards = Hand.OfType<RegularCard>();
@@ -70,6 +91,9 @@ namespace SolitaireUno
             Hand = sortedHand;
         }
 
+        /// <summary>
+        /// Sorts the player's hand by suit then value, with special cards appended.
+        /// </summary>
         public void SortHandBySuitAndValue()
         {
             IEnumerable<RegularCard> allPlayersRegularCards = Hand.OfType<RegularCard>();
@@ -90,6 +114,10 @@ namespace SolitaireUno
             Hand = sortedHand;
         }
 
+        /// <summary>
+        /// Returns the player's special cards sorted by their type.
+        /// </summary>
+        /// <returns>List of special cards sorted by type.</returns>
         private List<SpecialCard> AllSortedSpecialCards()
         {
             IEnumerable<SpecialCard> allPlayersSpecialCards = Hand.OfType<SpecialCard>();

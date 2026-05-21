@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace SolitaireUno
 {
+    /// <summary>
+    /// Represents available game modes.
+    /// </summary>
     public enum GameMode { Ascending, Descending }
+
+    /// <summary>
+    /// Represents AI difficulty levels used to influence computer move selection.
+    /// </summary>
     public enum GameDifficulty { Easy, Medium, Hard }
 }

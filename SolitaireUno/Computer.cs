@@ -3,20 +3,36 @@ using System.Linq;
 
 namespace SolitaireUno
 {
+    /// <summary>
+    /// Computer player AI responsible for choosing and playing cards.
+    /// </summary>
     public class Computer : Player
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Computer"/> class.
+        /// </summary>
+        /// <param name="gameDeck">The deck the computer can draw from during setup.</param>
         public Computer(Deck gameDeck) : base(gameDeck)
         {
-        
         }
-        
+
+        /// <summary>
+        /// Determines and returns a card the computer will play based on the current game state and AI difficulty.
+        /// </summary>
+        /// <param name="logicCard">The current logic card on the table used for validation.</param>
+        /// <param name="opponentHandSize">The number of cards in the opponent's hand.</param>
+        /// <param name="currentDeckSize">The current number of cards remaining in the deck.</param>
+        /// <param name="gameDifficulty">The difficulty level that influences move selection.</param>
+        /// <param name="gameMode">The current game mode (ascending/descending).</param>
+        /// <param name="suitEnforcement">Whether suit enforcement is active for validation.</param>
+        /// <returns>The chosen card to play, or null if no valid move exists.</returns>
         public Card? MakeMove(Card logicCard, int opponentHandSize, int currentDeckSize, GameDifficulty gameDifficulty, GameMode gameMode, bool suitEnforcement)
         {
             Random random = new Random();
 
             //The two dots are called the spread operator. In this case,
-            //it takes all the individual cards found by your query and "spreads"
-            //them into the new validMoves list.
+                //it takes all the individual cards found by the query and "spreads"
+                //them into the new validMoves list.
             List<Card> validMoves =
             [
                 .. from Card potentialCard in Hand
@@ -30,6 +46,7 @@ namespace SolitaireUno
             List<Card> regularMoves = [.. validMoves.Where(card => card is RegularCard)];
             List<Card> specialMoves = [.. validMoves.Where(card => card is SpecialCard)];
 
+            // Computer AI switches based on chosen difficulty
             switch (gameDifficulty)
             {
                 case GameDifficulty.Easy:

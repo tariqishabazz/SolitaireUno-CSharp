@@ -7,7 +7,7 @@ namespace SolitaireUno
     /// <summary>
     /// Card validation helpers (play validity, wrap-around, suit checks).
     /// </summary>
-    internal static class CardValidation
+    public class CardValidation
     {
         /// <summary>
         /// Determines whether a potential play is valid given the current table card, game mode, and suit enforcement.
@@ -74,7 +74,7 @@ namespace SolitaireUno
         /// <summary>
         /// Returns true when the two regular cards are of the same color grouping (red vs black).
         /// </summary>
-        private static bool SameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
+        public static bool SameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
         {
             bool isFirstCardRed = (firstRegularCard.Suit == Suits.Hearts || firstRegularCard.Suit == Suits.Diamonds);
             bool isSecondCardRed = (secondRegularCard.Suit == Suits.Hearts || secondRegularCard.Suit == Suits.Diamonds);
