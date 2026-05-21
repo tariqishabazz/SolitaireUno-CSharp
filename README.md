@@ -2,7 +2,7 @@
 
 # Solitaire-Uno (C# / .NET 8)
 
-A decoupled, unit-tested implementation of a hybrid Solitaire-Uno game engine. This project focuses on **Clean Architecture**, **Dependency Inversion**, and **Automated Testing**.
+A decoupled, unit-tested implementation of a hybrid Solitaire-Uno game engine. This project focuses on **Clean Architecture** and **Automated Testing**.
 
 ## Key Engineering Features
 *   **GUI-Driven Design:** Utilizes Blazor to create a GUI for enhanced gameplay.
