@@ -40,7 +40,7 @@ namespace SolitaireUno.Tests
 
             // act
             if (dealtCard is not null)
-                GameMethods.PreventInitalSpecialCard(dealtCard);
+                GameMethods.PreventInitialSpecialCard(dealtCard);
 
             bool result = dealtCard is SpecialCard;
 

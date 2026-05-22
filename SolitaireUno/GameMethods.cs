@@ -27,7 +27,7 @@ namespace SolitaireUno
                     return false;
                 }
 
-                return MainGame.SuitEnforcement ? SameColor(firstRegularCard, secondRegularCard) : true;
+                return MainGame.SuitEnforcement ? NotSameColor(firstRegularCard, secondRegularCard) : true;
             }
 
             else
@@ -100,7 +100,7 @@ namespace SolitaireUno
             }
         }
 
-        private static bool SameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
+        private static bool NotSameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
         {
             bool isFirstCardRed = (firstRegularCard.Suit.Equals(Suits.Hearts) || firstRegularCard.Suit.Equals(Suits.Diamonds));
             bool isSecondCardRed = (secondRegularCard.Suit.Equals(Suits.Hearts) || secondRegularCard.Suit.Equals(Suits.Diamonds));
