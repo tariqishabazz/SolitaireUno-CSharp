@@ -108,28 +108,25 @@ namespace SolitaireUno
             {
                 Card? drawnCard = gameDeck.DealCard();
 
-                if (drawnCard is not null)
-                {
-                    if (GetPenaltyCount(drawnCard, penaltyCard) > 0)
-                    {
-                        int awardedPenalty = GetPenaltyCount(drawnCard, penaltyCard);
-
-                        for (int j = 0; j < awardedPenalty; j++)
-                        {
-                            Card? penaltyDrawnCard = gameDeck.DealCard();
-                            if (penaltyDrawnCard is not null)
-                                unfortunateSoul.PickupCard(penaltyDrawnCard);
-                            else
-                                break;
-                        }
-                    }
-
-                    unfortunateSoul.PickupCard(drawnCard);
-                }
-                else
-                {
+                if (drawnCard is null)
                     break;
+
+                if (GetPenaltyCount(drawnCard, penaltyCard) > 0)
+                {
+                    int awardedPenalty = GetPenaltyCount(drawnCard, penaltyCard);
+
+                    for (int j = 0; j < awardedPenalty; j++)
+                    {
+                        Card? penaltyDrawnCard = gameDeck.DealCard();
+
+                        if (penaltyDrawnCard is null)
+                            break;
+
+                        unfortunateSoul.PickupCard(penaltyDrawnCard);
+                    }
                 }
+
+                unfortunateSoul.PickupCard(drawnCard);
             }
         }
     }
