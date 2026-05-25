@@ -65,7 +65,7 @@ namespace SolitaireUno
                 return false;
         }
 
-        public static bool IsSpecialCard(Card potentialPlay) => potentialPlay is SpecialCard;
+        public static bool IsSpecialCard(Card potentialSpecialCard) => potentialSpecialCard is SpecialCard;
 
         public static int GetPenaltyCount(Card dealtCard, Card penaltyCard)
         {
