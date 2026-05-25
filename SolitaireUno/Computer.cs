@@ -3,45 +3,116 @@ using System.Linq;
 
 namespace SolitaireUno
 {
-    /// <summary>
-    /// Represents a computer-controlled player in a card game, managing its hand and automated moves.
-    /// </summary>
-    /// <remarks>
-    /// The Computer class provides methods for managing the computer player's hand and making moves
-    /// based on the current state of play. It is intended to be used as part of a card game where automated opponents
-    /// are required.
-    /// </remarks>
     public class Computer : Player
     {
-        /// <summary>
-        /// Attempts to play a valid card from the computer's hand based on the specified current card.
-        /// </summary>
-        /// <remarks>
-        /// The method evaluates each card in the computer's hand in order and plays the first
-        /// valid card it finds. If no valid move is available, the method returns null to indicate that the computer
-        /// cannot play a card on this turn.
-        /// </remarks>
-        /// <param name="currentCard">The card currently in play. Used to determine which cards in the computer's hand are valid to play.</param>
-        /// <returns>The card played from the computer's hand if a valid move is found; otherwise, null if no valid card can be played.</returns>
-        public Card? MakeMove(Card currentCard)
+        public Card? MakeMove(Card currentCard, int opponentHandSize, int currentDeckSize, GameDifficulty gameDifficulty)
         {
-            List<Card> validMoves = []; // List to store valid moves
+            Random random = new Random();
+            List<Card> validMoves = new List<Card>();
+            
+            validMoves.AddRange(from Card card in Hand
+                                where GameMethods.ValidCard(card, currentCard, MainGame.GameModeChoice)
+                                select card);
+            
+            if (validMoves.Count == 0)
+                return null;
+            
+            List<Card> regularMoves = validMoves.Where(card => card is RegularCard).ToList();
+            List<Card> specialMoves = validMoves.Where(card => card is SpecialCard).ToList();
 
-            foreach (Card card in Hand) // Check each card in the computer's hand
+            switch (gameDifficulty)
             {
-                if (GameMethods.ValidCard(card, currentCard, MainGame._gameModeChoice)) // If the card is a valid move
-                {
-                    validMoves.Add(card); // Add to valid moves
-                }
-            }
+                case GameDifficulty.Easy:
+                    
+                    Card randomEasyMove = validMoves[random.Next(validMoves.Count)];
+                    return randomEasyMove;
 
-            if (validMoves.Count > 0) // If there are valid moves
-            {
-                Card bestCard = validMoves.OrderByDescending(card => (int)card.Suit).First(); // Choose the best card (highest suit)
-                PlayCard(bestCard); // Play the chosen card
-                return bestCard; // Return the card played
+                case GameDifficulty.Medium:
+                    
+                    if(currentDeckSize <= 7 && specialMoves.Count > 0)
+                    {
+                        Card randomSpecialMove = specialMoves[random.Next(specialMoves.Count)];
+                        return randomSpecialMove;
+                    }
+
+                    switch (opponentHandSize)
+                    {
+                        case <= 8:
+                            {
+                                if (specialMoves.Count > 0)
+                                {   
+                                    Card randomSpecialMove = specialMoves[random.Next(specialMoves.Count)];
+
+                                    if (validMoves.Count == 1 && validMoves[0] is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
+                                        return null;
+
+                                    return randomSpecialMove;
+                                }
+                                else
+                                {
+                                    Card randomRegularMove = regularMoves[random.Next(regularMoves.Count)];
+                                    return randomRegularMove;
+                                }
+                            }
+
+                        default:
+                            {
+                                if (regularMoves.Count > 0)
+                                {
+                                    Card randomRegularMove = regularMoves[random.Next(regularMoves.Count)];
+                                    return randomRegularMove;
+                                }
+                                else
+                                {
+                                    return null;
+                                }
+                            }
+                    }
+                
+                case GameDifficulty.Hard:
+
+                    if (currentDeckSize <= 7 && specialMoves.Count > 0)
+                    {
+                        Card randomSpecialMove = specialMoves[random.Next(specialMoves.Count)];
+                        return randomSpecialMove;
+                    }
+
+                    switch (opponentHandSize)
+                    {
+                        case <= 5:
+                            {
+                                if (specialMoves.Count > 0)
+                                {
+                                    Card randomSpecialMove = specialMoves[random.Next(specialMoves.Count)];
+
+                                    if (validMoves.Count == 1 && validMoves[0] is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
+                                        return null;
+
+                                    return randomSpecialMove;
+                                }
+                                else
+                                {
+                                    Card randomRegularMove = regularMoves[random.Next(regularMoves.Count)];
+                                    return randomRegularMove;
+                                }
+                            }
+                        default:
+                            {
+                                if (regularMoves.Count > 0)
+                                {
+                                    Card randomRegularMove = regularMoves[random.Next(regularMoves.Count)];
+                                    return randomRegularMove;
+                                }
+                                else
+                                {
+                                    return null;
+                                }
+                            }
+                    }
+
+                default:
+                    return null;
             }
-            return null; // No valid move found
         }
     }
 }

@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 namespace SolitaireUno
 {
-    public interface IInputProvider
-    {
-        string GetInput();
-    }
-} 
+    public enum GameMode { Ascending, Descending }
+    public enum GameDifficulty { Easy, Medium, Hard }
+}

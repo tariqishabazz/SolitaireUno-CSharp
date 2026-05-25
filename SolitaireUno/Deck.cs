@@ -1,101 +1,137 @@
-﻿namespace SolitaireUno
+﻿using System.Collections.Generic;
+using System.Data.SqlTypes;
+
+namespace SolitaireUno
 {
-    /// <summary>
-    /// Represents a standard deck of playing cards, supporting shuffling, dealing, and special penalty card logic.
-    /// </summary>
-    /// <remarks>
-    /// The Deck class builds a full deck, shuffles it, and ensures the penalty card (Queen of Spades) is inserted
-    /// at a random position between indexes 20 and 45 to avoid early draws by either player.
-    /// </remarks>
     public class Deck
     {
-        Random random = new Random(); // Random number generator for shuffling and penalty card placement
-        List<Card> deckCards = new List<Card>(); // List to hold all cards in the deck
+        private readonly Random random = new();
+     
+        private readonly List<Card> gameDeck = [];
+        private readonly List<Card> discardPile = [];
+        
+        private readonly int addtionalSpecialCards = 1;
 
-        /// <summary>
-        /// Constructs a new deck, shuffles it, and inserts the penalty card (Queen of Spades) at a random safe position.
-        /// </summary>
+        public bool deckReshuffled = false;
+
         public Deck()
         {
-            // Build the deck: add every combination of value and suit
             foreach (Values value in Enum.GetValues<Values>())
             {
                 foreach (Suits suit in Enum.GetValues<Suits>())
                 {
-                    deckCards.Add(new Card(suit, value)); // Add each unique card
+                    gameDeck.Add(new RegularCard(suit, value));
                 }
             }
-            
-            InHouseShuffle(); // Shuffle the deck to randomize order
 
-            Card penaltyCard = new (Suits.Spades, Values.Queen); // Define the penalty card (Queen of Spades)
-            
-            // Find the index of the penalty card in the shuffled deck
-            int index = 0;
-            foreach (Card card in deckCards)
+            foreach (SpecialCardType specialCard in Enum.GetValues<SpecialCardType>())
             {
-                if(card.IsEqual(penaltyCard)) // If this card is the penalty card
-                { 
-                    break; // Stop searching
-                }
-                index++; // Move to next card
+                gameDeck.Add(new SpecialCard(specialCard));
+
+               
+                //if (specialCard != SpecialCardType.ChangeOrder)
+                //{
+                    for (int i = 0; i < addtionalSpecialCards; i++)
+                    {
+                        gameDeck.Add(new SpecialCard(specialCard));
+                    }
+                //}
             }
 
-            deckCards.RemoveAt(index); // Remove the penalty card from its current position
-            
-            // Insert the penalty card at a random position between 20 and 45
-            // This ensures neither player can draw it during the initial deal
-            int randomPosition = random.Next(20, 45); // Pick a safe random index
-            deckCards.Insert(randomPosition, penaltyCard); // Insert penalty card at the chosen position
+            RegularCard penaltyCard = new(Suits.Spades, Values.Queen);
+
+            InHouseShuffle();
+
+            int index = 0;
+            foreach (Card card in gameDeck)
+            {
+                if (card is RegularCard regularCard)
+                    if (regularCard.IsEqual(penaltyCard))
+                        break;
+                index++;
+            }
+
+            gameDeck.RemoveAt(index);
+            int randomPosition = random.Next(22, 45);
+            gameDeck.Insert(randomPosition, penaltyCard);
+
         }
-        
-        /// <summary>
-        /// Randomizes the order of the cards in the deck using an in-place shuffle algorithm.
-        /// </summary>
+
+        public void AddRange(List<Card> cardsToAdd)
+        {
+            gameDeck.AddRange(cardsToAdd);
+        }
+
         public void InHouseShuffle()
         {
-            for(int i = deckCards.Count - 1; i > 0; i--)
+            if (gameDeck is not null)
             {
-                int randomIndex = random.Next(0, i + 1); // Pick a random index
-                Card temp = deckCards[i]; // Store the card at i
-                deckCards[i] = deckCards[randomIndex]; // Swap with card at randomIndex
-                deckCards[randomIndex] = temp; // Complete the swap
+                for (int i = gameDeck.Count - 1; i > 0; i--)
+                {
+                    int randomIndex = random.Next(0, i + 1);
+                    (gameDeck[randomIndex], gameDeck[i]) = (gameDeck[i], gameDeck[randomIndex]);
+                }
+            }
+        }
+
+        public int Length()
+        {
+            return gameDeck.Count;
+        }
+        
+        public Card? DealCard()
+        {
+            switch (gameDeck)
+            {
+                case not null:
+                    {
+                        if (gameDeck.Count != 0)
+                        {
+                            Card dealtCard = gameDeck[0];
+                            gameDeck.RemoveAt(0);
+
+                            return dealtCard;
+                        }
+                        else
+                        {
+                            if (!deckReshuffled)
+                            {
+                                int lastCardIndex = discardPile.Count - 1;
+                                Card lastCardOnTable = discardPile[lastCardIndex];
+
+                                discardPile.RemoveAt(lastCardIndex);
+                               // discardPile.RemoveAll(card => card is SpecialCard specialCard && specialCard.CardType.Equals(SpecialCardType.ChangeOrder));
+
+                                gameDeck.AddRange(discardPile);
+                                discardPile.Clear();
+
+                                InHouseShuffle();
+                                discardPile.Add(lastCardOnTable);
+
+                                deckReshuffled = true;
+
+                                return DealCard();
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        }
+                    }
+
+                default:
+                    return null;
             }
         }
         
-        /// <summary>
-        /// Returns the number of cards remaining in the deck.
-        /// </summary>
-        public int Length()
-        {
-            return deckCards.Count; // Return the count of cards left
-        }
-
-        /// <summary>
-        /// Removes and returns the top card from the deck. If the deck is empty, returns null.
-        /// </summary>
-        /// <returns>The dealt card, or null if the deck is empty.</returns>
-        public Card? DealCard()
-        {
-            if(deckCards.Count == 0) // If the deck is empty
-            {
-                return null; // No card to deal
-            }
-            else
-            {
-                Card topCard = deckCards[0]; // Get the top card
-                deckCards.Remove(topCard); // Remove it from the deck
-                return topCard; // Return the dealt card
-            }
-        }
-
-        /// <summary>
-        /// Constructs a deck from a pre-made list of cards (used for testing or custom setups).
-        /// </summary>
-        /// <param name="preMadeDeck">A list of cards to use as the deck.</param>
         public Deck(List<Card> preMadeDeck)
         {
-            deckCards = preMadeDeck; // Use the provided list as the deck
+            gameDeck = preMadeDeck;
+        }
+        
+        public void AddToDiscardPile(Card card)
+        {
+            discardPile.Add(card);
         }
     }
 }

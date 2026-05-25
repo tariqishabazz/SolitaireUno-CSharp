@@ -7,71 +7,78 @@ using System.Threading.Tasks;
 
 namespace SolitaireUno
 {
-    /// <summary>
-    /// Handles the logic for the computer's turn, including AI move selection and penalty handling.
-    /// </summary>
-    public class ComputerTurnHandler
+    public class ComputerTurnHandler(Computer computer, Deck deck, IOutputProvider output)
     {
-        private readonly Computer _computer; // Reference to the computer player
-        private readonly Deck _deck; // Reference to the deck used in the game
-        private readonly IOutputProvider _output; // Handles output to the user
-
-        /// <summary>
-        /// Initializes a new instance of the ComputerTurnHandler class.
-        /// </summary>
-        /// <param name="computer">The computer player.</param>
-        /// <param name="deck">The deck used for drawing cards.</param>
-        /// <param name="output">Output provider for user output.</param>
-        public ComputerTurnHandler(Computer computer, Deck deck, IOutputProvider output)
+        private readonly Computer _computer = computer;
+        private readonly Deck _deck = deck;
+        private readonly IOutputProvider _output = output;
+        private readonly GameDifficulty _gameDifficulty = MainGame.GameDifficulty;
+    
+        public Card? HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, int opponentHandSize)
         {
-            _computer = computer; // Assign computer reference
-            _deck = deck; // Assign deck reference
-            _output = output; // Assign output provider
-        }
+            //_output.WriteLine("\n                 Computer is Thinking...");
+            
+            // Random random = new();
+            // Thread.Sleep(random.Next(3000) + 1000);
 
-        /// <summary>
-        /// Handles the logic for a single computer turn, including AI move selection and penalty handling.
-        /// </summary>
-        /// <param name="currentCard">Reference to the current card in play (may be updated).</param>
-        /// <param name="penaltyCard">The penalty card for special rules.</param>
-        public void HandleTurn(ref Card currentCard, Card penaltyCard)
-        {
-            Card? potentialComputerPlay = _computer.MakeMove(currentCard); // Let the computer try to play a card
-
-            if (potentialComputerPlay != null) // If a valid move was made
+            Card? potentialComputerPlay = _computer.MakeMove(logicCard, opponentHandSize, _deck.Length(), _gameDifficulty);
+            if (potentialComputerPlay != null)
             {
-                currentCard = potentialComputerPlay; // Update the current card
-                _output.WriteLine($"\nComputer played: {potentialComputerPlay}"); // Announce the move
+                visualCard = potentialComputerPlay;
+
+                if (potentialComputerPlay is RegularCard)
+                    logicCard = potentialComputerPlay;
+
+                _output.WriteLine($"\nthe Computer played: {potentialComputerPlay}");
+
+                _computer.PlayCard(potentialComputerPlay);
+                _deck.AddToDiscardPile(potentialComputerPlay);
+
+                return potentialComputerPlay;
             }
-            else // No valid move, must pick up or pass
+            
+            else if (_deck.Length() > 0 || _deck.Length() == 0 && !_deck.deckReshuffled)
             {
-                if (_deck.Length() > 0)
+                Card card = _deck.DealCard()!;
+
+                _computer.PickupCard(card);
+
+                int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
+                
+                switch (computerPotentialPenaltyCount)
                 {
-                    Card card = _deck.DealCard()!; // Draw a card
-                    _computer.PickupCard(card); // Add to computer's hand
-
-                    int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard); // Check penalty
-
-                    if (computerPotentialPenaltyCount > 0)
-                    {
-                        _output.WriteLine("\nThe computer decided to pick up and recieved the Queen of Spades!");
-                        _output.WriteLine("It recieved 5 additional cards because... why not...");
-
-                        for (int i = 0; i < computerPotentialPenaltyCount; i++) // Add penalty cards
+                    case > 0:
                         {
-                            _computer.PickupCard(_deck.DealCard()!);
+                            int actualPickupCount = 0;
+                            
+                            _output.WriteLine("\nthe Computer decided to pick up and recieved the Queen of Spades!");
+
+                            for (int i = 0; i < computerPotentialPenaltyCount; i++)
+                            {
+                                Card? addtionalPenaltyCard = _deck.DealCard();
+                                
+                                if(addtionalPenaltyCard is not null)
+                                {
+                                    _computer.PickupCard(addtionalPenaltyCard);                                
+                                    actualPickupCount++;
+                                }
+                            }
+                            _output.WriteLine($"It recieved {actualPickupCount} additional cards!");
+                            break;
                         }
-                    }
-                    else
-                    {
-                        _output.WriteLine("\nComputer couldn't make a move... and picked up"); // No penalty, just picked up
-                    }
-                }
-                else
-                {
-                    _output.WriteLine("\nComputer couldn't play a move and couldn't pick up... so it passed"); // No cards left to pick up
+
+                    default:
+                        _output.WriteLine("\nthe Computer couldn't make a move... and picked up");
+                        break;
                 }
             }
+            
+            else if (_deck.Length() == 0 && _deck.deckReshuffled)
+            {
+                _output.WriteLine("\nthe Computer couldn't play or pickup, so it passed...");
+            }
+            
+            return null;
         }
     }
 }

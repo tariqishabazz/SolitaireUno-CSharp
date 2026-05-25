@@ -1,114 +1,97 @@
-﻿using Xunit; // The testing framework
-using SolitaireUno; // Giving access to SolitaireUno Code
+﻿using Xunit;
 
 namespace SolitaireUno.Tests
 {
     public class GameLogicTests
     {
+
         [Fact]
-        public void ValidCardTrue_CardOneValueHigherInAscendingMode()
+        public static void AscendingLogicFunctional()
         {
-            // Arrange
-            string gameMode = "ascending";
-            
-            Card cardInPlay = new(Suits.Hearts, Values.Four);
-            Card cardToPlay = new(Suits.Spades, Values.Five);
+            Card card1 = new RegularCard(Suits.Clubs, Values.Five);
+            Card card2 = new RegularCard(Suits.Hearts, Values.Six);
+
+            bool result = GameMethods.ValidCard(card2, card1, GameMode.Ascending);
 
             // Act
-            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay, gameMode);
+            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay);
 
             // Assert
             Assert.True(result);
         }
-        
+
         [Fact]
-        public void VaidCardFalse_CardOneValueLowerInAscendingMode()
+        public static void DescendingLogicFunctional()
         {
             // Arrange
-            string gameMode = "ascending";
+            MainGame.PlayerGameModeChoice = "ascending";
 
             Card cardToPlay = new(Suits.Diamonds, Values.Seven);
             Card cardInPlay = new(Suits.Clubs, Values.Eight);
 
             // Act
-            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay, gameMode);
+            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay);
 
-            // Assert
-            Assert.False(result);
+            Assert.True(result);
         }
-        
+
         [Fact]
-        public void ValidCardTrue_AcePlayedOnKingInAscendingMode()
+        public static void WrapAroundLogicFunctionalAscending()
         {
             // Arrange
-            string gameMode = "ascending";
+            MainGame.PlayerGameModeChoice = "ascending";
 
-            Card cardInPlay = new(Suits.Hearts, Values.King);
-            Card cardToPlay = new(Suits.Diamonds, Values.Ace);
+            bool result = GameMethods.ValidCard(card1, card2, GameMode.Ascending);
 
             // Act
-            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay, gameMode);
+            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay);
 
             // Assert
             Assert.True(result);
         }
 
-        [Fact] // A "Fact" is a test that is always true, like facts irl
-        public void ValidCardTrue_CardOneValueLowerInDescendingMode()
+        [Fact]
+        public static void WrapAroundLogicFunctionalDescending()
         {
             // Arrange (Setting up the scenario)
-            string gameMode = "descending";
+            MainGame.PlayerGameModeChoice = "descending";
 
-            var cardToPlay = new Card(Suits.Clubs, Values.Three); // 3 on 4
-            var cardInPlay = new Card(Suits.Hearts, Values.Four);
+            bool result = GameMethods.ValidCard(card2, card1, GameMode.Descending);
 
             // Act (Running the method)
-            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay, gameMode);
+            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay);
 
             // Assert (Verifying the result)
             Assert.True(result);
         }
 
         [Fact]
-        public void ValidCardTrue_KingPlayedOnAceInDescendingMode()
+        public static void IsSpecialCardLogicFunctional()
         {
             // Arrange
-            string gameMode = "descending";
+            MainGame.PlayerGameModeChoice = "descending";
 
             var cardToPlay = new Card(Suits.Diamonds, Values.King); // King on Ace
             var cardInPlay = new Card(Suits.Spades, Values.Ace);
 
             // Act
-            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay, gameMode);
+            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay);
 
-            // Assert
             Assert.True(result);
         }
 
         [Fact]
-        public void ValidCardFalse_CardIsHigherInDescendingMode()
+        public static void PenaltyCountLogicFunctional()
         {
             // Arrange
-            string gameMode = "descending";
+            MainGame.PlayerGameModeChoice = "descending";
 
             Card cardToPlay = new Card(Suits.Clubs, Values.Ten);
             Card cardInPlay = new Card(Suits.Spades, Values.Nine);
 
             // Act
-            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay, gameMode);
+            bool result = GameMethods.ValidCard(cardToPlay, cardInPlay);
 
-            // Assert
-            Assert.False(result);
-        }
-        
-        [Fact]
-        public void GetPenaltyCount_DealtCardEqualsPenaltyCard()
-        {
-            // Arrange
-            var penaltyCard = new Card(Suits.Spades, Values.Queen);
-            var dealtCard = new Card(Suits.Spades, Values.Queen);
-
-            // Act
             int result = GameMethods.GetPenaltyCount(dealtCard, penaltyCard);
 
             // Assert
@@ -157,6 +140,29 @@ namespace SolitaireUno.Tests
             Assert.Equal("p.u", robot.GetInput());
             Assert.Equal("1", robot.GetInput());
             Assert.Equal("pass", robot.GetInput());
+        }
+
+        [Fact]
+        public void FullGamePlayedInAscending()
+        {
+            // Arrange
+            MainGame.PlayerGameModeChoice = "ascending";
+            
+            Computer player1 = new();
+            Computer player2 = new();
+
+            Deck gameDeck = new();
+            Card currentCard;
+
+            int turnCounter = 0;
+            int maxTurns = 100;
+
+            // Act
+
+
+            // Assert
+
+
         }
     }
 }

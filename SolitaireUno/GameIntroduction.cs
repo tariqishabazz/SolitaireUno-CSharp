@@ -3,74 +3,144 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace SolitaireUno
 {
-    /// <summary>
-    /// Provides the introduction and setup sequence for the game, including user prompts and mode selection.
-    /// </summary>
     public class GameIntroduction
     {
-        /// <summary>
-        /// Runs the introduction, prompts the user for game mode, and starts the game if the user agrees.
-        /// </summary>
-        /// <returns>The user's selected game mode (e.g., ascending/descending), or exits if declined.</returns>
-        public static string ShowGameIntroduction()
+        public static void ShowGameIntroduction()
         {
-            IInputProvider realInput = new ConsoleInput(); // Input provider for user input
-            IOutputProvider realOutput = new ConsoleOutput(); // Output provider for user output
+            IInputProvider realInput = new ConsoleInput();
+            IOutputProvider realOutput = new ConsoleOutput();
+            
+            string PlayerGameModeChoice;
+            string SuitEnforcementChoice;
+            string PlayerDifficultyChoice;
 
-            string PlayerGameModeChoice; // Stores the user's game mode choice
+            bool EnforceSuits = false;
+            
+            GameMode chosenGameMode;
+            GameDifficulty chosenDifficulty = GameDifficulty.Easy;
+            
+            realOutput.WriteLine(@"   
+                  _____       _ _ _        _           _    _             
+                 / ____|     | (_) |      (_)         | |  | |            
+                | (___   ___ | |_| |_ __ _ _ _ __ ___ | |  | |_ __   ___  
+                 \___ \ / _ \| | | __/ _` | | '__/ _ \| |  | | '_ \ / _ \ 
+                 ____) | (_) | | | || (_| | | | |  __/| |__| | | | | (_) |
+                |_____/ \___/|_|_|\__\__,_|_|_|  \___| \____/|_| |_|\___/ 
+                ");
+            
+            realOutput.Write("Are You Ready to Play? ");
+            string playerChoice = realInput.GetInput().ToLower().Trim();
 
-            realOutput.Write("Are you ready to play >> "); // Prompt user to start
-            string playerChoice = realInput.GetInput().ToLower(); // Get user response
-
-            if (playerChoice == "yes" || playerChoice == "y") // If user wants to play
+            switch (playerChoice)
             {
-                bool validModeChoice = false; // Tracks if a valid mode was chosen
-                while (!validModeChoice)
-                {
-                    realOutput.Write("\nNow... would you like to play the cards in ascending (a) or descending (d) order? >> "); // Prompt for mode
-                    PlayerGameModeChoice = realInput.GetInput().ToLower(); // Get mode choice
-
-                    // Validate mode choice
-                    if (PlayerGameModeChoice.Equals("ascending") || PlayerGameModeChoice.Equals("descending") || PlayerGameModeChoice.Equals("a") || PlayerGameModeChoice.Equals("d"))
+                case "yes" or "y":
+                    bool validSuitEnforcementChoice = false;
+                    while (!validSuitEnforcementChoice)
                     {
-                        if (PlayerGameModeChoice.Equals("ascending") || PlayerGameModeChoice.Equals("a"))
+                        realOutput.Write("\nOkay, Would You Like to Enable Suit Enforcement? ");
+                        SuitEnforcementChoice = realInput.GetInput().ToLower().Trim();
+
+                        if (SuitEnforcementChoice.Equals("yes") || SuitEnforcementChoice.Equals("y"))
                         {
-                            realOutput.WriteLine("\nAscending it is!"); // Confirm ascending
-                            validModeChoice = true;
-                            realOutput.WriteLine("Let's Gooooooooooooooo!"); // Excitement!
+                            realOutput.WriteLine("Okay! Remember, Reds on Blacks and Blacks on Reds. (Black: Spades/Clubs | Red: Hearts/Diamonds)");
+
+                            EnforceSuits = true;
+                            validSuitEnforcementChoice = true;
                         }
+
+                        else if (SuitEnforcementChoice.Equals("no") || SuitEnforcementChoice.Equals("n"))
+                        {
+                            validSuitEnforcementChoice = true;
+                        }
+
                         else
                         {
-                            realOutput.WriteLine("\nDescending it is!"); // Confirm descending
-                            validModeChoice = true;
-                            realOutput.WriteLine("Let's Gooooooooooooooo!"); // Excitement!
+                            realOutput.WriteLine("Please answer again, there may have been a mistake in your response");
                         }
-                        // Start the game with the chosen mode
-                        Deck normalDeck = new(); // Create a new deck
-                        MainGame newGame = new(realInput, realOutput, normalDeck, PlayerGameModeChoice); // Create game instance
-                        newGame.StartGame(); // Start the game
-                        return PlayerGameModeChoice; // Return the mode for reference
                     }
-                    else
+
+                    bool validModeChoice = false;
+                    while (!validModeChoice)
                     {
-                        realOutput.WriteLine("Please answer again, there may have been a mistake in your response"); // Invalid input
+                        realOutput.Write("\nNow... Would You Like to Play the Cards in Ascending (a) or Descending (d) Order? ");
+                        PlayerGameModeChoice = realInput.GetInput().ToLower().Trim();
+
+                        if (PlayerGameModeChoice.Equals("ascending") || PlayerGameModeChoice.Equals("descending") || PlayerGameModeChoice.Equals("a") || PlayerGameModeChoice.Equals("d"))
+                        {
+                            if (PlayerGameModeChoice.Equals("ascending") || PlayerGameModeChoice.Equals("a"))
+                            {
+                                validModeChoice = true;
+                                chosenGameMode = GameMode.Ascending;
+                            }
+
+                            else
+                            {
+                                validModeChoice = true;
+                                chosenGameMode = GameMode.Descending;
+                            }
+
+                            bool validChosenDifficulty = false;
+                            while (!validChosenDifficulty)
+                            {
+                                realOutput.Write("\nLastly, What Difficulty Can You Endure... (Easy (m), Medium (m), or Hard (h))? ");
+
+                                PlayerDifficultyChoice = realInput.GetInput().ToLower().Trim();
+
+                                switch (PlayerDifficultyChoice)
+                                {
+                                    case "easy" or "e":
+                                        realOutput.WriteLine("Easy? Lame...");
+                                        chosenDifficulty = GameDifficulty.Easy;
+
+                                        validChosenDifficulty = true;
+                                        break;
+
+                                    case "medium" or "m":
+                                        realOutput.WriteLine("Medium? You like a little spice I see...");
+                                        chosenDifficulty = GameDifficulty.Medium;
+
+                                        validChosenDifficulty = true;
+                                        break;
+
+                                    case "hard" or "h":
+                                        realOutput.WriteLine("Hard?! Mama didn't raise a punk I see!");
+                                        chosenDifficulty = GameDifficulty.Hard;
+
+                                        validChosenDifficulty = true;
+                                        break;
+
+                                    default:
+                                        realOutput.WriteLine("That isn't a valid response.");
+                                        break;
+                                }
+                            }
+
+                            Deck normalDeck = new Deck();
+                            MainGame newGame = new MainGame(realInput, realOutput, normalDeck, chosenGameMode, EnforceSuits, chosenDifficulty);
+                            newGame.StartGame();
+                        }
+
+                        else
+                        {
+                            realOutput.WriteLine("Please answer again, there may have been a mistake in your response");
+                        }
                     }
-                }
+
+                    break;
+
+
+                case "no" or "n":
+                    realOutput.WriteLine("I understand, come back when you are ready");
+                    break;
+
+                default:
+                    realOutput.WriteLine("What?");
+                    break;
             }
-            else if (playerChoice == "no" || playerChoice == "n") // User declines
-            {
-                realOutput.WriteLine("I understand, come back when you are ready"); // Farewell message
-                Environment.Exit(0); // Exit the program
-            }
-            else // Any other input
-            {
-                realOutput.WriteLine("What? GoodBye"); // Unrecognized input
-                Environment.Exit(0); // Exit the program
-            }
-            return string.Empty; // Fallback return (should not be reached)
         }
     }
 }

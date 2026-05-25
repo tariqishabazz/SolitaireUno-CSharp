@@ -6,8 +6,12 @@ using System.Threading.Tasks;
 
 namespace SolitaireUno
 {
-    public interface IInputProvider
+    public enum ActionInstruction
     {
-        string GetInput();
+        DoNothing,
+        SkipTurn, 
+        ChangeOrder, 
+        DrawTwo, 
+        DrawFour
     }
-} 
+}

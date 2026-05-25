@@ -4,22 +4,17 @@ using System.Text;
 
 namespace SolitaireUno.Tests
 {
-    public class MockInput : IInputProvider
+    public class MockInput
     {
-        private Queue<string> _script;
-
-        public MockInput(IEnumerable<string> moves)
+        public static string SimulatedPass()
         {
-            _script = new Queue<string> (moves);
+            return "p";
         }
 
-        public string GetInput()
+        public static string SimulatedPickUp()
         {
-            if(_script.Count > 0)
-            {
-                return _script.Dequeue();
-            }
-            return "pass";
+            return "pu";
         }
+
     }
 }

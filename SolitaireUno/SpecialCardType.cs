@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace SolitaireUno
 {
-    public interface IInputProvider
+    public enum SpecialCardType
     {
-        string GetInput();
+        Skip, DrawTwo, DrawFour, // ChangeOrder
     }
-} 
+}

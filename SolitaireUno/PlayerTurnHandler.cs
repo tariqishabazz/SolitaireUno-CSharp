@@ -10,137 +10,152 @@ namespace SolitaireUno
     /// <summary>
     /// Handles the logic for a human player's turn, including input, validation, and card actions.
     /// </summary>
-    public class PlayerTurnHandler
+    /// <remarks>
+    /// Initializes a new instance of the PlayerTurnHandler class.
+    /// </remarks>
+    /// <param name="player">The human player.</param>
+    /// <param name="deck">The deck used for drawing cards.</param>
+    /// <param name="input">Input provider for user input.</param>
+    /// <param name="output">Output provider for user output.</param>
+    public class PlayerTurnHandler(Player player, Deck deck, IInputProvider input, IOutputProvider output)
     {
-        private readonly Player _player; // Reference to the human player
-        private readonly Deck _deck; // Reference to the deck used in the game
-        private readonly IInputProvider _input; // Handles user input
-        private readonly IOutputProvider _output; // Handles user output
-
-        /// <summary>
-        /// Initializes a new instance of the PlayerTurnHandler class.
-        /// </summary>
-        /// <param name="player">The human player.</param>
-        /// <param name="deck">The deck used for drawing cards.</param>
-        /// <param name="input">Input provider for user input.</param>
-        /// <param name="output">Output provider for user output.</param>
-        public PlayerTurnHandler(Player player, Deck deck, IInputProvider input, IOutputProvider output)
-        {
-            _player = player; // Assign player reference
-            _deck = deck; // Assign deck reference
-            _input = input; // Assign input provider
-            _output = output; // Assign output provider
-        }
-
         /// <summary>
         /// Handles the logic for a single human player turn, including input, validation, and card actions.
         /// </summary>
         /// <param name="currentCard">Reference to the current card in play (may be updated).</param>
         /// <param name="penaltyCard">The penalty card for special rules.</param>
-        public void HandleTurn(ref Card currentCard, Card penaltyCard)
+        public Card? HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard)
         {
             bool playerChoiceValid = false; // Tracks if the player made a valid move
 
             while (!playerChoiceValid)
             {
-                _output.WriteLine("---------------------------------------------------------------------"); // Print turn separator
-                _output.WriteLine($"\n            The Current Card is... {currentCard}"); // Show the current card
+                // Show current card and deck info ONCE at the start of the turn
+                GameMethods.ShowRoundSummary(visualCard, logicCard);
+                GameMethods.ShowHand();
 
-
-                if (_deck.Length() > 0)
-                {
-                    _output.WriteLine($"\n                There are {_deck.Length()} cards in the deck!"); // Show deck size
-                }
-                else
-                {
-                    _output.WriteLine("\nThere are no more cards in the deck!"); // Deck is empty
-                }
-
-                _output.Write("\nPlay a Card (1 - # of Cards in Hand), Pick-Up (p.u), or Pass(p) >> "); // Prompt for action
-                string playerDecision = _input.GetInput().ToLower(); // Get and normalize input
+                output.WriteLine("---------------------------------------------------------------------");
+                output.Write("\nPlay a Card \n(1 - Maximum # of Cards in Hand), Pick-Up (p.u), or Pass (p)... "); // Prompt for action
+                
+                string playerDecision = input.GetInput().ToLower(); // Get and normalize input
 
                 if (playerDecision != null)
                 {
                     if (int.TryParse(playerDecision, out int decisionAsNumber)) // If input is a number
                     {
-                        if (decisionAsNumber > 0 && decisionAsNumber <= _player.Hand.Count) // Valid card index
+                        if (decisionAsNumber > 0 && decisionAsNumber <= player.Hand.Count) // Valid card index
                         {
-                            Card potentialCard = _player.Hand[decisionAsNumber - 1]; // Get selected card
+                            Card potentialCard = player.Hand[decisionAsNumber - 1]; // Get selected card
 
-                            if (GameMethods.ValidCard(potentialCard, currentCard, MainGame._gameModeChoice)) // Validate move
+                            if (GameMethods.ValidCard(potentialCard, logicCard, MainGame.GameModeChoice)) // Validate move
                             {
-                                _player.PlayCard(potentialCard); // Play the card
-                                currentCard = potentialCard; // Update current card
+                                player.PlayCard(potentialCard); // Play the card
+                                deck.AddToDiscardPile(potentialCard);
+                                
+                                visualCard = potentialCard;
 
-                                _output.WriteLine("\n---------------------------------------------------------------------");
-                                _output.WriteLine($"You played {potentialCard}, so...");
+                                if (potentialCard is RegularCard)
+                                {
+                                    logicCard = potentialCard; // Update current card
+                                }
+
+                                output.WriteLine("---------------------------------------------------------------------");
+                                output.WriteLine($"\nYou played {potentialCard}, so...");
+                                
                                 playerChoiceValid = true; // End turn
+
+                                return potentialCard;
                             }
                             else
                             {
-                                _output.WriteLine("\n---------------------------------------------------------------------");
-                                _output.WriteLine("That is not a valid play, please choose again"); // Invalid move
+                                output.WriteLine("\n---------------------------------------------------------------------");
+                                output.WriteLine("\nThat is not a valid play, please choose again"); // Invalid move
                             }
                         }
                         else
                         {
-                            _output.WriteLine("\n---------------------------------------------------------------------");
-                            _output.WriteLine("That is an invalid input based on your current cards, please choose again."); // Invalid index
+                            output.WriteLine("\n---------------------------------------------------------------------");
+                            output.WriteLine("\nThat is an invalid input based on your current cards, please choose again."); // Invalid index
                         }
                     }
                     else if (playerDecision == "p.u" || playerDecision == "pu" || playerDecision == "pick up" || playerDecision == "pickup") // Pick up
                     {
-                        if (_deck.Length() > 0)
+                        if (deck.Length() > 0 || deck.Length() == 0 && !deck.deckReshuffled)
                         {
-                            Card card = _deck.DealCard()!; // Draw a card
-                            _player.PickupCard(card); // Add to hand
+                            Card card = deck.DealCard()!; // Draw a card
+                            player.PickupCard(card); // Add to hand
 
                             int playerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard); // Check penalty
-                            
-                            if (playerPotentialPenaltyCount > 0)
+
+                            switch (playerPotentialPenaltyCount)
                             {
-                                _output.WriteLine("\n---------------------------------------------------------------------");
-                                _output.WriteLine("You decided to pick up and recieved the Queen of Spades! HAHAHAHA");
-                                _output.WriteLine("You recieved 5 additional cards because... why not...");
-                            }
-                            else
-                            {
-                                _output.WriteLine("\n---------------------------------------------------------------------");
-                                _output.WriteLine("You decided to pick up!");
+                                case > 0:
+                                    int actualPickupCount = 0;
+
+                                    output.WriteLine("\n---------------------------------------------------------------------");
+                                    output.WriteLine("\nYou decided to pick up and received the Queen of Spades! [Insert Evil Laugh]");
+
+                                    for (int i = 0; i < playerPotentialPenaltyCount; i++) // Add penalty cards
+                                    {
+                                        Card? additionalPenaltyCard = deck.DealCard();
+
+                                        if (additionalPenaltyCard is not null)
+                                        {
+                                            player.PickupCard(additionalPenaltyCard);
+                                            actualPickupCount++;
+                                        }
+                                    } 
+                                                                        
+                                    output.WriteLine($"You received {actualPickupCount} additional cards!");
+
+                                    break;
+                                
+                                default:
+                                    output.WriteLine("---------------------------------------------------------------------");
+                                    output.WriteLine("\nYou decided to pick up so...");
+                                    
+                                    break;
                             }
 
-                            for (int i = 0; i < playerPotentialPenaltyCount; i++) // Add penalty cards
-                            {
-                                _player.PickupCard(_deck.DealCard()!);
-                            }
-
+                          
                             playerChoiceValid = true; // End turn
+                            return null;
                         }
-                        else
+
+                        else if(deck.Length() == 0 && deck.deckReshuffled)
                         {
-                            _output.WriteLine("\n---------------------------------------------------------------------");
-                            _output.WriteLine("There are no more cards in the deck! Either play or pass!"); // Can't pick up
+                            output.WriteLine("\n---------------------------------------------------------------------");
+                            output.WriteLine("\nThere are no more cards in the deck, either pass or play!");
                         }
+                        
                     }
                     else if (playerDecision == "pass" || playerDecision == "p") // Pass
                     {
-                        if (_deck.Length() > 0)
+                        if (deck.Length() > 0)
                         {
-                            _output.WriteLine("\n---------------------------------------------------------------------");
-                            _output.WriteLine("There are still cards in the deck, either play or pick up!"); // Can't pass yet
+                            output.WriteLine("\n---------------------------------------------------------------------");
+                            output.WriteLine("\nThere are still cards in the deck, either play or pick up!"); // Can't pass yet
                         }
                         else
                         {
+                            output.WriteLine("\n---------------------------------------------------------------------");
+                            output.WriteLine("\nYou decided to pass so...");
                             playerChoiceValid = true; // End turn
                         }
+                    }
+                    else
+                    {
+                        output.WriteLine("\n---------------------------------------------------------------------");
+                        output.WriteLine("\nThat is not a valid decision, please try again");
                     }
                 }
                 else
                 {
-                    _output.WriteLine("\n---------------------------------------------------------------------");
-                    _output.WriteLine("You did not make a decision, please try again"); // No input
+                    output.WriteLine("\n---------------------------------------------------------------------");
+                    output.WriteLine("\nYou did not make a decision, please try again"); // No input
                 }
             }
+            return null;
         }
     }
 }
