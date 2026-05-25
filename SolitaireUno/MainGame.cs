@@ -100,6 +100,8 @@ namespace SolitaireUno
                 }
             }
 
+            // ---------------- COMPUTER'S TURN ----------------- //
+
             else if (!IsPlayerTurn && (LogicCard is not null && VisualCard is not null))
             {
                 var (message, cardPlayed) = _computerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, Player.Hand.Count, GameModeChoice, SuitEnforcement);
