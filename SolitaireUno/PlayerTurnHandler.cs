@@ -8,32 +8,27 @@ using System.Threading.Tasks;
 namespace SolitaireUno
 {
     /// <summary>
-    /// Handles the logic for a human player's turn, including input, validation, and card actions.
+    /// Handles the logic for a human player's turn, including pick-up, pass and play logic.
     /// </summary>
-    /// <remarks>
-    /// Initializes a new instance of the PlayerTurnHandler class.
-    /// </remarks>
-    /// <param name="player">The human player.</param>
-    /// <param name="deck">The deck used for drawing cards.</param>
-    /// <param name="input">Input provider for user input.</param>
-    /// <param name="output">Output provider for user output.</param>
     public class PlayerTurnHandler(Player player, Deck deck)
     {
         /// <summary>
-        /// Handles the logic for a single human player turn, including input, validation, and card actions.
+        /// Processes a player's turn based on input and returns the result along with any UI message and played card.
         /// </summary>
-        /// <param name="currentCard">Reference to the current card in play (may be updated).</param>
-        /// <param name="penaltyCard">The penalty card for special rules.</param>
+        /// <param name="logicCard">Reference to the logic card used for validation.</param>
+        /// <param name="visualCard">Reference to the visual card shown to the UI.</param>
+        /// <param name="penaltyCard">The configured penalty card.</param>
+        /// <param name="playerDecision">Player input string representing their action.</param>
+        /// <param name="gameMode">The current game mode for validation.</param>
+        /// <param name="suitEnforcement">Whether suit enforcement is active.</param>
+        /// <returns>Tuple indicating success, a UI message, and the played card if any.</returns>
         public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, string playerDecision, GameMode gameMode, bool suitEnforcement)
         {
-            // playerDecision?. : Checks if the player's input actually exists before trying to do anything to it.
-            // ?? "" : A safety net that says, "If the input was missing or null,
-                // just give me a blank text string ("") instead of crashing the game."
-            
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
 
-            // -------------------- executes pass logic -----------------------
-            
+
+            // ---------------- PLAYER WANTS TO PASS ---------------- //
+
             if (playerDecision == "pass" || playerDecision == "p")
             {
                 if (deck.Length() > 0)
@@ -46,9 +41,10 @@ namespace SolitaireUno
                     return (true, "You decided to pass!", null);
             }
 
-            // -------------------- executes pickup logic -----------------------
 
-            else if (playerDecision == "p.u" || playerDecision == "pu" || playerDecision == "pick up" || playerDecision == "pickup") // Pick up
+            // ---------------- PLAYER WANTS TO PICKUP ---------------- //
+
+            else if (playerDecision == "p.u" || playerDecision == "pu" || playerDecision == "pick up" || playerDecision == "pickup")
             {
                 if (deck.Length() > 0 || deck.Length() == 0 && !deck.DeckReshuffled)
                 {
@@ -61,7 +57,7 @@ namespace SolitaireUno
                     {
                         int actualPickupCount = 0;
 
-                        for (int i = 0; i < playerPotentialPenaltyCount; i++) // Add penalty cards
+                        for (int i = 0; i < playerPotentialPenaltyCount; i++)
                         {
                             Card? additionalPenaltyCard = deck.DealCard();
 
@@ -82,29 +78,21 @@ namespace SolitaireUno
                     return (false, "Deck has already been reshuffled. Either pass or play!", null);
             }
 
-
-            // -------------------- if decision doesn't return a number -----------------------
-
-            if (!int.TryParse(playerDecision, out int decisionAsNumber))
+            if (!int.TryParse(playerDecision, out int decisionAsNumber)) // IF THE DECISION ISNT A NUMBER
                 return (false, "That isn't a valid move, please try again", null);
 
-            // -------------------- if that number isn't within a valid range of cards -----------------------
-
-            if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count)
+            if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count) // IF DECISION ISNT WITHIN RANGE OF CARDS
                 return (false, "Invalid card index", null);
 
+            Card potentialCard = player.Hand[decisionAsNumber - 1]; 
 
-            Card potentialCard = player.Hand[decisionAsNumber - 1];
-
-            // -------------------- if ValidCard Returns false -----------------------
-
-            if (!CardValidation.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement))
+            if (!CardValidation.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement)) // IF DECISION ISNT A VALID MOVE
                 return (false, "That is not a valid move, please try again", null);
 
 
-            // -------------------- Executes Play -----------------------
+            // --------------- PLAYS AND SETS CARD -------------- //
 
-            player.PlayCard(potentialCard); 
+            player.PlayCard(potentialCard);
             deck.AddToDiscardPile(potentialCard);
 
             visualCard = potentialCard;

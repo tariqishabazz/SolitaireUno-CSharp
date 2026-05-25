@@ -2,6 +2,9 @@
 
 namespace SolitaireUno
 {
+    /// <summary>
+    /// Main game orchestrator that manages players, deck and turn handlers.
+    /// </summary>
     public class MainGame
     {
         public Player Player { get; private set; }
@@ -25,13 +28,12 @@ namespace SolitaireUno
         internal RegularCard PenaltyCard { get; private set; }
 
         /// <summary>
-        /// Main constructor for a new game. It handles creating new player and computer objects, setting all the game modes/features, initializing the turn handlers,
-        ///     and setting up each player's hand of cards
+        /// Initializes a new instance of the <see cref="MainGame"/> class.
         /// </summary>
-        /// <param name="deck">The game deck </param>
-        /// <param name="gameModeChoice">The game mode chosen</param>
-        /// <param name="suitEnforcement">Whether suits are enforced</param>
-        /// <param name="gameDifficulty">The game's difficulty</param>
+        /// <param name="deck">The deck to use for gameplay.</param>
+        /// <param name="gameModeChoice">The game mode (ascending or descending).</param>
+        /// <param name="suitEnforcement">Whether suit enforcement is enabled.</param>
+        /// <param name="gameDifficulty">Difficulty level for computer AI.</param>
         public MainGame(Deck deck, GameMode gameModeChoice, bool suitEnforcement, GameDifficulty gameDifficulty)
         {
             Player = new Player(deck);
@@ -47,7 +49,9 @@ namespace SolitaireUno
             _computerTurnHandler = new ComputerTurnHandler(Computer, GameDeck, GameDifficulty);
         }
 
-        /// <summary>Start the game and prepare the initial table card.</summary>
+        /// <summary>
+        /// Starts the game by preparing the initial table card and setting the starting player turn.
+        /// </summary>
         public void StartGame()
         {
             LogicCard = GameDeck.PreventInitialSpecialCard();
@@ -63,9 +67,11 @@ namespace SolitaireUno
                 return;
         }
 
-        /// <summary>Advance the game by one turn (player or computer).</summary>
-        /// <param name="playerDecision">Player input/command</param>
-        /// <returns>UI message produced during the turn</returns>
+        /// <summary>
+        /// Advances the game by one turn, handling either the player or computer move.
+        /// </summary>
+        /// <param name="playerDecision">Optional player input or command used during the player's turn.</param>
+        /// <returns>A UI message produced during the processed turn.</returns>
         public string AdvanceTurn(string playerDecision = "")
         {
             PlayerSkipped = false;
@@ -94,8 +100,6 @@ namespace SolitaireUno
                 }
             }
 
-            // --------------- COMPUTER'S TURN -------------- // 
-
             else if (!IsPlayerTurn && (LogicCard is not null && VisualCard is not null))
             {
                 var (message, cardPlayed) = _computerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, Player.Hand.Count, GameModeChoice, SuitEnforcement);
@@ -111,7 +115,7 @@ namespace SolitaireUno
                 if (!PlayerSkipped)
                     IsPlayerTurn = true;
             }
-            
+
             return uiMessage;
         }
     }
