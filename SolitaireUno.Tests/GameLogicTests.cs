@@ -88,7 +88,7 @@ namespace SolitaireUno.Tests
         {
             // Arrange
             RegularCard dealtCard = new(Suits.Spades, Values.Queen);
-            RegularCard penaltyCard = new(Suits.Spades, Values.Nine);
+            RegularCard penaltyCard = new(Suits.Spades, Values.Queen);
 
             // Act
             int result = GameMethods.GetPenaltyCount(dealtCard, penaltyCard);
