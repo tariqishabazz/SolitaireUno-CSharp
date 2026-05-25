@@ -20,7 +20,13 @@
         private readonly PlayerTurnHandler _playerTurnHandler; // Encapsulates all logic for handling a human player's turn
         private readonly ComputerTurnHandler _computerTurnHandler; // Encapsulates all logic for handling the computer's turn
 
-        internal static string _gameModeChoice; // Stores the user's selected game mode (e.g., ascending/descending), used for move validation
+        private string _GameModeChoice; // Stores the user's selected game mode (e.g., ascending/descending), used for move validation
+
+        public string GameModeChoice 
+        {
+            get { return _GameModeChoice; }
+            set { _GameModeChoice = value; }
+        }
 
         /// <summary>
         /// Initializes a new instance of the MainGame class with input/output providers, deck, and game mode.
@@ -35,7 +41,7 @@
             _input = input; // Assign the input provider for user actions
             _output = output; // Assign the output provider for displaying messages
             gameDeck = deck; // Assign the provided deck to the game instance
-            _gameModeChoice = gameModeChoice; // Store the user's game mode choice for later use
+            _GameModeChoice = gameModeChoice; // Store the user's game mode choice for later use
 
             _playerTurnHandler = new(player, gameDeck, _input, _output); // Create the handler for the player's turn logic
             _computerTurnHandler = new(computer, gameDeck, _output); // Create the handler for the computer's turn logic
