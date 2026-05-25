@@ -18,7 +18,7 @@ namespace SolitaireUno.Tests
     public class CardValidationTests
     {
         [Fact]
-        public void ValidCard_ReturnsTrue_With_ValidPlay_In_AscendingMode()
+        public void ValidCard_ReturnsTrue_With_ValidPlay_Asc()
         {
             // ARRANGE
             var cardOnTable = new RegularCard(Suits.Clubs, Values.Four);
@@ -32,7 +32,7 @@ namespace SolitaireUno.Tests
         }
 
         [Fact]
-        public void ValidCard_ReturnsTrue_With_ValidPlay_In_DescendingMode()
+        public void ValidCard_ReturnsTrue_With_ValidPlay_Desc()
         {
             // ARRANGE
             var cardOnTable = new RegularCard(Suits.Clubs, Values.Seven);
@@ -66,12 +66,12 @@ namespace SolitaireUno.Tests
             var cardOnTable = new RegularCard(Suits.Hearts, Values.Eight);
 
             // ACT & ASSERT
-           // COME BACK TO THIS
+            // COME BACK TO THIS
 
         }
 
         [Fact]
-        public void SameColor_ReturnsTrue_With_CardsOf_SameColor()
+        public void NotSameColor_ReturnsFalse_With_CardsOf_SameColor()
         {
             // ARRANGE
             var redCard1 = new RegularCard(Suits.Hearts, Values.Ace);
@@ -80,30 +80,30 @@ namespace SolitaireUno.Tests
             var blackCard2 = new RegularCard(Suits.Clubs, Values.Ace);
 
             // ACT
-            bool redCardResult = CardValidation.SameColor(redCard1, redCard2);
-            bool blackCardResult = CardValidation.SameColor(blackCard1, blackCard2);
+            bool redCardResult = CardValidation.NotSameColor(redCard1, redCard2);
+            bool blackCardResult = CardValidation.NotSameColor(blackCard1, blackCard2);
 
             // ASSERT
-            Assert.True(redCardResult);
-            Assert.True(blackCardResult);
+            Assert.False(redCardResult);
+            Assert.False(blackCardResult);
         }
 
         [Fact]
-        public void SameColor_ReturnsFalse_With_CardsOf_DifferingColors()
+        public void NotSameColor_ReturnsTrue_With_CardsOf_DifferingColors()
         {
             // ARRANGE
             var redCard1 = new RegularCard(Suits.Hearts, Values.Ace);
             var blackCard1 = new RegularCard(Suits.Spades, Values.Ace);
 
             // ACT
-            bool cardResult = CardValidation.SameColor(redCard1, blackCard1);
+            bool cardResult = CardValidation.NotSameColor(redCard1, blackCard1);
 
             // ASSERT
-            Assert.False(cardResult);
+            Assert.True(cardResult);
         }
 
         [Fact]
-        public void WrapAround_Logic_ReturnsTrue_InDesc()
+        public void WrapAround_Logic_ReturnsTrue_Desc()
         {
             // ARRANGE
             var tableCard = new RegularCard(Suits.Hearts, Values.Ace);
@@ -117,7 +117,7 @@ namespace SolitaireUno.Tests
         }
 
         [Fact]
-        public void WrapAround_Logic_ReturnsTrue_InAsc()
+        public void WrapAround_Logic_ReturnsTrue_Asc()
         {
             // ARRANGE
             var tableCard = new RegularCard(Suits.Hearts, Values.King);
@@ -125,6 +125,34 @@ namespace SolitaireUno.Tests
 
             // ACT
             bool result = CardValidation.ValidCard(potentialPlay, tableCard, GameMode.Ascending, false);
+
+            // ASSERT
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void SuitEnforcement_ReturnsTrue_ValidPlay_Asc()
+        {
+            // ARRANGE
+            Card redTableCard = new RegularCard(Suits.Hearts, Values.Ten);
+            Card blackPotentialCard = new RegularCard(Suits.Clubs, Values.Jack);
+
+            // ACT
+            bool result = CardValidation.ValidCard(blackPotentialCard, redTableCard, GameMode.Ascending, true);
+
+            // ASSERT
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void SuitEnforcement_ReturnsTrue_ValidPlay_Desc()
+        {
+            // ARRANGE
+            Card redTableCard = new RegularCard(Suits.Hearts, Values.Jack);
+            Card blackPotentialCard = new RegularCard(Suits.Clubs, Values.Ten);
+
+            // ACT
+            bool result = CardValidation.ValidCard(blackPotentialCard, redTableCard, GameMode.Descending, true);
 
             // ASSERT
             Assert.True(result);

@@ -23,7 +23,7 @@ namespace SolitaireUno
                 if (!isValidSequence)
                     return false;
 
-                return suitEnforcement ? SameColor(firstRegularCard, secondRegularCard) : true;
+                return suitEnforcement ? NotSameColor(firstRegularCard, secondRegularCard) : true; // ensures cards aren't same color if enforcing suits
             }
 
             return IsSpecialCard(potentialPlay);
@@ -69,17 +69,22 @@ namespace SolitaireUno
             return false;
         }
 
+        /// <summary>
+        /// Determines whether the specified card is a special card.
+        /// </summary>
+        /// <param name="potentialPlay">The card to evaluate for special status. Cannot be null.</param>
+        /// <returns>true if the specified card is a special card; otherwise, false.</returns>
         public static bool IsSpecialCard(Card potentialPlay) => potentialPlay is SpecialCard;
 
         /// <summary>
-        /// Returns true when the two regular cards are of the same color grouping (red vs black).
+        /// Returns true when the two regular cards are not of the same color grouping (red on red. black on black).
         /// </summary>
-        public static bool SameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
+        public static bool NotSameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
         {
             bool isFirstCardRed = (firstRegularCard.Suit == Suits.Hearts || firstRegularCard.Suit == Suits.Diamonds);
             bool isSecondCardRed = (secondRegularCard.Suit == Suits.Hearts || secondRegularCard.Suit == Suits.Diamonds);
 
-            return isFirstCardRed == isSecondCardRed;
+            return isFirstCardRed != isSecondCardRed;
         }
     }
 }
