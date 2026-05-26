@@ -419,25 +419,8 @@
     private async Task SimulatedComputerThinking()
     {
         Random random = new Random();
-        int randomWaitingPeriod = random.Next(5) + 1;
+        int randomWaitingPeriod = (random.Next(7) + 4) * 500;
 
-        switch (randomWaitingPeriod)
-        {
-            case 1:
-                await Task.Delay(2000);
-                break;
-
-            case 2:
-                await Task.Delay(2500);
-                break;
-
-            case 3:
-                await Task.Delay(3000);
-                break;
-
-            default:
-                await Task.Delay(3500);
-                break;
-        }
+        await Task.Delay(randomWaitingPeriod);
     }
 }

@@ -12,10 +12,10 @@ namespace SolitaireUno
 
         private List<Card> _GameDeck = [];
         private List<Card> _DiscardPile = [];
-        
+
         private readonly int addtionalSpecialCards = 1;
         private bool _DeckReshuffled = false;
-        
+
         public List<Card> DiscardPile
         {
             get { return _DiscardPile; }
@@ -39,6 +39,8 @@ namespace SolitaireUno
         /// </summary>
         public Deck()
         {
+            // -------------- ADDING THE 52 CARDS + SPECIAL CARDS -------------- //
+
             foreach (Values value in Enum.GetValues<Values>())
                 foreach (Suits suit in Enum.GetValues<Suits>())
                     _GameDeck.Add(new RegularCard(suit, value));
@@ -50,6 +52,8 @@ namespace SolitaireUno
                 for (int i = 0; i < addtionalSpecialCards; i++)
                     _GameDeck.Add(new SpecialCard(specialCard));
             }
+            
+            // SHUFFLING
 
             InHouseShuffle();
 
@@ -83,7 +87,9 @@ namespace SolitaireUno
                 List<Card> temporarySpecialCards = [firstCard];
 
                 if (Length() > 0)
+                {
                     firstCard = DealCard()!;
+                }
 
                 AddRange(temporarySpecialCards);
                 InHouseShuffle();
@@ -103,13 +109,10 @@ namespace SolitaireUno
         /// </summary>
         public void InHouseShuffle()
         {
-            if (_GameDeck is not null)
+            for (int i = _GameDeck.Count - 1; i > 0; i--)
             {
-                for (int i = _GameDeck.Count - 1; i > 0; i--)
-                {
-                    int randomIndex = random.Next(0, i + 1);
-                    (_GameDeck[randomIndex], _GameDeck[i]) = (_GameDeck[i], _GameDeck[randomIndex]);
-                }
+                int randomIndex = random.Next(0, i + 1);
+                (_GameDeck[randomIndex], _GameDeck[i]) = (_GameDeck[i], _GameDeck[randomIndex]);
             }
         }
 
@@ -125,44 +128,35 @@ namespace SolitaireUno
         /// <returns>The dealt card, or null when no cards are available.</returns>
         public Card? DealCard()
         {
-            if (_GameDeck is null)
-                return null;
+            if (_GameDeck.Count != 0)
+            {
+                Card dealtCard = _GameDeck[0];
+                _GameDeck.RemoveAt(0);
+
+                return dealtCard;
+            }
+
+            if (!_DeckReshuffled)
+            {
+                Card lastCardOnTable = DiscardPile[DiscardPile.Count - 1];
+
+                DiscardPile.RemoveAt(DiscardPile.Count - 1);
+
+                _GameDeck.AddRange(DiscardPile);
+                DiscardPile.Clear();
+
+                InHouseShuffle();
+                DiscardPile.Add(lastCardOnTable);
+
+                _DeckReshuffled = true;
+
+                return DealCard();
+            }
 
             else
-            {
-                if (_GameDeck.Count != 0)
-                {
-                    Card dealtCard = _GameDeck[0];
-                    _GameDeck.RemoveAt(0);
-
-                    return dealtCard;
-                }
-
-                else
-                {
-                    if (!_DeckReshuffled)
-                    {
-                        int lastCardIndex = DiscardPile.Count - 1;
-                        Card lastCardOnTable = DiscardPile[lastCardIndex];
-
-                        DiscardPile.RemoveAt(lastCardIndex);
-
-                        _GameDeck.AddRange(DiscardPile);
-                        DiscardPile.Clear();
-
-                        InHouseShuffle();
-                        DiscardPile.Add(lastCardOnTable);
-
-                        _DeckReshuffled = true;
-
-                        return DealCard();
-                    }
-
-                    else
-                        return null;
-                }
-            }
+                return null;
         }
+
 
         /// <summary>
         /// Constructs a deck with a premade list of card instances.
