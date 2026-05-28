@@ -79,7 +79,8 @@ namespace SolitaireUno
 
             string uiMessage = "";
 
-            // Player's turn
+            // --------------- PLAYER'S TURN -------------- // 
+
             if (IsPlayerTurn && (LogicCard is not null && VisualCard is not null))
             {
                 var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, playerDecision, GameModeChoice, SuitEnforcement);
@@ -99,7 +100,8 @@ namespace SolitaireUno
                 }
             }
 
-            // Computer's turn
+            // ---------------- COMPUTER'S TURN ----------------- //
+
             else if (!IsPlayerTurn && (LogicCard is not null && VisualCard is not null))
             {
                 var (message, cardPlayed) = _computerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, Player.Hand.Count, GameModeChoice, SuitEnforcement);
