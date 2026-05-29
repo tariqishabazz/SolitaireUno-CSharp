@@ -31,10 +31,9 @@
     }
 
     .solitaire-card:hover {
-        transform: translateY(-10px);
+        transform: translateY(10px);
         box-shadow: 4px 10px 15px rgba(0,0,0,0.4);
     }
-
 
     /* Traditional Inks */
     .card-red { color: #d62828; }   
@@ -146,7 +145,8 @@
     else
     {
         <div class="game-board mt-4">
-
+			<h3 class="text-danger mb-3">Game Uptime is: </h3>
+                
             <div class="p-5 my-4 d-flex flex-column align-items-center" style="background-color: #35654d; border-radius: 12px; box-shadow: inset 0 0 30px rgba(0,0,0,0.6);">
                 <h5 class="text-danger mb-3">Opponent Cards: @gameEngine?.Computer.Hand.Count</h5>
 
@@ -183,14 +183,14 @@
                 @if (gameEngine?.GameDeck?.Length() > 1)
                 {
                     <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Deck has @gameEngine?.GameDeck?.Length() cards left!
+                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod.ToUpper() | Deck has @gameEngine?.GameDeck?.Length() cards left!
                     </div>
                 }
 
                 else if (gameEngine?.GameDeck?.Length() == 1)
                 {
                      <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Deck has one card left!
+                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod.ToUpper() | Deck has one card left!
                     </div>
                 }
 
@@ -204,7 +204,7 @@
                 else
                 {
                     <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Deck has no more cards left!
+                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod.ToUpper() | Deck has no more cards left!
                     </div> 
                 }
 
@@ -218,7 +218,10 @@
                     var card = gameEngine?.Player.Hand[i];
                     int buttonIndex = i + 1;
 
-                    <div @key="card" class="solitaire-card animate-draw" @onclick='() => PlayTurn(buttonIndex.ToString())' style="padding: 0; overflow: hidden; border: none; background: transparent; box-shadow: none;">
+                    <div @key="card"
+						 class="solitaire-card animate-draw"
+						 @onclick='() => PlayTurn(buttonIndex.ToString())'
+						 style="padding: 0; overflow: hidden; border: none; background: transparent; box-shadow: none;">
                         <img src="@GetCardImagePath(card)" alt="@card?.ToString()" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
                     </div>
                 }
@@ -321,8 +324,6 @@
             if (!string.IsNullOrEmpty(turnResult))
                 actionLog = turnResult;
 
-            if (playerHandCountThisRound > playerHandCountLastRound)
-                SortHand();
 
             if (gameEngine?.Computer.Hand.Count == 0)
             {
@@ -334,6 +335,9 @@
         }
 
         isComputerThinking = false;
+
+        if (playerHandCountThisRound > playerHandCountLastRound)
+            SortHand();
     }
 
     /// <summary>
@@ -369,7 +373,6 @@
         if (card is RegularCard regularCard)
             return $"images/cards/{regularCard.Value.ToString().ToLower()}_of_{regularCard.Suit.ToString().ToLower()}.png";
 
-        // re-edit once user can choose preferred card color
         else if (card is SpecialCard specialCard)
         {
             switch (specialCard.CardType)
@@ -423,4 +426,6 @@
 
         await Task.Delay(randomWaitingPeriod);
     }
+
+    // private 
 }

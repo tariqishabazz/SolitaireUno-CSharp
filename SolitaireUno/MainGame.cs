@@ -47,6 +47,9 @@ namespace SolitaireUno
 
             _playerTurnHandler = new PlayerTurnHandler(Player, GameDeck);
             _computerTurnHandler = new ComputerTurnHandler(Computer, GameDeck, GameDifficulty);
+
+            // resets bool if game started again
+            deck.DeckReshuffled = false;
         }
 
         /// <summary>
@@ -56,15 +59,13 @@ namespace SolitaireUno
         {
             LogicCard = GameDeck.PreventInitialSpecialCard();
 
-            if (LogicCard is not null)
-            {
-                GameDeck.AddToDiscardPile(LogicCard);
-                VisualCard = LogicCard;
-
-                IsPlayerTurn = true;
-            }
-            else
+            if (LogicCard is null)
                 return;
+
+            GameDeck.AddToDiscardPile(LogicCard);
+            VisualCard = LogicCard;
+
+            IsPlayerTurn = true;
         }
 
         /// <summary>
