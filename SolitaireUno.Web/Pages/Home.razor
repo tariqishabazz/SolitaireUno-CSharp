@@ -31,16 +31,11 @@
     }
 
     .solitaire-card:hover {
-        transform: translateY(10px);
-        box-shadow: 4px 10px 15px rgba(0,0,0,0.4);
+            transform: translateY(10px) translateY(-10);
+            box-shadow: 4px 10px 15px rgba(0,0,0,0.4);
     }
 
-    /* Traditional Inks */
-    .card-red { color: #d62828; }   
-    .card-black { color: #111111; } 
-    .card-special { color: #d4af37; background-color: #333; border: 2px solid #d4af37; }
-
-    /* 2. Classic Blue Deck Backing */
+    /* 2. Represents the deck */
     .solitaire-deck {
         width: 100px;
         height: 150px;
@@ -88,6 +83,7 @@
     .animate-play {
         animation: playToTable 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
+
 </style>
 
 <div class="text-center">
@@ -125,9 +121,16 @@
 
             <label class="form-label fw-bold text-dark text-start">Sorting Method</label>
             <select class="form-select mb-4" @bind="selectedSortMethod">
-                <option value="values">By Values</option>
-                <option value="suits">By Suits</option>
-                <option value="both">Both</option>
+                <option value="Values">By Values</option>
+                <option value="Suits">By Suits</option>
+                <option value="Suits and Values">Both</option>
+            </select>
+
+            <label class="form-label fw-bold text-dark text-start">Numbers of Players (excluding you)</label>
+            <select class="form-select mb-4" @bind="selectedPlayerCount">
+                <option value = 1>One</option>
+                <option value = 2>Two</option>
+                <option value = 3>Three</option>
             </select>
 
 
@@ -183,14 +186,14 @@
                 @if (gameEngine?.GameDeck?.Length() > 1)
                 {
                     <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod.ToUpper() | Deck has @gameEngine?.GameDeck?.Length() cards left!
+                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod | Deck has @gameEngine?.GameDeck?.Length() cards left!
                     </div>
                 }
 
                 else if (gameEngine?.GameDeck?.Length() == 1)
                 {
                      <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod.ToUpper() | Deck has one card left!
+                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod | Deck has one card left!
                     </div>
                 }
 
@@ -204,7 +207,7 @@
                 else
                 {
                     <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod.ToUpper() | Deck has no more cards left!
+                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod | Deck has no more cards left!
                     </div> 
                 }
 
@@ -212,6 +215,7 @@
             </div>
 
             <h4 class="mt-4" style="color: #444;">Your Hand (@gameEngine?.Player.Hand.Count cards) </h4>
+
             <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 p-2">
                 @for (int i = 0; i < gameEngine?.Player.Hand.Count; i++)
                 {
@@ -253,7 +257,9 @@
     private GameMode selectedMode = GameMode.Ascending;
     private GameDifficulty selectedDifficulty = GameDifficulty.Easy;
     private string selectedCardColor = "yellow";
-    private string selectedSortMethod = "".ToLower();
+    private string selectedSortMethod = "";
+
+    private int selectedPlayerCount;
 
     private void StartNewGame()
     {
@@ -264,8 +270,7 @@
         // find way to store all game settings into one variable and pass that one variable to MainGame
         // var GameConfiguration = (freshDeck, selectedMode, suitEnforcement, selectedDifficulty);
 
-        gameEngine = new MainGame(freshDeck, selectedMode, suitEnforcement, selectedDifficulty);
-
+        gameEngine = new MainGame(freshDeck, selectedMode, suitEnforcement, selectedDifficulty, selectedPlayerCount);
         gameEngine.StartGame();
 
         SortHand();
@@ -334,31 +339,11 @@
             }
         }
 
-        isComputerThinking = false;
-
         if (playerHandCountThisRound > playerHandCountLastRound)
             SortHand();
-    }
 
-    /// <summary>
-    /// Colors the card depending on the card's suit.
-    /// </summary>
-    /// <param name="card"></param>
-    /// <returns>For Hearts/Diamonds, returns a red card. 
-    ///     For other suits, returns a black card. 
-    ///     For non-suited cards, returns special card coloring</returns>
-    private string GetCardColor(Card? card)
-    {
-        if (card is RegularCard regCard)
-        {
-            if (regCard.Suit == Suits.Hearts || regCard.Suit == Suits.Diamonds)
-                return "card-red";
-            else
-                return "card-black";
-        }
-        return "card-special";
+        isComputerThinking = false;
     }
-
 
     /// <summary>
     /// Sets the proper card images to each card based on its Suit or Value, or special card context
@@ -397,15 +382,15 @@
     {
         switch (selectedSortMethod)
         {
-            case "values":
+            case "Values":
                 gameEngine?.Player.SortHandByValue();
                 break;
 
-            case "suits":
+            case "Suits":
                 gameEngine?.Player.SortHandBySuit();
                 break;
 
-            case "both":
+            case "Both Suits and Values":
                 gameEngine?.Player.SortHandBySuitAndValue();
                 break;
 

@@ -105,7 +105,6 @@ namespace SolitaireUno
 
             var sortedSpecials = AllSortedSpecialCards();
 
-
             List<Card> sortedHand = [];
 
             sortedHand.AddRange(sortedSuitsAndValues);

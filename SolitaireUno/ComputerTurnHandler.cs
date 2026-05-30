@@ -10,9 +10,8 @@ namespace SolitaireUno
     /// <summary>
     /// Handles the computer's turn and applies drawing/penalty logic.
     /// </summary>
-    public class ComputerTurnHandler(Computer computer, Deck deck, GameDifficulty currentDifficulty)
+    public class ComputerTurnHandler(Deck deck, GameDifficulty currentDifficulty)
     {
-        private readonly Computer _computer = computer;
         private readonly Deck _deck = deck;
         private readonly GameDifficulty _gameDifficulty = currentDifficulty;
 
@@ -26,9 +25,9 @@ namespace SolitaireUno
         /// <param name="currentGameMode">Current game mode for validation.</param>
         /// <param name="suitEnforcement">Whether suit enforcement is active.</param>
         /// <returns>Tuple containing a UI message and the card played, if any.</returns>
-        public (string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, int opponentHandSize, GameMode currentGameMode, bool suitEnforcement)
+        public (string message, Card? playedCard) HandleTurn(Computer currentComputerPlayer, ref Card logicCard, ref Card visualCard, Card penaltyCard, int opponentHandSize, GameMode currentGameMode, bool suitEnforcement)
         {
-            Card? potentialComputerPlay = _computer.MakeMove(logicCard, opponentHandSize, _deck.Length(), _gameDifficulty, currentGameMode, suitEnforcement);
+            Card? potentialComputerPlay = currentComputerPlayer.MakeMove(logicCard, opponentHandSize, _deck.Length(), _gameDifficulty, currentGameMode, suitEnforcement);
 
 
             // ----------------- IF COMPUTER HAS NO POTENTIAL PLAY ------------------ //
@@ -38,7 +37,7 @@ namespace SolitaireUno
                 if (_deck.Length() > 0 || _deck.Length() == 0 && !_deck.DeckReshuffled)
                 {
                     Card card = _deck.DealCard()!;
-                    _computer.PickupCard(card);
+                    currentComputerPlayer.PickupCard(card);
 
 
                     // ------------- HANDLES POTENTIAL PENALTY --------------- //
@@ -54,7 +53,7 @@ namespace SolitaireUno
 
                             if (addtionalPenaltyCard is not null)
                             {
-                                _computer.PickupCard(addtionalPenaltyCard);
+                                currentComputerPlayer.PickupCard(addtionalPenaltyCard);
                                 actualPickupCount++;
                             }
                         }
@@ -79,7 +78,7 @@ namespace SolitaireUno
                 if (potentialComputerPlay is RegularCard)
                     logicCard = potentialComputerPlay;
 
-                _computer.PlayCard(potentialComputerPlay);
+                currentComputerPlayer.PlayCard(potentialComputerPlay);
                 _deck.AddToDiscardPile(potentialComputerPlay);
 
 

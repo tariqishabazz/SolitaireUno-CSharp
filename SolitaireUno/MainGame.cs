@@ -8,7 +8,7 @@ namespace SolitaireUno
     public class MainGame
     {
         public Player Player { get; private set; }
-        public Computer Computer { get; private set; }
+        public List<Computer> ComputerPlayers { get; private set; } = new List<Computer>();
         public Deck GameDeck { get; set; }
 
         internal PlayerTurnHandler _playerTurnHandler;
@@ -17,7 +17,8 @@ namespace SolitaireUno
         public GameMode GameModeChoice { get; set; }
         internal GameDifficulty GameDifficulty { get; set; }
 
-        public bool IsPlayerTurn { get; set; }
+        public int NumberOfPlayers { get; private set; }
+        public int CurrentTurnIndex { get; private set; }
         internal bool SuitEnforcement { get; private set; }
         public bool ComputerSkipped { get; set; }
         public bool PlayerSkipped { get; set; }
@@ -34,10 +35,18 @@ namespace SolitaireUno
         /// <param name="gameModeChoice">The game mode (ascending or descending).</param>
         /// <param name="suitEnforcement">Whether suit enforcement is enabled.</param>
         /// <param name="gameDifficulty">Difficulty level for computer AI.</param>
-        public MainGame(Deck deck, GameMode gameModeChoice, bool suitEnforcement, GameDifficulty gameDifficulty)
+        public MainGame(Deck deck, GameMode gameModeChoice, bool suitEnforcement, GameDifficulty gameDifficulty, int numberOfPlayers)
         {
+            NumberOfPlayers = numberOfPlayers;
+
             Player = new Player(deck);
-            Computer = new Computer(deck);
+
+            for (int i = 0; i < numberOfPlayers; i++)
+            {
+                Computer computerPlayer = new Computer(deck);
+                ComputerPlayers.Add(computerPlayer);
+            }
+
             PenaltyCard = new RegularCard(Suits.Spades, Values.Queen);
 
             GameDeck = deck;
@@ -46,6 +55,7 @@ namespace SolitaireUno
             SuitEnforcement = suitEnforcement;
 
             _playerTurnHandler = new PlayerTurnHandler(Player, GameDeck);
+
             _computerTurnHandler = new ComputerTurnHandler(Computer, GameDeck, GameDifficulty);
 
             // resets bool if game started again
@@ -65,7 +75,7 @@ namespace SolitaireUno
             GameDeck.AddToDiscardPile(LogicCard);
             VisualCard = LogicCard;
 
-            IsPlayerTurn = true;
+            CurrentTurnIndex = (CurrentTurnIndex + 1) % NumberOfPlayers;
         }
 
         /// <summary>
@@ -82,7 +92,7 @@ namespace SolitaireUno
 
             // --------------- PLAYER'S TURN -------------- // 
 
-            if (IsPlayerTurn && (LogicCard is not null && VisualCard is not null))
+            if (CurrentTurnIndex == 0 && (LogicCard is not null && VisualCard is not null))
             {
                 var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, playerDecision, GameModeChoice, SuitEnforcement);
 
@@ -93,30 +103,39 @@ namespace SolitaireUno
                     if (cardPlayed is not null)
                     {
                         LastPlayedCard = cardPlayed;
-                        ComputerSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard, ComputerSkipped, GameDeck, Computer, PenaltyCard);
+                        ComputerSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard, 
+                                                                             ComputerSkipped, 
+                                                                             GameDeck, 
+                                                                             ComputerPlayers[CurrentTurnIndex - 1], 
+                                                                             PenaltyCard);
                     }
 
                     if (!ComputerSkipped)
-                        IsPlayerTurn = false;
+                        CurrentTurnIndex++;
                 }
             }
 
-            // ---------------- COMPUTER'S TURN ----------------- //
+            // ---------------- A COMPUTER'S TURN ----------------- //
 
-            else if (!IsPlayerTurn && (LogicCard is not null && VisualCard is not null))
+            else if (CurrentTurnIndex > 0 && (LogicCard is not null && VisualCard is not null))
             {
-                var (message, cardPlayed) = _computerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, Player.Hand.Count, GameModeChoice, SuitEnforcement);
+                var (message, cardPlayed) = _computerTurnHandler.HandleTurn(ComputerPlayers[CurrentTurnIndex - 1], ref LogicCard, ref VisualCard, PenaltyCard, Player.Hand.Count, GameModeChoice, SuitEnforcement);
 
                 uiMessage = message;
 
                 if (cardPlayed is not null)
                 {
                     LastPlayedCard = cardPlayed;
-                    PlayerSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard, PlayerSkipped, GameDeck, Player, PenaltyCard);
+                    PlayerSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard,
+                                                                       PlayerSkipped,
+                                                                       GameDeck,
+                                                                       ComputerPlayers[CurrentTurnIndex = (CurrentTurnIndex + 1) % NumberOfPlayers],
+                                                                       PenaltyCard);
                 }
 
                 if (!PlayerSkipped)
-                    IsPlayerTurn = true;
+                    CurrentTurnIndex = (CurrentTurnIndex + 1) % NumberOfPlayers;
+
             }
 
             return uiMessage;
