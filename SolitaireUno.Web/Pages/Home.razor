@@ -101,6 +101,7 @@
             <select class="form-select mb-3" @bind="selectedMode">
                 <option value="@GameMode.Ascending">Ascending</option>
                 <option value="@GameMode.Descending">Descending</option>
+                <option value="@GameMode.AscendingAndDescending">Both</option>
             </select>
 
             <label class="form-label fw-bold text-dark text-start">Difficulty</label>
@@ -135,10 +136,9 @@
 
 
             <div class="form-check mb-4 text-start">
-                <input class="form-check-input" type="checkbox" id="suitEnforcement" @bind="suitEnforcement" />
-                <label class="form-check-label fw-bold text-dark" for="suitEnforcement">
-                    Enable Suit Enforcement
-                </label>
+                <input class="form-check-input" type="checkbox" id="suitEnforcement" @bind="suitEnforcement" 
+                    disabled="@(selectedMode == GameMode.AscendingAndDescending)"/>
+                <label class="form-check-label fw-bold text-dark" for="suitEnforcement"> Enable Suit Enforcement </label>
             </div>
 
             <button class="btn btn-lg btn-success w-100 fw-bold" @onclick="StartNewGame">Start Game</button>

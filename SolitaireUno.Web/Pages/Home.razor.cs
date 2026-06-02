@@ -78,6 +78,9 @@ namespace SolitaireUno.Web.Pages
 
         private async Task PlayTurn(string decision)
         {
+            if (gameEngine is null)
+                return;
+
             // disables human input/actions if its a computers turn, or the game is over
             if (aComputerIsThinking || gameOverMessage != "")
                 return;
@@ -90,12 +93,14 @@ namespace SolitaireUno.Web.Pages
             // holds amount of cards the human player had before playing a turn
             int? playerHandCountBeforeEveryoneGoes = HumanPlayer?.Hand.Count;
 
-            string turnResult = gameEngine?.AdvanceTurn(decision) ?? "";
 
-            if (!string.IsNullOrEmpty(turnResult))
-            {
-                await UpdateMessageAndUI(turnResult);
-            }
+            (string message, bool successfulDecision) humanTurnResult = gameEngine.AdvanceTurn(decision); 
+
+            if (!string.IsNullOrEmpty(humanTurnResult.message))
+                await UpdateMessageAndUI(humanTurnResult.message);
+
+            if (!humanTurnResult.successfulDecision)
+                return;
 
             // check if human won
             Player? winner = ShowWinCondition();
@@ -114,11 +119,13 @@ namespace SolitaireUno.Web.Pages
 
                 await UpdateMessageAndUI($"{gameEngine?.AllPlayers[gameEngine.CurrentTurnIndex].Name} is thinking...");
 
-                turnResult = gameEngine?.AdvanceTurn("") ?? "";
-                if (!string.IsNullOrEmpty(turnResult))
-                {
-                    await UpdateMessageAndUI(turnResult);
-                }
+                (string message, bool successfulDecision) = gameEngine.AdvanceTurn("");
+
+                if (!string.IsNullOrEmpty(message))
+                    await UpdateMessageAndUI(message);
+
+                if (!successfulDecision)
+                    return;
 
                 // check if a computer won
                 winner = ShowWinCondition();
@@ -131,7 +138,7 @@ namespace SolitaireUno.Web.Pages
                 aComputerIsThinking = false;
             }
 
-            
+
 
             // holds the amount of cards human player had after everyone went
             int? playerHandCountAfterEveryoneGoes = HumanPlayer?.Hand.Count;
@@ -139,7 +146,7 @@ namespace SolitaireUno.Web.Pages
             // re-sorts the players hand if they have more cards this round than last round
             if (playerHandCountAfterEveryoneGoes > playerHandCountBeforeEveryoneGoes && selectedSortMethod is not null)
                 SortHand();
-            
+
             await UpdateMessageAndUI("Your turn");
         }
 

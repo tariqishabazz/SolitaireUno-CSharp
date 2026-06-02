@@ -7,7 +7,7 @@ namespace SolitaireUno
     /// </summary>
     public class MainGame
     {
-        public List<Player> AllPlayers { get; private set; } = new List<Player>();
+        public List<Player> AllPlayers { get; private set; } = [];
         public Deck GameDeck { get; set; }
 
         internal PlayerTurnHandler _playerTurnHandler;
@@ -39,7 +39,7 @@ namespace SolitaireUno
         {
             NumberOfPlayers = currentGameSettings.NumberOfPlayers;
 
-            Player humanPlayer = new Player()
+            Player humanPlayer = new()
             {
                 Name = "Human"
             };
@@ -51,7 +51,7 @@ namespace SolitaireUno
 
             for (int i = 0; i < NumberOfPlayers; i++)
             {
-                Computer computerPlayer = new Computer()
+                Computer computerPlayer = new()
                 {
                     Name = $"Computer {i + 1}"
                 };
@@ -108,16 +108,15 @@ namespace SolitaireUno
         /// </summary>
         /// <param name="playerDecision">Optional player input or command used during the player's turn.</param>
         /// <returns>A UI message produced during the processed turn.</returns>
-        public string AdvanceTurn(string playerDecision = "")
+        public (string message, bool validDecision) AdvanceTurn(string playerDecision = "")
         {            
             bool turnSkipped = false;                               // bool for if a player was skipped 
-            string uiMessage = string.Empty;                        // initial empty string for message to be sent back
+            string uiMessage;                        // initial empty string for message to be sent back
             
             Player currentPlayer = AllPlayers[CurrentTurnIndex];    // holds the current player at time of turn
 
-
             if (LogicCard is null || VisualCard is null)
-                return string.Empty;
+                return (string.Empty, false);
 
 
             // ---------------- A COMPUTER'S TURN ----------------- //
@@ -126,7 +125,7 @@ namespace SolitaireUno
             {
                 int nextPlayersIndex = (CurrentTurnIndex + 1) % AllPlayers.Count;
 
-                var (message, cardPlayed) = _computerTurnHandler.HandleTurn(computerPlayer,
+                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer,
                                                                             ref LogicCard,
                                                                             ref VisualCard,
                                                                             PenaltyCard,
@@ -138,7 +137,7 @@ namespace SolitaireUno
                 if (cardPlayed is not null)
                 {
                     LastPlayedCard = cardPlayed;
-                    
+
                     turnSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard,
                                                                      turnSkipped,
                                                                      GameDeck,
@@ -146,6 +145,11 @@ namespace SolitaireUno
                                                                      PenaltyCard);
 
                 }
+                
+                int stepsToMove = turnSkipped ? 2 : 1;                                      //if a player was skipped, we move "2" steps or players
+                CurrentTurnIndex = (CurrentTurnIndex + stepsToMove) % AllPlayers.Count;     // allows for circular looping of turns
+
+                return (uiMessage, successfulDecision);
             }
 
 
@@ -169,21 +173,20 @@ namespace SolitaireUno
                     if (cardPlayed is not null)
                     {
                         LastPlayedCard = cardPlayed;
-                        
+
                         turnSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard,
                                                                                    turnSkipped,
                                                                                    GameDeck,
                                                                                    AllPlayers[nextPlayersIndex],
                                                                                    PenaltyCard);
-                    }
+                    }            
+                    
+                    int stepsToMove = turnSkipped ? 2 : 1;                                      //if a player was skipped, we move "2" steps or players
+                    CurrentTurnIndex = (CurrentTurnIndex + stepsToMove) % AllPlayers.Count;     // allows for circular looping of turns
                 }
-            }
 
-            // if a player was skipped, we move "2" steps or players
-            int stepsToMove = turnSkipped ? 2 : 1; 
-            CurrentTurnIndex = (CurrentTurnIndex + stepsToMove) % AllPlayers.Count; // allows for circular looping of turns
-
-            return uiMessage;
+                return (uiMessage, isSuccessful);
+            }           
         }
     }
 }

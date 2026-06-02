@@ -86,7 +86,7 @@ namespace SolitaireUno
 
             Card potentialCard = player.Hand[decisionAsNumber - 1]; 
 
-            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings.Mode, currentGameSettings.SuitsEnforced)) // IF DECISION ISNT A VALID MOVE
+            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings)) // IF DECISION ISNT A VALID MOVE
                 return (false, "That is not a valid move, please try again", null);
 
 

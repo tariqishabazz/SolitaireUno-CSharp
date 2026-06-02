@@ -24,7 +24,7 @@ namespace SolitaireUno
         /// <returns>The chosen card to play, or null if no valid move exists.</returns>
         public Card? MakeMove(Card logicCard, int opponentHandSize, int currentDeckSize, GameSettings currentGameSettings)
         {
-            Random random = new Random();
+            Random random = new();
 
             //The two dots are called the spread operator. In this case,
                 //it takes all the individual cards found by the query and "spreads"
@@ -32,7 +32,7 @@ namespace SolitaireUno
             List<Card> validMoves =
             [
                 .. from Card potentialCard in Hand
-                                    where CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings.Mode, currentGameSettings.SuitsEnforced)
+                                    where CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings)
                                     select potentialCard,
             ];
 
