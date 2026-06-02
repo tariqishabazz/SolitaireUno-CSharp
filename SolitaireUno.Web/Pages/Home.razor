@@ -128,9 +128,9 @@
 
             <label class="form-label fw-bold text-dark text-start">Numbers of Players (excluding you)</label>
             <select class="form-select mb-4" @bind="selectedPlayerCount">
-                <option value = 1>One</option>
-                <option value = 2>Two</option>
-                <option value = 3>Three</option>
+                <option value = "1">One</option>
+                <option value = "2">Two</option>
+                <option value = "3">Three</option>
             </select>
 
 
@@ -144,14 +144,29 @@
             <button class="btn btn-lg btn-success w-100 fw-bold" @onclick="StartNewGame">Start Game</button>
         </div>
     }
-    
+
     else
     {
         <div class="game-board mt-4">
-			<h3 class="text-danger mb-3">Game Uptime is: </h3>
-                
+            <h3 class="text-danger mb-3">Game Uptime is: </h3>
+
             <div class="p-5 my-4 d-flex flex-column align-items-center" style="background-color: #35654d; border-radius: 12px; box-shadow: inset 0 0 30px rgba(0,0,0,0.6);">
-                <h5 class="text-danger mb-3">Opponent Cards: @gameEngine?.Computer.Hand.Count</h5>
+                
+                <h5 class="text-danger mb-3">Opponent Card Counts: </h5>
+                
+                <h6 class="text-danger mb-3 d-flex justify-content-center gap-3 flex-wrap">
+
+                    @if (gameEngine is not null)
+                    {
+                        foreach(Player computerOpponent in gameEngine.AllPlayers.Skip(1))
+                        {
+                            <span class="badge bg-light text-dark border p-2">
+                                @computerOpponent.Name has @computerOpponent.Hand.Count Card(s)
+                            </span>  
+                        }
+                    }
+
+                </h6>
 
                 <div class="alert alert-light border shadow-sm" role="alert" style="font-size: 1.1rem;">
                     @actionLog
@@ -186,14 +201,17 @@
                 @if (gameEngine?.GameDeck?.Length() > 1)
                 {
                     <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod | Deck has @gameEngine?.GameDeck?.Length() cards left!
+                        Order: @gameEngine?.GameModeChoice | 
+                        Sorting Mode: @if(selectedSortMethod is not null) { @selectedSortMethod } else {  } | 
+                        Deck has @gameEngine?.GameDeck?.Length() cards left!
                     </div>
                 }
 
                 else if (gameEngine?.GameDeck?.Length() == 1)
                 {
                      <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod | Deck has one card left!
+                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @if(selectedSortMethod is not null) {
+                        @selectedSortMethod } | Deck has one card left!
                     </div>
                 }
 
@@ -207,19 +225,19 @@
                 else
                 {
                     <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @selectedSortMethod | Deck has no more cards left!
+                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @if(selectedSortMethod is not null) { @selectedSortMethod }| Deck has no more cards left!
                     </div> 
                 }
 
                 <button class="btn btn-outline-light mt-3 px-4" @onclick='() => PlayTurn("pass")'>Pass Turn</button>
             </div>
 
-            <h4 class="mt-4" style="color: #444;">Your Hand (@gameEngine?.Player.Hand.Count cards) </h4>
+            <h4 class="mt-4" style="color: #444;">Your Hand (@gameEngine?.AllPlayers[0].Hand.Count cards) </h4>
 
             <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 p-2">
-                @for (int i = 0; i < gameEngine?.Player.Hand.Count; i++)
+                @for (int i = 0; i < gameEngine?.AllPlayers[0].Hand.Count; i++)
                 {
-                    var card = gameEngine?.Player.Hand[i];
+                    var card = gameEngine?.AllPlayers[0].Hand[i];
                     int buttonIndex = i + 1;
 
                     <div @key="card"
@@ -242,175 +260,3 @@
         </div>
     }
 </div>
-
-@code 
-{
-    private MainGame? gameEngine;
-
-    private bool gameStarted = false;
-    private bool isComputerThinking = false;
-    private bool suitEnforcement = false;
-
-    private string gameOverMessage = "";
-    private string actionLog = "Welcome to Solitaire Uno!";
-
-    private GameMode selectedMode = GameMode.Ascending;
-    private GameDifficulty selectedDifficulty = GameDifficulty.Easy;
-    private string selectedCardColor = "yellow";
-    private string selectedSortMethod = "";
-
-    private int selectedPlayerCount;
-
-    private void StartNewGame()
-    {
-        gameOverMessage = "";
-
-        Deck freshDeck = new Deck();
-
-        // find way to store all game settings into one variable and pass that one variable to MainGame
-        // var GameConfiguration = (freshDeck, selectedMode, suitEnforcement, selectedDifficulty);
-
-        gameEngine = new MainGame(freshDeck, selectedMode, suitEnforcement, selectedDifficulty, selectedPlayerCount);
-        gameEngine.StartGame();
-
-        SortHand();
-
-        gameStarted = true;
-        actionLog = "Cards dealt. It is your turn.";
-    }
-
-    private async Task PlayTurn(string decision)
-    {
-        if (isComputerThinking || gameOverMessage != "")
-            return;
-
-
-
-
-        // -------------------------- PLAYER'S TURN ----------------------------- //
-        if (gameEngine?.IsPlayerTurn == true)
-            actionLog += "\n\nYour turn.";
-
-        int? playerHandCountThisRound = gameEngine?.Player.Hand.Count;
-
-        string turnResult = gameEngine?.AdvanceTurn(decision) ?? "";
-        if (!string.IsNullOrEmpty(turnResult))
-        {
-            actionLog = turnResult;
-        }
-
-        int? playerHandCountLastRound = gameEngine?.Player.Hand.Count;
-
-        if (playerHandCountThisRound > playerHandCountLastRound)
-            SortHand();
-
-
-        if (gameEngine?.Player.Hand.Count == 0)
-        {
-            gameOverMessage = "You Win! 🎉";
-            return;
-        }
-
-
-
-
-        // -------------------------- COMPUTER'S TURN ----------------------------- //
-
-        while ((gameEngine?.IsPlayerTurn == false) && (gameEngine?.Computer.Hand.Count > 0))
-        {
-            isComputerThinking = true;
-            actionLog = "Opponent is thinking...";
-            StateHasChanged();
-
-            await SimulatedComputerThinking();
-
-            turnResult = gameEngine?.AdvanceTurn("") ?? "";
-
-            if (!string.IsNullOrEmpty(turnResult))
-                actionLog = turnResult;
-
-
-            if (gameEngine?.Computer.Hand.Count == 0)
-            {
-                gameOverMessage = "Opponent Wins!";
-
-                isComputerThinking = false;
-                return;
-            }
-        }
-
-        if (playerHandCountThisRound > playerHandCountLastRound)
-            SortHand();
-
-        isComputerThinking = false;
-    }
-
-    /// <summary>
-    /// Sets the proper card images to each card based on its Suit or Value, or special card context
-    /// </summary>
-    /// <param name="card">The card to set the image of</param>
-    /// <returns></returns>
-    private string GetCardImagePath(Card? card)
-    {
-        if (card is null)
-            return "";
-
-        if (card is RegularCard regularCard)
-            return $"images/cards/{regularCard.Value.ToString().ToLower()}_of_{regularCard.Suit.ToString().ToLower()}.png";
-
-        else if (card is SpecialCard specialCard)
-        {
-            switch (specialCard.CardType)
-            {
-                case SpecialCardType.DrawFour:
-                    return $"images/cards/drawfour.png";
-
-                case SpecialCardType.DrawTwo:
-                    return $"images/cards/{selectedCardColor}_draw_two.png";
-
-                case SpecialCardType.Skip:
-                    return $"images/cards/{selectedCardColor}_skip.png";
-            }
-        }
-        return $"images/cards/{selectedCardColor}_backing.png";
-    } 
-
-    /// <summary>
-    /// Uses the players SortHand methods to properly sort hand cards based on user's desire
-    /// </summary>
-    private void SortHand()
-    {
-        switch (selectedSortMethod)
-        {
-            case "Values":
-                gameEngine?.Player.SortHandByValue();
-                break;
-
-            case "Suits":
-                gameEngine?.Player.SortHandBySuit();
-                break;
-
-            case "Both Suits and Values":
-                gameEngine?.Player.SortHandBySuitAndValue();
-                break;
-
-            default:
-                break;
-        }
-        ;
-    }
-
-    /// <summary>
-    /// Creates a fake pause to simulate real-time thinking
-    /// </summary>
-    /// <returns>A Task Delay</returns>
-    private async Task SimulatedComputerThinking()
-    {
-        Random random = new Random();
-        int randomWaitingPeriod = (random.Next(7) + 4) * 500;
-
-        await Task.Delay(randomWaitingPeriod);
-    }
-
-    // private 
-}

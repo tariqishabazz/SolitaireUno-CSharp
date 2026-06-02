@@ -22,7 +22,7 @@ namespace SolitaireUno
         /// <param name="gameMode">The current game mode for validation.</param>
         /// <param name="suitEnforcement">Whether suit enforcement is active.</param>
         /// <returns>Tuple indicating success, a UI message, and the played card if any.</returns>
-        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, string playerDecision, GameMode gameMode, bool suitEnforcement)
+        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, string playerDecision, Player nextPlayer, GameMode gameMode, bool suitEnforcement)
         {
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
 
@@ -101,10 +101,10 @@ namespace SolitaireUno
                 logicCard = potentialCard;
 
             if (potentialCard is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
-                return (true, $"You played: {potentialCard} and skipped the Computer!", potentialCard);
+                return (true, $"You played: {potentialCard} and skipped {nextPlayer.Name}!", potentialCard);
 
             else if ((potentialCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (potentialCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
-                return (true, $"You played: {potentialCard}, so the Computer had to draw!", potentialCard);
+                return (true, $"You played: {potentialCard}, so {nextPlayer.Name} had to draw!", potentialCard);
 
             return (true, $" You played: {potentialCard}!", potentialCard);
         }

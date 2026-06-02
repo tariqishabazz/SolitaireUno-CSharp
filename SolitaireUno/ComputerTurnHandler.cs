@@ -25,9 +25,9 @@ namespace SolitaireUno
         /// <param name="currentGameMode">Current game mode for validation.</param>
         /// <param name="suitEnforcement">Whether suit enforcement is active.</param>
         /// <returns>Tuple containing a UI message and the card played, if any.</returns>
-        public (string message, Card? playedCard) HandleTurn(Computer currentComputerPlayer, ref Card logicCard, ref Card visualCard, Card penaltyCard, int opponentHandSize, GameMode currentGameMode, bool suitEnforcement)
+        public (string message, Card? playedCard) HandleTurn(Computer currentComputerPlayer, ref Card logicCard, ref Card visualCard, Card penaltyCard, Player nextPlayer, GameSettings currentGameSettings)
         {
-            Card? potentialComputerPlay = currentComputerPlayer.MakeMove(logicCard, opponentHandSize, _deck.Length(), _gameDifficulty, currentGameMode, suitEnforcement);
+            Card? potentialComputerPlay = currentComputerPlayer.MakeMove(logicCard, nextPlayer.Hand.Count, _deck.Length(), currentGameSettings);
 
 
             // ----------------- IF COMPUTER HAS NO POTENTIAL PLAY ------------------ //
@@ -57,15 +57,15 @@ namespace SolitaireUno
                                 actualPickupCount++;
                             }
                         }
-                        return ($"The Computer decided to pick up and found the {penaltyCard}! It picked up {actualPickupCount} additional cards!", null);
+                        return ($"{currentComputerPlayer.Name} decided to pick up and found the {penaltyCard}! It picked up {actualPickupCount} additional cards!", null);
                     }
 
                     else
-                        return ("The Computer decided to pick up!", null);
+                        return ($"{currentComputerPlayer.Name} decided to pick up!", null);
                 }
 
                 else if (_deck.Length() == 0 && _deck.DeckReshuffled)
-                    return ("The Computer decided to pass!", null);
+                    return ($"{currentComputerPlayer.Name} decided to pass!", null);
             }
 
 
@@ -83,15 +83,15 @@ namespace SolitaireUno
 
 
                 if (potentialComputerPlay is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
-                    return ($"The Computer played: {potentialComputerPlay} and skipped you!", potentialComputerPlay);
+                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped {nextPlayer.Name}!", potentialComputerPlay);
 
                 else if ((potentialComputerPlay is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (potentialComputerPlay is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
-                    return ($"The Computer played: {potentialComputerPlay}, so you had to draw!", potentialComputerPlay);
+                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so {nextPlayer.Name} had to draw!", potentialComputerPlay);
 
-                return ($"The Computer decided to play: {potentialComputerPlay}!", potentialComputerPlay);
+                return ($"{currentComputerPlayer.Name} decided to play: {potentialComputerPlay}!", potentialComputerPlay);
             }
 
-            return ("The Computer got scared...", null);
+            return ($"{currentComputerPlayer.Name} got scared...", null);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace SolitaireUno
         /// <param name="gameMode">The current game mode (ascending/descending).</param>
         /// <param name="suitEnforcement">Whether suit enforcement is active for validation.</param>
         /// <returns>The chosen card to play, or null if no valid move exists.</returns>
-        public Card? MakeMove(Card logicCard, int opponentHandSize, int currentDeckSize, GameDifficulty gameDifficulty, GameMode gameMode, bool suitEnforcement)
+        public Card? MakeMove(Card logicCard, int opponentHandSize, int currentDeckSize, GameSettings currentGameSettings)
         {
             Random random = new Random();
 
@@ -32,7 +32,7 @@ namespace SolitaireUno
             List<Card> validMoves =
             [
                 .. from Card potentialCard in Hand
-                                    where CardValidation.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement)
+                                    where CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings.Mode, currentGameSettings.SuitsEnforced)
                                     select potentialCard,
             ];
 
@@ -43,7 +43,7 @@ namespace SolitaireUno
             List<Card> specialMoves = [.. validMoves.Where(card => card is SpecialCard)];
 
             // Computer AI switches based on chosen difficulty
-            switch (gameDifficulty)
+            switch (currentGameSettings.Difficulty)
             {
                 case GameDifficulty.Easy:
 

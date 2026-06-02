@@ -8,7 +8,6 @@ namespace SolitaireUno
     public class MainGame
     {
         public List<Player> AllPlayers { get; private set; } = new List<Player>();
-
         public Deck GameDeck { get; set; }
 
         internal PlayerTurnHandler _playerTurnHandler;
@@ -34,9 +33,9 @@ namespace SolitaireUno
         /// <param name="suitEnforcement">Whether suit enforcement is enabled.</param>
         /// <param name="gameDifficulty">Difficulty level for computer AI.</param>
         /// <param name="numberOfPlayers">The number of players in game</param>
-        public MainGame(Deck deck, GameMode gameModeChoice, bool suitEnforcement, GameDifficulty gameDifficulty, int numberOfPlayers)
+        public MainGame(Deck deck, GameSettings currentGameSettings)
         {
-            NumberOfPlayers = numberOfPlayers;
+            NumberOfPlayers = currentGameSettings.NumberOfPlayers;
 
             Player humanPlayer = new Player()
             {
@@ -45,9 +44,10 @@ namespace SolitaireUno
 
             AllPlayers.Add(humanPlayer);
 
+
             // ------------ ADDING COMPUTER PLAYERS ------------ //
 
-            for (int i = 0; i < numberOfPlayers; i++)
+            for (int i = 0; i < NumberOfPlayers; i++)
             {
                 Computer computerPlayer = new Computer()
                 {
@@ -57,14 +57,16 @@ namespace SolitaireUno
                 AllPlayers.Add(computerPlayer);
             }
 
+
             // -------- SETTING PENALTY CARD, DECK, AND OTHER CONFIGURATIONS ------- //
 
             PenaltyCard = new RegularCard(Suits.Spades, Values.Queen);
 
             GameDeck = deck;
-            GameModeChoice = gameModeChoice;
-            GameDifficulty = gameDifficulty;
-            SuitEnforcement = suitEnforcement;
+            GameModeChoice = currentGameSettings.Mode;
+            GameDifficulty = currentGameSettings.Difficulty;
+            SuitEnforcement = currentGameSettings.SuitsEnforced;
+
 
             // --------- SETTING TURN HANDLERS --------- //
 
@@ -124,14 +126,23 @@ namespace SolitaireUno
                                                                             ref LogicCard,
                                                                             ref VisualCard,
                                                                             PenaltyCard,
-                                                                            AllPlayers[nextPlayersIndex].Hand.Count,
-                                                                            GameModeChoice,
-                                                                            SuitEnforcement);
+                                                                            AllPlayers[nextPlayersIndex],
+                                                                            
+                                                                            );
 
                 uiMessage = message;
 
                 if (cardPlayed is not null)
+                {
                     LastPlayedCard = cardPlayed;
+                    
+                    turnSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard,
+                                                                     turnSkipped,
+                                                                     GameDeck,
+                                                                     AllPlayers[nextPlayersIndex],
+                                                                     PenaltyCard);
+
+                }
             }
 
 
@@ -145,6 +156,7 @@ namespace SolitaireUno
                                                                                         ref VisualCard,
                                                                                         PenaltyCard,
                                                                                         playerDecision,
+                                                                                        AllPlayers[nextPlayersIndex],
                                                                                         GameModeChoice,
                                                                                         SuitEnforcement);
 
@@ -155,6 +167,7 @@ namespace SolitaireUno
                     if (cardPlayed is not null)
                     {
                         LastPlayedCard = cardPlayed;
+                        
                         turnSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard,
                                                                                    turnSkipped,
                                                                                    GameDeck,
