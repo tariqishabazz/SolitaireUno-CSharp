@@ -53,13 +53,19 @@ namespace SolitaireUno.Web.Pages
         {
             gameOverMessage = "";
             aComputerIsThinking = false;
-            
+
             Deck freshDeck = new Deck();
 
-            // find way to store all game settings into one variable and pass that one variable to MainGame
-            // var GameConfiguration = (freshDeck, selectedMode, suitEnforcement, selectedDifficulty);
+            GameSettings currentGameSettings = new GameSettings
+            {
+                Mode = selectedMode,
+                Difficulty = selectedDifficulty,
+                SuitsEnforced = suitEnforcement,
+                NumberOfPlayers = selectedPlayerCount
+            };
 
-            gameEngine = new MainGame(freshDeck, selectedMode, suitEnforcement, selectedDifficulty, selectedPlayerCount);
+
+            gameEngine = new MainGame(freshDeck, currentGameSettings);
             gameEngine.StartGame();
 
             SortHand();

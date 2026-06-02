@@ -22,7 +22,7 @@ namespace SolitaireUno
         /// <param name="gameMode">The current game mode for validation.</param>
         /// <param name="suitEnforcement">Whether suit enforcement is active.</param>
         /// <returns>Tuple indicating success, a UI message, and the played card if any.</returns>
-        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, string playerDecision, Player nextPlayer, GameMode gameMode, bool suitEnforcement)
+        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, string playerDecision, Player nextPlayer, GameSettings currentGameSettings)
         {
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
 
@@ -86,7 +86,7 @@ namespace SolitaireUno
 
             Card potentialCard = player.Hand[decisionAsNumber - 1]; 
 
-            if (!CardValidation.ValidCard(potentialCard, logicCard, gameMode, suitEnforcement)) // IF DECISION ISNT A VALID MOVE
+            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings.Mode, currentGameSettings.SuitsEnforced)) // IF DECISION ISNT A VALID MOVE
                 return (false, "That is not a valid move, please try again", null);
 
 

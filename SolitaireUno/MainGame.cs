@@ -16,6 +16,8 @@ namespace SolitaireUno
         public GameMode GameModeChoice { get; set; }
         internal GameDifficulty GameDifficulty { get; set; }
 
+        GameSettings CurrentGameSettings { get; }
+
         public int NumberOfPlayers { get; private set; }
         public int CurrentTurnIndex { get; private set; }
         internal bool SuitEnforcement { get; private set; }
@@ -107,10 +109,12 @@ namespace SolitaireUno
         /// <param name="playerDecision">Optional player input or command used during the player's turn.</param>
         /// <returns>A UI message produced during the processed turn.</returns>
         public string AdvanceTurn(string playerDecision = "")
-        {
+        {            
             bool turnSkipped = false;                               // bool for if a player was skipped 
             string uiMessage = string.Empty;                        // initial empty string for message to be sent back
+            
             Player currentPlayer = AllPlayers[CurrentTurnIndex];    // holds the current player at time of turn
+
 
             if (LogicCard is null || VisualCard is null)
                 return string.Empty;
@@ -127,8 +131,7 @@ namespace SolitaireUno
                                                                             ref VisualCard,
                                                                             PenaltyCard,
                                                                             AllPlayers[nextPlayersIndex],
-                                                                            
-                                                                            );
+                                                                            CurrentGameSettings);
 
                 uiMessage = message;
 
@@ -157,8 +160,7 @@ namespace SolitaireUno
                                                                                         PenaltyCard,
                                                                                         playerDecision,
                                                                                         AllPlayers[nextPlayersIndex],
-                                                                                        GameModeChoice,
-                                                                                        SuitEnforcement);
+                                                                                        CurrentGameSettings);
 
                 uiMessage = message;
 

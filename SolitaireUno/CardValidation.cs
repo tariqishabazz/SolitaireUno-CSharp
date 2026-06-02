@@ -12,18 +12,25 @@ namespace SolitaireUno
         /// <summary>
         /// Determines whether a potential play is valid given the current table card, game mode, and suit enforcement.
         /// </summary>
-        public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameMode gameMode, bool suitEnforcement)
+        public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameSettings currentGameSettings)
         {
             if (potentialPlay is RegularCard firstRegularCard && logicCardShown is RegularCard secondRegularCard)
             {
-                bool isValidSequence = gameMode == GameMode.Descending
-                    ? IsValidDescending(potentialPlay, logicCardShown)
-                    : IsValidAscending(potentialPlay, logicCardShown);
+                bool isValidSequence;
+                
+                if (currentGameSettings.Mode == GameMode.AscendingAndDescending)
+                {
+                    isValidSequence = IsValidAscending(potentialPlay, logicCardShown) || IsValidDescending(potentialPlay, logicCardShown);
+                }
+                else
+                {
+                    isValidSequence = currentGameSettings.Mode == GameMode.Descending ? IsValidDescending(potentialPlay, logicCardShown) : IsValidAscending(potentialPlay, logicCardShown);
+                }
 
                 if (!isValidSequence)
                     return false;
 
-                return suitEnforcement ? NotSameColor(firstRegularCard, secondRegularCard) : true; // ensures cards aren't same color if enforcing suits
+                return !currentGameSettings.SuitsEnforced || NotSameColor(firstRegularCard, secondRegularCard); // ensures cards aren't same color if enforcing suits
             }
 
             return IsSpecialCard(potentialPlay);
