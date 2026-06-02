@@ -10,26 +10,15 @@ namespace SolitaireUno
     /// <summary>
     /// Represents a game participant that holds a hand of cards and can play or pick up cards.
     /// </summary>
-    public class Player
+    /// <remarks>
+    /// Initializes a new instance of <see cref="Player"/> and deals an initial hand from the game deck.
+    /// </remarks>
+    /// <param name="gameDeck">The deck used to draw the initial hand.</param>
+    public class Player()
     {
         public List<Card> Hand = [];
+        public required string Name { get; init; }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="Player"/> and deals an initial hand from the game deck.
-        /// </summary>
-        /// <param name="gameDeck">The deck used to draw the initial hand.</param>
-        public Player(Deck gameDeck)
-        {
-            int initialHandSize = 10;
-            
-            // sets up hands with cards
-            for (int i = 0; i < initialHandSize; i++)
-            {
-                Card playerCard = gameDeck.DealCard()!;
-                PickupCard(playerCard);
-            }
-        }
-        
         /// <summary>
         /// Adds a card to the player's hand.
         /// </summary>

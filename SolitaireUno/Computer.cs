@@ -6,16 +6,12 @@ namespace SolitaireUno
     /// <summary>
     /// Computer player AI responsible for choosing and playing cards.
     /// </summary>
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="Computer"/> class.
+    /// </remarks>
+    /// <param name="gameDeck">The deck the computer can draw from during setup.</param>
     public class Computer : Player
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Computer"/> class.
-        /// </summary>
-        /// <param name="gameDeck">The deck the computer can draw from during setup.</param>
-        public Computer(Deck gameDeck) : base(gameDeck)
-        {
-        }
-
         /// <summary>
         /// Determines and returns a card the computer will play based on the current game state and AI difficulty.
         /// </summary>

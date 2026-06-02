@@ -36,23 +36,13 @@ namespace SolitaireUno
         /// </summary>
         /// <param name="currentCard">The card being evaluated for a special action.</param>
         /// <returns>The action instruction that should be applied based on the card type.</returns>
-        public static ActionInstruction SpecialCardAction(Card currentCard)
+        public static ActionInstruction SpecialCardAction(Card currentCard) => currentCard switch
         {
-            switch (currentCard)
-            {
-                case SpecialCard specialCard:
-                    if (specialCard.CardType.Equals(SpecialCardType.Skip))
-                        return ActionInstruction.SkipTurn;
-
-                    else if (specialCard.CardType.Equals(SpecialCardType.DrawFour))
-                        return ActionInstruction.DrawFour;
-
-                    else
-                        return ActionInstruction.DrawTwo;
-                default:
-                    return ActionInstruction.DoNothing;
-            }
-        }
+            SpecialCard { CardType: SpecialCardType.Skip } => ActionInstruction.SkipTurn,
+            SpecialCard { CardType: SpecialCardType.DrawTwo } => ActionInstruction.DrawTwo,
+            SpecialCard { CardType: SpecialCardType.DrawFour } => ActionInstruction.DrawFour,
+            _ => ActionInstruction.DoNothing
+        };
 
         /// <summary>
         /// Applies special-card effects (skip/draw) to the target player and returns whether they were skipped.
@@ -111,10 +101,10 @@ namespace SolitaireUno
                 if (drawnCard is null)
                     break;
 
-                if (GetPenaltyCount(drawnCard, penaltyCard) > 0)
+                int awardedPenalty = GetPenaltyCount(drawnCard, penaltyCard);
+                
+                if (awardedPenalty > 0)
                 {
-                    int awardedPenalty = GetPenaltyCount(drawnCard, penaltyCard);
-
                     for (int j = 0; j < awardedPenalty; j++)
                     {
                         Card? penaltyDrawnCard = gameDeck.DealCard();
