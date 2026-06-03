@@ -101,7 +101,7 @@
             <select class="form-select mb-3" @bind="selectedMode">
                 <option value="@GameMode.Ascending">Ascending</option>
                 <option value="@GameMode.Descending">Descending</option>
-                <option value="@GameMode.AscendingAndDescending">Both</option>
+                <option value="@GameMode.Both">Both</option>
             </select>
 
             <label class="form-label fw-bold text-dark text-start">Difficulty</label>
@@ -137,7 +137,7 @@
 
             <div class="form-check mb-4 text-start">
                 <input class="form-check-input" type="checkbox" id="suitEnforcement" @bind="suitEnforcement" 
-                    disabled="@(selectedMode == GameMode.AscendingAndDescending)"/>
+                    disabled="@(selectedMode == GameMode.Both)"/>
                 <label class="form-check-label fw-bold text-dark" for="suitEnforcement"> Enable Suit Enforcement </label>
             </div>
 
@@ -201,7 +201,7 @@
                 @if (gameEngine?.GameDeck?.Length() > 1)
                 {
                     <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | 
+                        Order: @gameEngine?.CurrentGameSettings.Mode | 
                         Sorting Mode: @if(selectedSortMethod is not null) { @selectedSortMethod } else {  } | 
                         Deck has @gameEngine?.GameDeck?.Length() cards left!
                     </div>
@@ -210,22 +210,22 @@
                 else if (gameEngine?.GameDeck?.Length() == 1)
                 {
                      <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @if(selectedSortMethod is not null) {
-                        @selectedSortMethod } | Deck has one card left!
+                        Order: @gameEngine?.CurrentGameSettings.Mode | Sorting Mode: @if(selectedSortMethod is not null) {
+                        @selectedSortMethod } | Deck has 1 card left!
                     </div>
                 }
 
                 else if (gameEngine?.GameDeck?.Length() == 0 && gameEngine?.GameDeck.DeckReshuffled == false)
                 {
                     <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Deck has no more cards left, but someone can pick up to reshuffle!
+                        Order: @gameEngine?.CurrentGameSettings.Mode | Deck has no more cards left, but someone can pick up to reshuffle!
                     </div>
                 }
 
                 else
                 {
                     <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.GameModeChoice | Sorting Mode: @if(selectedSortMethod is not null) { @selectedSortMethod }| Deck has no more cards left!
+                        Order: @gameEngine?.CurrentGameSettings.Mode | Sorting Mode: @if(selectedSortMethod is not null) { @selectedSortMethod }| Deck has no more cards left!
                     </div> 
                 }
 

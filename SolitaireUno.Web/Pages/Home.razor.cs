@@ -56,14 +56,7 @@ namespace SolitaireUno.Web.Pages
 
             Deck freshDeck = new Deck();
 
-            GameSettings currentGameSettings = new GameSettings
-            {
-                Mode = selectedMode,
-                Difficulty = selectedDifficulty,
-                SuitsEnforced = suitEnforcement,
-                NumberOfPlayers = selectedPlayerCount
-            };
-
+            GameSettings currentGameSettings = new GameSettings(selectedMode, selectedDifficulty, suitEnforcement, selectedPlayerCount);
 
             gameEngine = new MainGame(freshDeck, currentGameSettings);
             gameEngine.StartGame();
@@ -92,7 +85,6 @@ namespace SolitaireUno.Web.Pages
 
             // holds amount of cards the human player had before playing a turn
             int? playerHandCountBeforeEveryoneGoes = HumanPlayer?.Hand.Count;
-
 
             (string message, bool successfulDecision) humanTurnResult = gameEngine.AdvanceTurn(decision); 
 

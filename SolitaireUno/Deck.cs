@@ -13,7 +13,7 @@ namespace SolitaireUno
         private List<Card> _GameDeck = [];
         private List<Card> _DiscardPile = [];
 
-        private readonly int addtionalSpecialCards = 1;
+        private readonly int addtionalSpecialCards = 2;
         private bool _DeckReshuffled = false;
 
         public List<Card> DiscardPile

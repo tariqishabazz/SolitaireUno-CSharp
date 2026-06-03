@@ -58,7 +58,7 @@ namespace SolitaireUno
                         return randomSpecialMove;
                     }
 
-                    if (opponentHandSize <= 7)
+                    if (opponentHandSize < 7)
                     {
                         if (specialMoves.Count > 0)
                         {
@@ -99,12 +99,13 @@ namespace SolitaireUno
                         return randomSpecialMove;
                     }
 
-                    if (opponentHandSize <= 5)
+                    if (opponentHandSize < 4)
                     {
                         if (specialMoves.Count > 0)
                         {
                             Card randomSpecialMove = specialMoves[random.Next(specialMoves.Count)];
 
+                            // makes sure that the computer doesn't play their only good Skip
                             if (validMoves.Count == 1 && validMoves[0] is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
                                 return null;
 

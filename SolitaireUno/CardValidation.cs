@@ -18,7 +18,7 @@ namespace SolitaireUno
             {
                 bool isValidSequence;
                 
-                if (currentGameSettings.Mode == GameMode.AscendingAndDescending)
+                if (currentGameSettings.Mode == GameMode.Both)
                 {
                     isValidSequence = IsValidAscending(potentialPlay, logicCardShown) || IsValidDescending(potentialPlay, logicCardShown);
                 }

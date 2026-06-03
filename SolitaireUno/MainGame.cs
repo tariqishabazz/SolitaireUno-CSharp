@@ -13,14 +13,9 @@ namespace SolitaireUno
         internal PlayerTurnHandler _playerTurnHandler;
         internal ComputerTurnHandler _computerTurnHandler;
 
-        public GameMode GameModeChoice { get; set; }
-        internal GameDifficulty GameDifficulty { get; set; }
+        public GameSettings CurrentGameSettings { get; private set; }
 
-        GameSettings CurrentGameSettings { get; }
-
-        public int NumberOfPlayers { get; private set; }
         public int CurrentTurnIndex { get; private set; }
-        internal bool SuitEnforcement { get; private set; }
 
         public Card? LastPlayedCard { get; private set; }
         public Card? LogicCard;
@@ -37,8 +32,8 @@ namespace SolitaireUno
         /// <param name="numberOfPlayers">The number of players in game</param>
         public MainGame(Deck deck, GameSettings currentGameSettings)
         {
-            NumberOfPlayers = currentGameSettings.NumberOfPlayers;
-
+            CurrentGameSettings = currentGameSettings;
+            
             Player humanPlayer = new()
             {
                 Name = "Human"
@@ -49,7 +44,7 @@ namespace SolitaireUno
 
             // ------------ ADDING COMPUTER PLAYERS ------------ //
 
-            for (int i = 0; i < NumberOfPlayers; i++)
+            for (int i = 0; i < currentGameSettings.NumberOfPlayers; i++)
             {
                 Computer computerPlayer = new()
                 {
@@ -65,15 +60,11 @@ namespace SolitaireUno
             PenaltyCard = new RegularCard(Suits.Spades, Values.Queen);
 
             GameDeck = deck;
-            GameModeChoice = currentGameSettings.Mode;
-            GameDifficulty = currentGameSettings.Difficulty;
-            SuitEnforcement = currentGameSettings.SuitsEnforced;
-
 
             // --------- SETTING TURN HANDLERS --------- //
 
             _playerTurnHandler = new PlayerTurnHandler(humanPlayer, GameDeck);
-            _computerTurnHandler = new ComputerTurnHandler(GameDeck, GameDifficulty);
+            _computerTurnHandler = new ComputerTurnHandler(GameDeck, CurrentGameSettings.Difficulty);
 
             // resets bool if game started again
             deck.DeckReshuffled = false;
