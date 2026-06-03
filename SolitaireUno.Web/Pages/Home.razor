@@ -3,260 +3,230 @@
 
 <PageTitle>Solitaire Uno</PageTitle>
 
-<style>
-    body{
-        background-color: lightgray
-    }
-
-    /* 1. Classic Solitaire Card Design */
-    /* Classic Solitaire Card Design */
-    .solitaire-card {
-        width: 100px;
-        height: 150px;
-        background-color: white;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.0rem;
-        font-weight: 800;
-        text-align: center;
-        box-shadow: 2px 4px 8px rgba(0,0,0,0.3);
-        border: 1px solid #ddd;
-        cursor: pointer;
-        padding: 10px;
-        user-select: none;
-        transition: transform 0.2s, box-shadow 0.2s;
-        border: double, 5px, green;
-    }
-
-    .solitaire-card:hover {
-            transform: translateY(10px) translateY(-10);
-            box-shadow: 4px 10px 15px rgba(0,0,0,0.4);
-    }
-
-    /* 2. Represents the deck */
-    .solitaire-deck {
-        width: 100px;
-        height: 150px;
-        border-radius: 8px;
-        border: 4px solid white;
-        background: repeating-linear-gradient(
-            45deg,
-            #0b3954,
-            #0b3954 5px,
-            #082b40 5px,
-            #082b40 10px
-        );
-        box-shadow: -1px -1px 0 #aaa, -2px -2px 0 #fff, -3px -3px 0 #aaa, -4px -4px 0 #fff, -5px -5px 0 #aaa;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 14px;
-        transition: transform 0.1s;
-    }
-
-    .solitaire-deck:active {
-        transform: translate(-3px, -3px);
-    }
-
-    /* 3. The Floating Animations */
-    /* Swoops in from the Deck area down to the Hand */
-    @@keyframes dealToHand {
-        0% { opacity: 0; transform: translate(-100px, -200px) scale(0.6) rotate(-15deg); }
-        100% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); }
-    }
-
-    /* Swoops up from the Hand area to the Table */
-    @@keyframes playToTable {
-        0% { opacity: 0; transform: translateY(150px) scale(0.8) rotate(15deg); }
-        100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
-    }
-
-    .animate-draw {
-        animation: dealToHand 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
-
-    .animate-play {
-        animation: playToTable 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
-
-</style>
 
 <div class="text-center">
-    <h1 class="mt-3" style="font-family: serif;">Solitaire Uno</h1>
-    <hr />
+        
+    @if (!gameStarted)
+        {
+            gameOverMessage = "";
 
-@if (!gameStarted)
-    {
-        gameOverMessage = "";
+            <div class="card p-4 mx-auto shadow-sm mt-4">
+                <h4 class="mb-3 text-dark">Game Setup</h4>
 
-        <div class="card p-4 mx-auto shadow-sm mt-4" style="max-width: 350px; background-color: #f8f9fa;">
-            <h4 class="mb-3 text-dark">Game Setup</h4>
+                <label class="form-label fw-bold text-dark text-start">Game Mode</label>
+                <select class="form-select mb-3" @bind="selectedMode">
+                    <option value="@GameMode.Ascending">Ascending</option>
+                    <option value="@GameMode.Descending">Descending</option>
+                    <option value="@GameMode.Both">Both</option>
+                </select>
 
-            <label class="form-label fw-bold text-dark text-start">Game Mode</label>
-            <select class="form-select mb-3" @bind="selectedMode">
-                <option value="@GameMode.Ascending">Ascending</option>
-                <option value="@GameMode.Descending">Descending</option>
-                <option value="@GameMode.Both">Both</option>
-            </select>
-
-            <label class="form-label fw-bold text-dark text-start">Difficulty</label>
-            <select class="form-select mb-4" @bind="selectedDifficulty">
-                <option value="@GameDifficulty.Easy">Easy</option>
-                <option value="@GameDifficulty.Medium">Medium</option>
-                <option value="@GameDifficulty.Hard">Hard</option>
-            </select>
+                <label class="form-label fw-bold text-dark text-start">Difficulty</label>
+                <select class="form-select mb-4" @bind="selectedDifficulty">
+                    <option value="@GameDifficulty.Easy">Easy</option>
+                    <option value="@GameDifficulty.Medium">Medium</option>
+                    <option value="@GameDifficulty.Hard">Hard</option>
+                </select>
 
 
-            <label class="form-label fw-bold text-dark text-start">Card Backing Color</label>
-            <select class="form-select mb-4" @bind="selectedCardColor" >
-                <option value="yellow">Yellow</option>
-                <option value="red">Red</option>
-                <option value="blue">Blue</option>
-                <option value="green">Green</option>
-            </select>
+                <label class="form-label fw-bold text-dark text-start">Card Backing Color</label>
+                <select class="form-select mb-4" @bind="selectedCardColor" >
+                    <option value="yellow">Yellow</option>
+                    <option value="red">Red</option>
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                </select>
 
-            <label class="form-label fw-bold text-dark text-start">Sorting Method</label>
-            <select class="form-select mb-4" @bind="selectedSortMethod">
-                <option value="Values">By Values</option>
-                <option value="Suits">By Suits</option>
-                <option value="Suits and Values">Both</option>
-            </select>
+                <label class="form-label fw-bold text-dark text-start">Sorting Method</label>
+                <select class="form-select mb-4" @bind="selectedSortMethod">
+                    <option value="Values">By Values</option>
+                    <option value="Suits">By Suits</option>
+                    <option value="Suits and Values">Both</option>
+                </select>
 
-            <label class="form-label fw-bold text-dark text-start">Numbers of Players (excluding you)</label>
-            <select class="form-select mb-4" @bind="selectedPlayerCount">
-                <option value = "1">One</option>
-                <option value = "2">Two</option>
-                <option value = "3">Three</option>
-            </select>
+                <label class="form-label fw-bold text-dark text-start">Numbers of Players (excluding you)</label>
+                <select class="form-select mb-4" @bind="selectedPlayerCount">
+                    <option value = "1">One</option>
+                    <option value = "2">Two</option>
+                    <option value = "3">Three</option>
+                </select>
 
 
-            <div class="form-check mb-4 text-start">
-                <input class="form-check-input" type="checkbox" id="suitEnforcement" @bind="suitEnforcement" 
-                    disabled="@(selectedMode == GameMode.Both)"/>
-                <label class="form-check-label fw-bold text-dark" for="suitEnforcement"> Enable Suit Enforcement </label>
-            </div>
-
-            <button class="btn btn-lg btn-success w-100 fw-bold" @onclick="StartNewGame">Start Game</button>
-        </div>
-    }
-
-    else
-    {
-        <div class="game-board mt-4">
-            <h3 class="text-danger mb-3">Game Uptime is: </h3>
-
-            <div class="p-5 my-4 d-flex flex-column align-items-center" style="background-color: #35654d; border-radius: 12px; box-shadow: inset 0 0 30px rgba(0,0,0,0.6);">
-                
-                <h5 class="text-danger mb-3">Opponent Card Counts: </h5>
-                
-                <h6 class="text-danger mb-3 d-flex justify-content-center gap-3 flex-wrap">
-
-                    @if (gameEngine is not null)
-                    {
-                        foreach(Player computerOpponent in gameEngine.AllPlayers.Skip(1))
-                        {
-                            <span class="badge bg-light text-dark border p-2">
-                                @computerOpponent.Name has @computerOpponent.Hand.Count Card(s)
-                            </span>  
-                        }
-                    }
-
-                </h6>
-
-                <div class="alert alert-light border shadow-sm" role="alert" style="font-size: 1.1rem;">
-                    @actionLog
+                <div class="form-check mb-4 text-start">
+                    <input class="form-check-input" type="checkbox" id="suitEnforcement" @bind="suitEnforcement" 
+                        disabled="@(selectedMode == GameMode.Both)"/>
+                    <label class="form-check-label fw-bold text-dark" for="suitEnforcement"> Enable Suit Enforcement </label>
                 </div>
 
-                <div class="d-flex justify-content-center align-items-center gap-5 my-2">
+                <button class="btn btn-lg btn-success w-100 fw-bold" @onclick="StartNewGame">Start Game</button>
+            </div>
+        }
+
+    
+        else
+        {
+            <div class="solitaire-table">
+
+            <div class="game-name-and-uptime">
+				<h2 class="title mt-2 text-light">Solitaire Uno</h2>			        
+                <h4 class="uptimer text-danger mb-3 fw-bold text-light">Game Uptime: </h4>
+
+                <hr />
+            </div>
+
+                <div class="topbar-info fw-bold" role="alert">
+
+                    <div class="game-stats">
+                        @if (gameEngine?.GameDeck?.Length() > 1)
+                        {
+                            <div class="text-white mt-4">
+                                Order: @gameEngine?.CurrentGameSettings.Mode -
+                                Sorting Mode: @(selectedSortMethod ?? "N/A") -
+                                Deck has @gameEngine?.GameDeck?.Length() cards left!
+                            </div>
+                        }
+
+                        else if (gameEngine?.GameDeck?.Length() == 1)
+                        {
+                            <div class="text-white mt-4">
+                                Order: @gameEngine?.CurrentGameSettings.Mode - 
+                                Sorting Mode: @(selectedSortMethod ?? "N/A") - 
+                                Deck has 1 card left!
+                            </div>
+                        }
+
+                        else if (gameEngine?.GameDeck?.Length() == 0 && gameEngine?.GameDeck.DeckReshuffled == false)
+                        {
+                            <div class="text-white mt-4">
+                                Order: @gameEngine?.CurrentGameSettings.Mode - 
+                                Sorting Mode: @(selectedSortMethod ?? "N/A") -
+                                Deck has no cards left, pick up to reshuffle!
+                            </div>
+                        }
+
+                        else
+                        {
+                            <div class="text-white mt-4">
+                                Order: @gameEngine?.CurrentGameSettings.Mode - 
+                                Sorting Mode: @(selectedSortMethod ?? "N/A") - 
+                                Deck has no more cards left!
+                            </div>
+                        }
+                    </div>
+				
+                    <div class="round-message"> @actionLog </div>
+
+                </div>
+			
+
+                
+            <header class="opponent-zone">
+			    <div class="d-flex justify-content-center gap-3 flex-wrap mt-3">
+                    @if (gameEngine is not null)
+                    {
+                        @foreach (Player computerOpponent in gameEngine.AllPlayers.Skip(1))
+                        {
+                            <div class="opponent-hud">
+                                <span class="fw-bold">@computerOpponent.Name</span>
+                                <span class="card-count">@computerOpponent.Hand.Count</span>
+                                <small>Cards</small>
+                            </div>
+                        }
+                    }
+                </div>
+            </header>
+
+
+
+
+
+
+
+
+                <main class="active-play-area">
                     <div class="text-center">
-                        <div class="solitaire-deck" @onclick='() => PlayTurn("p.u")' style="padding: 0; border: none; background: transparent; box-shadow: none;">
-                            <img src=@($"images/cards/{selectedCardColor}_backing.png") alt="Deck" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
+                        <div class="solitaire-deck" @onclick='() => PlayTurn("p.u")'>
+                            <img src=@($"images/cards/{selectedCardColor}_backing.png") alt="Deck" />
                         </div>
                     </div>
 
+
                     <div class="text-center" @key="gameEngine?.VisualCard">
-                        <div class="solitaire-card animate-play" style="padding: 0; overflow: hidden; border: none; background: transparent; box-shadow: none;">
-                            <img src="@GetCardImagePath(gameEngine?.VisualCard)" alt="@gameEngine?.VisualCard?.ToString()" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
+                        <div class="solitaire-card animate-play">
+                            <img src="@GetCardImagePath(gameEngine?.VisualCard)" alt="@gameEngine?.VisualCard?.ToString()" />
                         </div>
                     </div>
+
 
                     @if (gameEngine?.VisualCard is SpecialCard)
                     {
-                        <div class="text-center ms-4" style="opacity: 0.7; transform: scale(0.85);">
-                            <div class="solitaire-card" style="padding: 0; overflow: hidden; border: none; background: transparent; box-shadow: none;">
-                                <img src="@GetCardImagePath(gameEngine?.LogicCard)" alt="@gameEngine?.LogicCard?.ToString()" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
+                        <div class="text-center ms-4 underneath-card">
+                            <div class="solitaire-card">
+                                <img src="@GetCardImagePath(gameEngine?.LogicCard)" alt="@gameEngine?.LogicCard?.ToString()" />
                             </div>
-                            <span class="text-white mt-2 d-block fw-bold">Underneath</span>
+                        
+                            <span class="text-white mt-2 d-block fw-bold">
+                                Underneath
+                            </span>
                         </div>
                     }
+                </main>
 
-                </div>
 
 
-                @if (gameEngine?.GameDeck?.Length() > 1)
-                {
-                    <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.CurrentGameSettings.Mode | 
-                        Sorting Mode: @if(selectedSortMethod is not null) { @selectedSortMethod } else {  } | 
-                        Deck has @gameEngine?.GameDeck?.Length() cards left!
+
+
+
+
+                <footer class="player-zone">
+                
+                    <button class="btn mt-3 px-4 text-light" 
+                        @onclick='() => PlayTurn("pass")'>
+                        Pass Turn
+                    </button>
+
+
+                    <h4 class="mt-4 text-white">
+                        Your Hand (@gameEngine?.AllPlayers[0].Hand.Count cards) 
+                    </h4>
+
+                    <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 p-2">
+                        @for (int i = 0; i < gameEngine?.AllPlayers[0].Hand.Count; i++)
+                        {
+                            var card = gameEngine?.AllPlayers[0].Hand[i];
+                            int buttonIndex = i + 1;
+
+                            <div @key="card" class="card-draw-wrapper animate-draw" >
+
+                                <div class="solitaire-card"
+                                    @onclick='() => PlayTurn(buttonIndex.ToString())'>
+                                    <img src="@GetCardImagePath(card)" alt="@card?.ToString()" />
+                                </div>
+
+                            </div>
+                        }
                     </div>
-                }
 
-                else if (gameEngine?.GameDeck?.Length() == 1)
-                {
-                     <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.CurrentGameSettings.Mode | Sorting Mode: @if(selectedSortMethod is not null) {
-                        @selectedSortMethod } | Deck has 1 card left!
-                    </div>
-                }
+                    @if (gameOverMessage != "")
+                    {
+                        <h2 class="text-success mt-4">
+                            @gameOverMessage
+                        </h2>
+                        
+                        <button class="btn mt-3 px-4" 
+                            @onclick='() => StartNewGame()'>
+                            Play Again
+                        </button>
+                        
+                        <button class="btn mt-3 px-4" 
+                            @onclick='() => gameStarted = false'>
+                            Main Menu
+                        </button>
+                        
+                        <br />
 
-                else if (gameEngine?.GameDeck?.Length() == 0 && gameEngine?.GameDeck.DeckReshuffled == false)
-                {
-                    <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.CurrentGameSettings.Mode | Deck has no more cards left, but someone can pick up to reshuffle!
-                    </div>
-                }
-
-                else
-                {
-                    <div class="text-white mt-4 opacity-75">
-                        Order: @gameEngine?.CurrentGameSettings.Mode | Sorting Mode: @if(selectedSortMethod is not null) { @selectedSortMethod }| Deck has no more cards left!
-                    </div> 
-                }
-
-                <button class="btn btn-outline-light mt-3 px-4" @onclick='() => PlayTurn("pass")'>Pass Turn</button>
+                        <br />
+                    }
+                </footer>
             </div>
-
-            <h4 class="mt-4" style="color: #444;">Your Hand (@gameEngine?.AllPlayers[0].Hand.Count cards) </h4>
-
-            <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 p-2">
-                @for (int i = 0; i < gameEngine?.AllPlayers[0].Hand.Count; i++)
-                {
-                    var card = gameEngine?.AllPlayers[0].Hand[i];
-                    int buttonIndex = i + 1;
-
-                    <div @key="card"
-						 class="solitaire-card animate-draw"
-						 @onclick='() => PlayTurn(buttonIndex.ToString())'
-						 style="padding: 0; overflow: hidden; border: none; background: transparent; box-shadow: none;">
-                        <img src="@GetCardImagePath(card)" alt="@card?.ToString()" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; image-rendering: pixelated;" />
-                    </div>
-                }
-            </div>
-
-            @if (gameOverMessage != "")
-            {
-                <h2 class="text-success mt-4">@gameOverMessage</h2>
-                <button class="btn btn-outline-light mt-3 px-4" @onclick='() => StartNewGame()'>Play Again</button>
-                <button class="btn btn-outline-light mt-3 px-4" @onclick='() => gameStarted = false'>Main Menu</button>
-                <br />
-                <br />
-            }
-        </div>
     }
 </div>

@@ -1,0 +1,219 @@
+﻿body {
+    background-color: lightgray
+}
+
+/* 1. Classic Solitaire Card Design */
+/* Classic Solitaire Card Design */
+.solitaire-card {
+    width: 100px;
+    height: 150px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: -3px 0 10px rgba(0,0,0,0.4); /* Left-sided shadow to separate overlapped cards */
+    cursor: pointer;
+    overflow: hidden;
+    position: relative; /* Establishes a localized context for z-index */
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+    .solitaire-card > img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Maintains aspect ratio, fills the box */
+        display: block;
+        image-rendering: pixelated;
+        transform: scale(.98); /* Zooms the image in by 5% to force it past the borders! */
+    }
+
+.solitaire-deck > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Maintains aspect ratio, fills the box */
+    display: block;
+    image-rendering: pixelated;
+    transform: scale(1.10); /* Zooms the image in by 5% to force it past the borders! */
+}
+
+
+/* 2. Represents the deck */
+.solitaire-deck {
+    width: 100px;
+    height: 150px;
+    border-radius: 8px;
+    border: 4px solid white;
+    box-shadow: -1px -1px 0 #aaa, -2px -2px 0 #fff, -3px -3px 0 #aaa, -4px -4px 0 #fff, -5px -5px 0 #aaa;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    overflow:hidden;
+    transition: transform 0.1s;
+}
+
+.solitaire-deck:active {
+    transform: translate(-3px, -3px);
+}
+
+/* Add to Home.razor.css */
+.solitaire-table {
+    background-color: #2a4d3a; /* Deep card-table green */
+    border-radius: 12px;
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.7); /* Inner shadow for depth */
+    padding: 2rem;
+    min-height: 95vh; /* Takes up most of the screen */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.solitaire-table .topbar-info .round-message {
+    margin-top: 10px;
+    color: white;
+}
+
+
+.opponent-zone {
+    text-align: center;
+}
+
+.player-zone {
+    text-align: center;
+}
+
+.active-play-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3rem; /* Space between deck and discard */
+    flex-grow: 1; /* Pushes the header up and footer down */
+}
+
+.underneath-card {
+    opacity: 0.7;
+    transform: scale(0.85);
+}
+
+footer.player-zone div.d-flex{
+    gap: 0;
+    padding-left: 40px;
+}
+
+
+/* 1. The wrapper handles the overlapping layout */
+.card-draw-wrapper {
+    position: relative;
+    margin-left: -25px;
+    margin-right: -25px;
+    margin-bottom: -25px;
+}
+
+/* 2. When you hover over the wrapper, it pulls itself to the front of the stack */
+.player-zone .card-draw-wrapper:hover {
+    z-index: 10;
+}
+
+    /* 3. When you hover over the wrapper, it pushes the INNER CARD smoothly up */
+    .player-zone .card-draw-wrapper:hover .solitaire-card {
+        transform: translateY(-20px);
+        box-shadow: 4px 10px 15px rgba(0,0,0,0.4);
+    }
+
+/* 4. Keep the inner card's margins at 0 so it stays centered inside its wrapper */
+.player-zone .solitaire-card {
+    margin: 0px;
+}
+
+/* 5. The generic player-zone buttons (Keep this from your previous CSS) */
+.solitaire-table .player-zone .btn {
+    margin-top: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+    .solitaire-table .player-zone .btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 2px dotted orange;
+    }
+
+/* Add this to Home.razor.css */
+.opponent-hud {
+    background: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+    backdrop-filter: blur(10px); /* The "frosted" blur effect */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 10px 15px;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+    margin-bottom: 19px;
+}
+
+    .opponent-hud .card-count {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #ffd700; 
+    }
+
+
+.solitaire-table .player-zone .btn {
+    margin-top: 5px;
+    background: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+    backdrop-filter: blur(10px); /* The "frosted" blur effect */
+}
+
+    .solitaire-table .player-zone .btn:hover {
+        background: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+        backdrop-filter: blur(10px); /* The "frosted" blur effect */
+        border: 2px dotted orange;
+    }
+
+
+
+
+
+
+
+
+    /* 3. The Floating Animations */
+    /* Swoops in from the Deck area down to the Hand */
+    @keyframes dealToHand {
+        0% {
+            opacity: 0;
+            transform: translate(-100px, -200px) scale(0.6) rotate(-15deg);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translate(0, 0) scale(1) rotate(0deg);
+        }
+    }
+    /* Swoops up from the Hand area to the Table */
+    @keyframes playToTable {
+        0% {
+            opacity: 0;
+            transform: translateY(150px) scale(0.8) rotate(15deg);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1) rotate(0deg);
+        }
+    }
+
+    .animate-draw {
+    animation: dealToHand 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.animate-play {
+    animation: playToTable 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
