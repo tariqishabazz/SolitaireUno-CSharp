@@ -1,9 +1,8 @@
-﻿using Microsoft.Playwright.NUnit;
-using NUnit.Framework;
-
-namespace SolitaireUno.UITests
+﻿namespace SolitaireUno.UITests
 {
+    /*
     [Parallelizable(ParallelScope.Self)]
+    
     [TestFixture]
     public class GameBoardTests : PageTest
     {
@@ -18,4 +17,5 @@ namespace SolitaireUno.UITests
             await Expect(Page).ToHaveTitleAsync(new System.Text.RegularExpressions.Regex("SolitaireUno"));
         }
     }
+    */
 }

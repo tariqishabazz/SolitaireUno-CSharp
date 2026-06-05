@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SolitaireUno;
-
-namespace SolitaireUno.Tests
+﻿namespace SolitaireUno.Tests
 {
     /// <summary>
     /// Contains unit tests for validating card play logic and color matching in various game modes.
@@ -20,12 +13,14 @@ namespace SolitaireUno.Tests
         [Fact]
         public void ValidCard_ReturnsTrue_With_ValidPlay_Asc()
         {
+            GameSettings gameSettings = new GameSettings { Mode = GameMode.Ascending };
+
             // ARRANGE
             var cardOnTable = new RegularCard(Suits.Clubs, Values.Four);
             var potentialPlay = new RegularCard(Suits.Spades, Values.Five);
 
             // ACT
-            bool validPlay = CardValidation.ValidCard(potentialPlay, cardOnTable, GameMode.Ascending, false);
+            bool validPlay = CardValidation.ValidCard(potentialPlay, cardOnTable, gameSettings);
 
             // ASSERT
             Assert.True(validPlay);
@@ -34,12 +29,14 @@ namespace SolitaireUno.Tests
         [Fact]
         public void ValidCard_ReturnsTrue_With_ValidPlay_Desc()
         {
+            GameSettings gameSettings = new GameSettings { Mode = GameMode.Descending };
+
             // ARRANGE
             var cardOnTable = new RegularCard(Suits.Clubs, Values.Seven);
             var potentialPlay = new RegularCard(Suits.Spades, Values.Six);
 
             // ACT
-            bool validPlay = CardValidation.ValidCard(potentialPlay, cardOnTable, GameMode.Descending, false);
+            bool validPlay = CardValidation.ValidCard(potentialPlay, cardOnTable, gameSettings);
 
             // ASSERT
             Assert.True(validPlay);
@@ -48,12 +45,14 @@ namespace SolitaireUno.Tests
         [Fact]
         public void ValidCard_ReturnsFalse_With_NonValidPlay_AnyMode()
         {
+            GameSettings gameSettings = new GameSettings();
+
             // ARRANGE
             var cardOnTable = new RegularCard(Suits.Hearts, Values.Eight);
             var potentialPlay = new RegularCard(Suits.Spades, Values.Six);
 
             // ACT
-            bool validPlay = CardValidation.ValidCard(potentialPlay, cardOnTable, GameMode.Descending, false);
+            bool validPlay = CardValidation.ValidCard(potentialPlay, cardOnTable, gameSettings);
 
             // ASSERT
             Assert.False(validPlay);
@@ -62,6 +61,8 @@ namespace SolitaireUno.Tests
         [Fact]
         public void ValidCard_ReturnsTrue_With_AnySpecialCard_AnyMode()
         {
+            // GameSettings gameSettings = new GameSettings();
+
             // ARRANGE
             var cardOnTable = new RegularCard(Suits.Hearts, Values.Eight);
 
@@ -105,12 +106,14 @@ namespace SolitaireUno.Tests
         [Fact]
         public void WrapAround_Logic_ReturnsTrue_Desc()
         {
+            GameSettings gameSettings = new GameSettings { Mode = GameMode.Descending };
+
             // ARRANGE
             var tableCard = new RegularCard(Suits.Hearts, Values.Ace);
             var potentialPlay = new RegularCard(Suits.Spades, Values.King);
 
             // ACT
-            bool result = CardValidation.ValidCard(potentialPlay, tableCard, GameMode.Descending, false);
+            bool result = CardValidation.ValidCard(potentialPlay, tableCard, gameSettings);
 
             // ASSERT
             Assert.True(result);
@@ -119,12 +122,14 @@ namespace SolitaireUno.Tests
         [Fact]
         public void WrapAround_Logic_ReturnsTrue_Asc()
         {
+            GameSettings gameSettings = new GameSettings { Mode = GameMode.Ascending };
+
             // ARRANGE
             var tableCard = new RegularCard(Suits.Hearts, Values.King);
             var potentialPlay = new RegularCard(Suits.Spades, Values.Ace);
 
             // ACT
-            bool result = CardValidation.ValidCard(potentialPlay, tableCard, GameMode.Ascending, false);
+            bool result = CardValidation.ValidCard(potentialPlay, tableCard, gameSettings);
 
             // ASSERT
             Assert.True(result);
@@ -133,12 +138,14 @@ namespace SolitaireUno.Tests
         [Fact]
         public void SuitEnforcement_ReturnsTrue_ValidPlay_Asc()
         {
+            GameSettings gameSettings = new GameSettings { Mode = GameMode.Ascending, SuitsEnforced = true };
+
             // ARRANGE
             Card redTableCard = new RegularCard(Suits.Hearts, Values.Ten);
             Card blackPotentialCard = new RegularCard(Suits.Clubs, Values.Jack);
 
             // ACT
-            bool result = CardValidation.ValidCard(blackPotentialCard, redTableCard, GameMode.Ascending, true);
+            bool result = CardValidation.ValidCard(blackPotentialCard, redTableCard, gameSettings);
 
             // ASSERT
             Assert.True(result);
@@ -147,12 +154,14 @@ namespace SolitaireUno.Tests
         [Fact]
         public void SuitEnforcement_ReturnsTrue_ValidPlay_Desc()
         {
+            GameSettings gameSettings = new GameSettings { Mode = GameMode.Descending, SuitsEnforced = true };
+
             // ARRANGE
             Card redTableCard = new RegularCard(Suits.Hearts, Values.Jack);
             Card blackPotentialCard = new RegularCard(Suits.Clubs, Values.Ten);
 
             // ACT
-            bool result = CardValidation.ValidCard(blackPotentialCard, redTableCard, GameMode.Descending, true);
+            bool result = CardValidation.ValidCard(blackPotentialCard, redTableCard, gameSettings);
 
             // ASSERT
             Assert.True(result);

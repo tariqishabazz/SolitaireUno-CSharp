@@ -1,11 +1,4 @@
-﻿using SolitaireUno;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Linq;
-
-namespace SolitaireUno
+﻿namespace SolitaireUno
 {
     /// <summary>
     /// Represents a game participant that holds a hand of cards and can play or pick up cards.
@@ -27,7 +20,7 @@ namespace SolitaireUno
         {
             Hand.Add(card);
         }
-        
+
         /// <summary>
         /// Removes a card from the player's hand, representing play.
         /// </summary>
@@ -51,7 +44,7 @@ namespace SolitaireUno
             var sortedSpecials = AllSortedSpecialCards();
 
             List<Card> sortedHand = [];
-            
+
             sortedHand.AddRange(sortedValues);
             sortedHand.AddRange(sortedSpecials);
 
@@ -66,14 +59,14 @@ namespace SolitaireUno
             IEnumerable<RegularCard> allPlayersRegularCards = Hand.OfType<RegularCard>();
 
             var sortedSuits = (from RegularCard regularCard in allPlayersRegularCards
-                                orderby regularCard.Suit
-                                select regularCard).ToList();
+                               orderby regularCard.Suit
+                               select regularCard).ToList();
 
 
             var sortedSpecials = AllSortedSpecialCards();
 
             List<Card> sortedHand = [];
-            
+
             sortedHand.AddRange(sortedSuits);
             sortedHand.AddRange(sortedSpecials);
 

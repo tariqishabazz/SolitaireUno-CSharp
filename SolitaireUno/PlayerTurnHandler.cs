@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SolitaireUno
+﻿namespace SolitaireUno
 {
     /// <summary>
     /// Handles the logic for a human player's turn, including pick-up, pass and play logic.
@@ -29,7 +22,7 @@ namespace SolitaireUno
 
             // ---------------- PLAYER WANTS TO PASS ---------------- //
 
-            if (playerDecision == "pass" || playerDecision == "p")
+            if (playerDecision == "pass")
             {
                 if (deck.Length() > 0)
                     return (false, "The deck still has cards!\n Either pick up or play!", null);
@@ -44,16 +37,17 @@ namespace SolitaireUno
 
             // ---------------- PLAYER WANTS TO PICKUP ---------------- //
 
-            else if (playerDecision == "p.u" || playerDecision == "pu" || playerDecision == "pick up" || playerDecision == "pickup")
+            if (playerDecision == "pickup")
             {
-                if (deck.Length() > 0 || deck.Length() == 0 && !deck.DeckReshuffled)
+
+                if (deck.Length() > 0 || (deck.Length() == 0 && !deck.DeckReshuffled && currentGameSettings.Mode is not GameMode.Both))
                 {
                     Card card = deck.DealCard()!;
                     player.PickupCard(card);
 
                     int playerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
 
-                    if (playerPotentialPenaltyCount != 0)
+                    if (playerPotentialPenaltyCount > 0)
                     {
                         int actualPickupCount = 0;
 
@@ -61,11 +55,12 @@ namespace SolitaireUno
                         {
                             Card? additionalPenaltyCard = deck.DealCard();
 
-                            if (additionalPenaltyCard is not null)
-                            {
-                                player.PickupCard(additionalPenaltyCard);
-                                actualPickupCount++;
-                            }
+                            if (additionalPenaltyCard is null)
+                                break;
+
+                            player.PickupCard(additionalPenaltyCard);
+                            actualPickupCount++;
+
                         }
 
                         return (true, $"You decided to pick up and found the {penaltyCard}! You picked up {actualPickupCount} additional cards!", null);
@@ -73,10 +68,11 @@ namespace SolitaireUno
 
                     return (true, "You decided to pick up!", null);
                 }
-
-                else if (deck.Length() == 0 && deck.DeckReshuffled)
-                    return (false, "Deck has already been reshuffled. Either pass or play!", null);
             }
+
+
+
+            // --------------- ENSURING DECISION IS VALID -------------- //
 
             if (!int.TryParse(playerDecision, out int decisionAsNumber)) // IF THE DECISION ISNT A NUMBER
                 return (false, "That isn't a valid move, please try again", null);
@@ -84,7 +80,7 @@ namespace SolitaireUno
             if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count) // IF DECISION ISNT WITHIN RANGE OF CARDS
                 return (false, "Invalid card index", null);
 
-            Card potentialCard = player.Hand[decisionAsNumber - 1]; 
+            Card potentialCard = player.Hand[decisionAsNumber - 1];
 
             if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings)) // IF DECISION ISNT A VALID MOVE
                 return (false, "That is not a valid move, please try again", null);
@@ -110,3 +106,4 @@ namespace SolitaireUno
         }
     }
 }
+

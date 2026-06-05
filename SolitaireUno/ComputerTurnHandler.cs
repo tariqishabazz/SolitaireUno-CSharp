@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SolitaireUno
+﻿namespace SolitaireUno
 {
     /// <summary>
     /// Handles the computer's turn and applies drawing/penalty logic.
@@ -34,7 +27,7 @@ namespace SolitaireUno
 
             if (potentialComputerPlay is null)
             {
-                if (_deck.Length() > 0 || _deck.Length() == 0 && !_deck.DeckReshuffled)
+                if (_deck.Length() > 0 || (_deck.Length() == 0 && !_deck.DeckReshuffled && currentGameSettings.Mode is not GameMode.Both))
                 {
                     Card card = _deck.DealCard()!;
                     currentComputerPlayer.PickupCard(card);
@@ -57,7 +50,7 @@ namespace SolitaireUno
                                 actualPickupCount++;
                             }
                         }
-                        return ($"{currentComputerPlayer.Name} decided to pick up and found the {penaltyCard}! It picked up {actualPickupCount} additional cards!", null, true);
+                        return ($"{currentComputerPlayer.Name} decided to pick up and found the {penaltyCard}! They picked up {actualPickupCount} additional cards!", null, true);
                     }
 
                     else
@@ -82,16 +75,39 @@ namespace SolitaireUno
                 _deck.AddToDiscardPile(potentialComputerPlay);
 
 
-                if (potentialComputerPlay is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
-                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped {nextPlayer.Name}!", potentialComputerPlay, true);
+                bool isSkipCard = potentialComputerPlay is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip;
+                bool isDrawTwo = potentialComputerPlay is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawTwo;
+                bool isDrawFour = potentialComputerPlay is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawFour;
 
-                else if ((potentialComputerPlay is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (potentialComputerPlay is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
-                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so {nextPlayer.Name} had to draw!", potentialComputerPlay, true);
+                if (isSkipCard)
+                {
+                    if (nextPlayer is not Computer)
+                    {
+                        return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} " +
+                            $"and skipped your turn!", potentialComputerPlay, true);
+                    }
+
+                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} " +
+                        $"and skipped {nextPlayer.Name}!", potentialComputerPlay, true);
+                }
+                
+                else if (isDrawFour || isDrawTwo)
+                {
+                    if (nextPlayer is not Computer)
+                    {
+                        return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay}, " +
+                            $"so you had to draw!", potentialComputerPlay, true);
+                    }
+
+                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay}, " +
+                        $"so {nextPlayer.Name} had to draw!", potentialComputerPlay, true);
+                }
 
                 return ($"{currentComputerPlayer.Name} decided to play: {potentialComputerPlay}!", potentialComputerPlay, true);
             }
 
             return ($"{currentComputerPlayer.Name} got scared...", null, false);
         }
+
     }
 }

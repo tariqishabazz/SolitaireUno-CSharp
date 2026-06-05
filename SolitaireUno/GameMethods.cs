@@ -1,14 +1,4 @@
-﻿using SolitaireUno;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SolitaireUno
+﻿namespace SolitaireUno
 {
     /// <summary>
     /// Core game logic helpers used by the Solitaire Uno game.
@@ -102,7 +92,7 @@ namespace SolitaireUno
                     break;
 
                 int awardedPenalty = GetPenaltyCount(drawnCard, penaltyCard);
-                
+
                 if (awardedPenalty > 0)
                 {
                     for (int j = 0; j < awardedPenalty; j++)

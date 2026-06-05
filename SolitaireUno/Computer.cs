@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Linq;
-
-namespace SolitaireUno
+﻿namespace SolitaireUno
 {
     /// <summary>
     /// Computer player AI responsible for choosing and playing cards.
@@ -27,8 +24,8 @@ namespace SolitaireUno
             Random random = new();
 
             //The two dots are called the spread operator. In this case,
-                //it takes all the individual cards found by the query and "spreads"
-                //them into the new validMoves list.
+            //it takes all the individual cards found by the query and "spreads"
+            //them into the new validMoves list.
             List<Card> validMoves =
             [
                 .. from Card potentialCard in Hand
@@ -52,9 +49,13 @@ namespace SolitaireUno
 
                 case GameDifficulty.Medium:
 
-                    if (currentDeckSize <= 7 && specialMoves.Count > 0)
+                    if (currentDeckSize <= 12 && specialMoves.Count > 0)
                     {
                         Card randomSpecialMove = specialMoves[random.Next(specialMoves.Count)];
+
+                        if (randomSpecialMove.Equals(SpecialCardType.DrawFour) || randomSpecialMove.Equals(SpecialCardType.DrawTwo))
+                            return randomSpecialMove;
+
                         return randomSpecialMove;
                     }
 
@@ -93,9 +94,13 @@ namespace SolitaireUno
 
                 case GameDifficulty.Hard:
 
-                    if (currentDeckSize <= 7 && specialMoves.Count > 0)
+                    if (currentDeckSize <= 12 && specialMoves.Count > 0)
                     {
                         Card randomSpecialMove = specialMoves[random.Next(specialMoves.Count)];
+
+                        if (randomSpecialMove.Equals(SpecialCardType.DrawFour) || randomSpecialMove.Equals(SpecialCardType.DrawTwo))
+                            return randomSpecialMove;
+
                         return randomSpecialMove;
                     }
 

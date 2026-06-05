@@ -20,6 +20,8 @@
                     <option value="@GameMode.Both">Both</option>
                 </select>
 
+	
+
                 <label class="form-label fw-bold text-dark text-start">Difficulty</label>
                 <select class="form-select mb-4" @bind="selectedDifficulty">
                     <option value="@GameDifficulty.Easy">Easy</option>
@@ -52,8 +54,7 @@
 
 
                 <div class="form-check mb-4 text-start">
-                    <input class="form-check-input" type="checkbox" id="suitEnforcement" @bind="suitEnforcement" 
-                        disabled="@(selectedMode == GameMode.Both)"/>
+                    <input class="form-check-input" type="checkbox" id="suitEnforcement" @bind="suitEnforcement" />
                     <label class="form-check-label fw-bold text-dark" for="suitEnforcement"> Enable Suit Enforcement </label>
                 </div>
 
@@ -94,21 +95,12 @@
                             </div>
                         }
 
-                        else if (gameEngine?.GameDeck?.Length() == 0 && gameEngine?.GameDeck.DeckReshuffled == false)
-                        {
-                            <div class="text-white mt-4">
-                                Order: @gameEngine?.CurrentGameSettings.Mode - 
-                                Sorting Mode: @(selectedSortMethod ?? "N/A") -
-                                Deck has no cards left, pick up to reshuffle!
-                            </div>
-                        }
-
                         else
                         {
                             <div class="text-white mt-4">
                                 Order: @gameEngine?.CurrentGameSettings.Mode - 
                                 Sorting Mode: @(selectedSortMethod ?? "N/A") - 
-                                Deck has no more cards left!
+                                Deck has no more cards left, draw a card to reshuffle!
                             </div>
                         }
                     </div>
@@ -144,7 +136,7 @@
 
                 <main class="active-play-area">
                     <div class="text-center">
-                        <div class="solitaire-deck" @onclick='() => PlayTurn("p.u")'>
+                        <div class="solitaire-deck" @onclick='() => PlayTurn("pickup")'>
                             <img src=@($"images/cards/{selectedCardColor}_backing.png") alt="Deck" />
                         </div>
                     </div>
@@ -178,12 +170,7 @@
 
 
                 <footer class="player-zone">
-                
-                    <button class="btn mt-3 px-4 text-light" 
-                        @onclick='() => PlayTurn("pass")'>
-                        Pass Turn
-                    </button>
-
+              
 
                     <h4 class="mt-4 text-white">
                         Your Hand (@gameEngine?.AllPlayers[0].Hand.Count cards) 
@@ -204,7 +191,10 @@
 
                             </div>
                         }
+
                     </div>
+				<br />
+				<br />
 
                     @if (gameOverMessage != "")
                     {
@@ -212,12 +202,12 @@
                             @gameOverMessage
                         </h2>
                         
-                        <button class="btn mt-3 px-4" 
+                        <button class="btn mt-3 px-4 text-light" 
                             @onclick='() => StartNewGame()'>
                             Play Again
                         </button>
                         
-                        <button class="btn mt-3 px-4" 
+                        <button class="btn mt-3 px-4 text-light" 
                             @onclick='() => gameStarted = false'>
                             Main Menu
                         </button>

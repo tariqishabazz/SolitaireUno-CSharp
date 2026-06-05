@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Data.SqlTypes;
-
-namespace SolitaireUno
+﻿namespace SolitaireUno
 {
     /// <summary>
     /// Represents a shuffled deck of cards and provides draw/discard operations.
@@ -52,7 +49,7 @@ namespace SolitaireUno
                 for (int i = 0; i < addtionalSpecialCards; i++)
                     _GameDeck.Add(new SpecialCard(specialCard));
             }
-            
+
             // SHUFFLING
 
             InHouseShuffle();
@@ -128,7 +125,7 @@ namespace SolitaireUno
         /// <returns>The dealt card, or null when no cards are available.</returns>
         public Card? DealCard()
         {
-            if (_GameDeck.Count != 0)
+            if (_GameDeck.Count > 0)
             {
                 Card dealtCard = _GameDeck[0];
                 _GameDeck.RemoveAt(0);
@@ -136,8 +133,11 @@ namespace SolitaireUno
                 return dealtCard;
             }
 
-            if (!_DeckReshuffled)
+            else if (_GameDeck.Count == 0)
             {
+                if (DiscardPile.Count == 0 || DiscardPile is null)
+                    return null;
+
                 Card lastCardOnTable = DiscardPile[DiscardPile.Count - 1];
 
                 DiscardPile.RemoveAt(DiscardPile.Count - 1);
@@ -148,15 +148,16 @@ namespace SolitaireUno
                 InHouseShuffle();
                 DiscardPile.Add(lastCardOnTable);
 
-                _DeckReshuffled = true;
+                _DeckReshuffled = true; 
 
                 return DealCard();
             }
 
             else
+            {
                 return null;
+            }
         }
-
 
         /// <summary>
         /// Constructs a deck with a premade list of card instances.

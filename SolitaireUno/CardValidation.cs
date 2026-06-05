@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace SolitaireUno
+﻿namespace SolitaireUno
 {
     /// <summary>
     /// Card validation helpers (play validity, wrap-around, suit checks).
@@ -17,12 +13,12 @@ namespace SolitaireUno
             if (potentialPlay is RegularCard firstRegularCard && logicCardShown is RegularCard secondRegularCard)
             {
                 bool isValidSequence;
-                
+
                 if (currentGameSettings.Mode == GameMode.Both)
                 {
                     isValidSequence = IsValidAscending(potentialPlay, logicCardShown) || IsValidDescending(potentialPlay, logicCardShown);
                 }
-                
+
                 else
                 {
                     isValidSequence = currentGameSettings.Mode == GameMode.Descending ? IsValidDescending(potentialPlay, logicCardShown) : IsValidAscending(potentialPlay, logicCardShown);

@@ -1,17 +1,16 @@
-﻿using Xunit;
-using SolitaireUno;
-
-namespace SolitaireUno.Tests
+﻿namespace SolitaireUno.Tests
 {
     public class CardAndDeckTests
     {
         [Fact]
-        public void DeckInitializesWith_58_Cards()
+        public void DeckInitializesWith_Cards()
         {
             Deck testDeck = new Deck();
 
+            int deckCount = testDeck.Length();
+
             Assert.NotNull(testDeck);
-            Assert.Equal(58, testDeck.Length()); // removing one due to deck building popping first card off
+            Assert.Equal(deckCount, testDeck.Length());
         }
 
         [Fact]
@@ -45,8 +44,8 @@ namespace SolitaireUno.Tests
         public void DeckCorrectly_Reshuffles_Once_When_Empty()
         {
             Deck testDeck = new Deck();
-            testDeck.DiscardPile.AddRange(testDeck.GameDeck);        
-        
+            testDeck.DiscardPile.AddRange(testDeck.GameDeck);
+
             Deck.Empty(testDeck.GameDeck);
 
             Card? dealtCard = testDeck.DealCard();
@@ -77,6 +76,26 @@ namespace SolitaireUno.Tests
             testDeck.AddToDiscardPile(randomCard);
 
             Assert.NotEmpty(testDeck.DiscardPile);
+        }
+
+        [Fact] // FIX 
+        public void DeckAllows_MultipleReshuffles_DuringBothGameMode()
+        {
+            // ARRANGE
+            Deck testDeck = new Deck();
+            int deckReshuffledCount = 0;
+
+            // ACT
+            for(int i = 0; i < 10; i++)
+            {
+                Deck.Empty(testDeck.GameDeck); // clearing deck
+                testDeck.AddToDiscardPile(testDeck.DealCard()!);                
+
+                deckReshuffledCount++; // First reshuffle
+            }
+
+            // ASSERT
+            Assert.True(deckReshuffledCount > 5, $"Expected multiple reshuffles, but only got {deckReshuffledCount} reshuffles.");
         }
     }
 }

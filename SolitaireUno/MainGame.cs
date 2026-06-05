@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace SolitaireUno
+﻿namespace SolitaireUno
 {
     /// <summary>
     /// Main game orchestrator that manages players, deck and turn handlers.
@@ -8,6 +6,9 @@ namespace SolitaireUno
     public class MainGame
     {
         public List<Player> AllPlayers { get; private set; } = [];
+
+        public List<string> RandomComputerNames { get; } = ["Trace", "Sally", "Viper"];
+
         public Deck GameDeck { get; set; }
 
         internal PlayerTurnHandler _playerTurnHandler;
@@ -20,6 +21,7 @@ namespace SolitaireUno
         public Card? LastPlayedCard { get; private set; }
         public Card? LogicCard;
         public Card? VisualCard;
+
         internal RegularCard PenaltyCard { get; private set; }
 
         /// <summary>
@@ -33,7 +35,7 @@ namespace SolitaireUno
         public MainGame(Deck deck, GameSettings currentGameSettings)
         {
             CurrentGameSettings = currentGameSettings;
-            
+
             Player humanPlayer = new()
             {
                 Name = "Human"
@@ -41,21 +43,21 @@ namespace SolitaireUno
 
             AllPlayers.Add(humanPlayer);
 
-
+          
             // ------------ ADDING COMPUTER PLAYERS ------------ //
 
             for (int i = 0; i < currentGameSettings.NumberOfPlayers; i++)
             {
                 Computer computerPlayer = new()
                 {
-                    Name = $"Computer {i + 1}"
+                    Name = $"{RandomComputerNames[i]}"
                 };
 
                 AllPlayers.Add(computerPlayer);
             }
 
 
-            // -------- SETTING PENALTY CARD, DECK, AND OTHER CONFIGURATIONS ------- //
+            // -------- SETTING PENALTY CARD, DECK ------- //
 
             PenaltyCard = new RegularCard(Suits.Spades, Values.Queen);
 
@@ -66,16 +68,14 @@ namespace SolitaireUno
             _playerTurnHandler = new PlayerTurnHandler(humanPlayer, GameDeck);
             _computerTurnHandler = new ComputerTurnHandler(GameDeck, CurrentGameSettings.Difficulty);
 
-            // resets bool if game started again
-            deck.DeckReshuffled = false;
-        }
+                    }
 
         /// <summary>
         /// Starts the game by preparing the initial table card and setting the starting player turn.
         /// </summary>
         public void StartGame()
         {
-            int startingHandSize = 21 / AllPlayers.Count;
+            int startingHandSize = 21 / AllPlayers.Count; // dividing from 21 so the deck isn't immediately depleted
 
             foreach (Player player in AllPlayers)
             {
@@ -86,12 +86,16 @@ namespace SolitaireUno
             }
             
             LogicCard = GameDeck.PreventInitialSpecialCard();
-
+            
             if (LogicCard is null)
                 return;
 
             GameDeck.AddToDiscardPile(LogicCard);
             VisualCard = LogicCard;
+
+            // resetting this bool to false at the start of the game,
+            // so that if the deck was reshuffled during a previous game, it will be reset for the new game
+            GameDeck.DeckReshuffled = false;
         }
 
         /// <summary>
@@ -100,10 +104,10 @@ namespace SolitaireUno
         /// <param name="playerDecision">Optional player input or command used during the player's turn.</param>
         /// <returns>A UI message produced during the processed turn.</returns>
         public (string message, bool validDecision) AdvanceTurn(string playerDecision = "")
-        {            
+        {
             bool turnSkipped = false;                               // bool for if a player was skipped 
             string uiMessage;                        // initial empty string for message to be sent back
-            
+
             Player currentPlayer = AllPlayers[CurrentTurnIndex];    // holds the current player at time of turn
 
             if (LogicCard is null || VisualCard is null)
@@ -116,12 +120,7 @@ namespace SolitaireUno
             {
                 int nextPlayersIndex = (CurrentTurnIndex + 1) % AllPlayers.Count;
 
-                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer,
-                                                                            ref LogicCard,
-                                                                            ref VisualCard,
-                                                                            PenaltyCard,
-                                                                            AllPlayers[nextPlayersIndex],
-                                                                            CurrentGameSettings);
+                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, ref LogicCard, ref VisualCard, PenaltyCard, AllPlayers[nextPlayersIndex], CurrentGameSettings);
 
                 uiMessage = message;
 
@@ -129,14 +128,9 @@ namespace SolitaireUno
                 {
                     LastPlayedCard = cardPlayed;
 
-                    turnSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard,
-                                                                     turnSkipped,
-                                                                     GameDeck,
-                                                                     AllPlayers[nextPlayersIndex],
-                                                                     PenaltyCard);
-
+                    turnSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCard);
                 }
-                
+
                 int stepsToMove = turnSkipped ? 2 : 1;                                      //if a player was skipped, we move "2" steps or players
                 CurrentTurnIndex = (CurrentTurnIndex + stepsToMove) % AllPlayers.Count;     // allows for circular looping of turns
 
@@ -150,12 +144,7 @@ namespace SolitaireUno
             {
                 int nextPlayersIndex = (CurrentTurnIndex + 1) % AllPlayers.Count;
 
-                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard,
-                                                                                        ref VisualCard,
-                                                                                        PenaltyCard,
-                                                                                        playerDecision,
-                                                                                        AllPlayers[nextPlayersIndex],
-                                                                                        CurrentGameSettings);
+                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, playerDecision, AllPlayers[nextPlayersIndex], CurrentGameSettings);
 
                 uiMessage = message;
 
@@ -165,23 +154,19 @@ namespace SolitaireUno
                     {
                         LastPlayedCard = cardPlayed;
 
-                        turnSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard,
-                                                                                   turnSkipped,
-                                                                                   GameDeck,
-                                                                                   AllPlayers[nextPlayersIndex],
-                                                                                   PenaltyCard);
-                    }            
-                    
+                        turnSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCard);
+                    }
+
                     int stepsToMove = turnSkipped ? 2 : 1;                                      //if a player was skipped, we move "2" steps or players
                     CurrentTurnIndex = (CurrentTurnIndex + stepsToMove) % AllPlayers.Count;     // allows for circular looping of turns
                 }
 
                 return (uiMessage, isSuccessful);
-            }           
+            }
         }
     }
 }
 
 // Modulus Help: See how many times right value can go into left value
-    // multiply the right value times the amount it can go into initial left value
-    // subtract the product from the initial left number, answer is remainder
+// multiply the right value times the amount it can go into initial left value
+// subtract the product from the initial left number, answer is remainder

@@ -1,8 +1,4 @@
-﻿using SolitaireUno;
-using Xunit;
-using NUnit;
-
-namespace SolitaireUno.Tests
+﻿namespace SolitaireUno.Tests
 {
     /// <summary>
     /// Contains unit tests for methods in the GameMethods class, verifying correct behavior for penalty card counting,
@@ -30,38 +26,24 @@ namespace SolitaireUno.Tests
             Assert.Equal(4, penaltyCount);
         }
 
-        [Fact]
-        public void ProcessDraw_ProperlyDealsTwoCards()
-        {
-            // ARRANGE
-            Deck fakeDeck = new Deck();   
-            Player unfortunateSoul = new Player(fakeDeck);
-            RegularCard penaltyCard = new RegularCard(Suits.Spades, Values.Queen);
-            fakeDeck.GameDeck.Remove(penaltyCard); // removing the penalty to prevent additional cards from being drawn
-
-            // ACT
-            GameMethods.ProcessDraw(2, unfortunateSoul, fakeDeck, penaltyCard);
-
-            // ASSERT
-            int playerHandCountAfterDraw = unfortunateSoul.Hand.Count;
-            Assert.Equal(12, playerHandCountAfterDraw);
-        }
-
-        [Fact]
-        public void ProcessDraw_ProperlyDealsFourCards()
+        [Theory]
+        [InlineData(2)]
+        [InlineData(4)]
+        public void ProcessDraw_ProperlyDeals_Appropriate_Cards(int numberOfCardsToBeDealt)
         {
             // ARRANGE
             Deck fakeDeck = new Deck();
-            Player unfortunateSoul = new Player(fakeDeck);
-            RegularCard penaltyCard = new RegularCard(Suits.Spades, Values.Queen); 
-            fakeDeck.GameDeck.Remove(penaltyCard); // removing the penalty to prevent additional cards from being drawn
+            Player unfortunateSoul = new Player { Name = "James" };
+
+            RegularCard penaltyCard = new RegularCard(Suits.Spades, Values.Queen);
 
             // ACT
-            GameMethods.ProcessDraw(4, unfortunateSoul, fakeDeck, penaltyCard);
+            fakeDeck.GameDeck.Remove(penaltyCard); // removing the penalty to prevent additional cards from being drawn
+            GameMethods.ProcessDraw(numberOfCardsToBeDealt, unfortunateSoul, fakeDeck, penaltyCard);
 
             // ASSERT
             int playerHandCountAfterDraw = unfortunateSoul.Hand.Count;
-            Assert.Equal(14, playerHandCountAfterDraw);
+            Assert.Equal(numberOfCardsToBeDealt, playerHandCountAfterDraw);
         }
 
         [Fact]

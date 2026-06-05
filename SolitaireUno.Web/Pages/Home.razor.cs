@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using System.Security.Cryptography.X509Certificates;
 
 namespace SolitaireUno.Web.Pages
 {
@@ -86,7 +85,7 @@ namespace SolitaireUno.Web.Pages
             // holds amount of cards the human player had before playing a turn
             int? playerHandCountBeforeEveryoneGoes = HumanPlayer?.Hand.Count;
 
-            (string message, bool successfulDecision) humanTurnResult = gameEngine.AdvanceTurn(decision); 
+            (string message, bool successfulDecision) humanTurnResult = gameEngine.AdvanceTurn(decision);
 
             if (!string.IsNullOrEmpty(humanTurnResult.message))
                 await UpdateMessageAndUI(humanTurnResult.message);
@@ -181,7 +180,7 @@ namespace SolitaireUno.Web.Pages
         /// <summary>
         /// Uses the players SortHand methods to properly sort hand cards based on user's desire
         /// </summary>
-        private void SortHand()
+        private void SortHand()  
         {
             switch (selectedSortMethod)
             {

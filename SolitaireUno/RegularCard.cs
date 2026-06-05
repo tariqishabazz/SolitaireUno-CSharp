@@ -24,7 +24,7 @@
         /// <returns>True if both cards have the same suit and value; otherwise false.</returns>
         public bool IsEqual(Card otherCard)
         {
-            return otherCard is not null and RegularCard regularCard 
+            return otherCard is not null and RegularCard regularCard
                 && this.Value == regularCard.Value && this.Suit == regularCard.Suit;
         }
     }
