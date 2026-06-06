@@ -1,4 +1,15 @@
-﻿namespace SolitaireUno
+﻿/*
+ Computer.cs
+
+ Purpose:
+ - Computer AI player implementation that selects and returns a valid move
+   given the current game state and difficulty.
+
+ Commenting guideline applied:
+ - File-level purpose header added to match Home.razor.cs style. Method summaries preserved.
+*/
+
+namespace SolitaireUno
 {
     /// <summary>
     /// Computer player AI responsible for choosing and playing cards.
@@ -136,7 +147,6 @@
                         {
                             return null;
                         }
-
                     }
 
                 default:

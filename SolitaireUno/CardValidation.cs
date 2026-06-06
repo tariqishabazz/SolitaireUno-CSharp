@@ -1,4 +1,15 @@
-﻿namespace SolitaireUno
+﻿/*
+ CardValidation.cs
+
+ Purpose:
+ - Helper methods that determine whether a played card is valid given the current logic card, game mode and suit enforcement rules.
+ - Contains helper checks for ascending/descending sequences and wrap-around rules.
+
+ Commenting guideline applied:
+ - File-level purpose header added to align with Home.razor.cs style while preserving existing method summaries.
+*/
+
+namespace SolitaireUno
 {
     /// <summary>
     /// Card validation helpers (play validity, wrap-around, suit checks).

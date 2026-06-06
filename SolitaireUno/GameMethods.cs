@@ -1,4 +1,14 @@
-﻿namespace SolitaireUno
+﻿/*
+ GameMethods.cs
+
+ Purpose:
+ - Collection of stateless helper functions used across game logic (penalty calculation, special card effects, draw handling).
+
+ Commenting guideline applied:
+ - File-level header added to match project style used in Home.razor.cs.
+*/
+
+namespace SolitaireUno
 {
     /// <summary>
     /// Core game logic helpers used by the Solitaire Uno game.
@@ -42,12 +52,14 @@
         /// <param name="gameDeck">The deck used to draw penalty cards from.</param>
         /// <param name="targetPlayer">The player who will receive any drawn cards or be skipped.</param>
         /// <param name="penaltyCard">The configured penalty card used to detect chained penalties.</param>
-        /// <returns>True if the target player was skipped as a result of the effect; otherwise false.</returns>
-        public static bool ApplySpecialCardEffect(Card? lastPlayedCard, bool targetSkipped, Deck gameDeck, Player targetPlayer, Card penaltyCard)
+        /// <returns>A tuple containing an optional message and a flag indicating if the target player was skipped.</returns>
+        public static (string? potentialMessage, bool targetSkipped) ApplySpecialCardEffect(Card? lastPlayedCard, bool targetSkipped, Deck gameDeck, Player targetPlayer, Card penaltyCard)
         {
             if (lastPlayedCard is not null)
             {
                 ActionInstruction message = SpecialCardAction(lastPlayedCard);
+                string? potentialDrawMessage;
+
                 switch (message)
                 {
                     case ActionInstruction.DoNothing:
@@ -58,21 +70,23 @@
                         break;
 
                     case ActionInstruction.DrawFour:
-                        ProcessDraw(4, targetPlayer, gameDeck, penaltyCard);
+                        potentialDrawMessage = ProcessDraw(4, targetPlayer, gameDeck, penaltyCard);
                         targetSkipped = true;
-                        break;
+
+                        return (potentialDrawMessage, targetSkipped);
 
                     case ActionInstruction.DrawTwo:
-                        ProcessDraw(2, targetPlayer, gameDeck, penaltyCard);
+                        potentialDrawMessage = ProcessDraw(2, targetPlayer, gameDeck, penaltyCard);
                         targetSkipped = true;
-                        break;
+
+                        return (potentialDrawMessage, targetSkipped);
 
                     default:
                         break;
                 }
             }
 
-            return targetSkipped;
+            return (null, targetSkipped);
         }
 
         /// <summary>
@@ -82,8 +96,11 @@
         /// <param name="unfortunateSoul">The player who must pick up the cards.</param>
         /// <param name="gameDeck">The deck used to draw cards from.</param>
         /// <param name="penaltyCard">The configured penalty card used to detect chained penalties.</param>
-        public static void ProcessDraw(int drawAmount, Player unfortunateSoul, Deck gameDeck, Card penaltyCard)
+        public static string? ProcessDraw(int drawAmount, Player unfortunateSoul, Deck gameDeck, Card penaltyCard)
         {
+            bool penaltyCardSpotted = false;
+            int awardedPenalty = 0;
+
             for (int i = 0; i < drawAmount; i++)
             {
                 Card? drawnCard = gameDeck.DealCard();
@@ -91,10 +108,12 @@
                 if (drawnCard is null)
                     break;
 
-                int awardedPenalty = GetPenaltyCount(drawnCard, penaltyCard);
+                awardedPenalty = GetPenaltyCount(drawnCard, penaltyCard);
 
                 if (awardedPenalty > 0)
                 {
+                    penaltyCardSpotted = true;
+
                     for (int j = 0; j < awardedPenalty; j++)
                     {
                         Card? penaltyDrawnCard = gameDeck.DealCard();
@@ -108,6 +127,14 @@
 
                 unfortunateSoul.PickupCard(drawnCard);
             }
+
+            if (!penaltyCardSpotted)
+                return null;
+
+            if (unfortunateSoul is Computer)
+                return $"During the draw, {unfortunateSoul.Name} picked up the {penaltyCard}. Along with the normal draw, they will recieve {awardedPenalty} additional card(s).";
+            else
+                return $"During the draw, {unfortunateSoul.Name} picked up the {penaltyCard}. Along with the normal draw, you will recieve {awardedPenalty} additional card(s).";
         }
     }
 }

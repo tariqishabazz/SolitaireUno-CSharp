@@ -10,7 +10,7 @@
         {
             gameOverMessage = "";
 
-            <div class="card p-4 mx-auto shadow-sm mt-4">
+            <div class="game-setup-screen card p-4 mx-auto shadow-sm mt-4">
                 <h4 class="mb-3 text-dark">Game Setup</h4>
 
                 <label class="form-label fw-bold text-dark text-start">Game Mode</label>
@@ -63,69 +63,64 @@
         }
 
     
-        else
-        {
-            <div class="solitaire-table">
-
-            <div class="game-name-and-uptime">
-				<h2 class="title mt-2 text-light">Solitaire Uno</h2>			        
-                <h4 class="uptimer text-danger mb-3 fw-bold text-light">Game Uptime: </h4>
-
-                <hr />
-            </div>
+    else
+    {
+        <div class="solitaire-table">
+        
+            <aside class="table-sidebar">
+                <div class="game-name-and-uptime">
+                    <h2 class="title mt-2 text-light">Solitaire Uno</h2>
+                    <h4 class="uptimer text-danger mb-3 fw-bold text-light">Game Uptime: </h4>
+                    <hr class="text-white" />
+                </div>
 
                 <div class="topbar-info fw-bold" role="alert">
-
                     <div class="game-stats">
                         @if (gameEngine?.GameDeck?.Length() > 1)
                         {
-                            <div class="text-white mt-4">
-                                Order: @gameEngine?.CurrentGameSettings.Mode -
-                                Sorting Mode: @(selectedSortMethod ?? "N/A") -
+                            <div class="text-white mt-2">
+                                Order: @gameEngine?.CurrentGameSettings.Mode <br />
+                                Sorting Mode: @(selectedSortMethod ?? "") <br />
                                 Deck has @gameEngine?.GameDeck?.Length() cards left!
                             </div>
                         }
-
                         else if (gameEngine?.GameDeck?.Length() == 1)
                         {
-                            <div class="text-white mt-4">
-                                Order: @gameEngine?.CurrentGameSettings.Mode - 
-                                Sorting Mode: @(selectedSortMethod ?? "N/A") - 
+                            <div class="text-white mt-2">
+                                Order: @gameEngine?.CurrentGameSettings.Mode <br />
+                                Sorting Mode: @(selectedSortMethod ?? "") <br />
                                 Deck has 1 card left!
                             </div>
                         }
-
                         else
                         {
-                            <div class="text-white mt-4">
-                                Order: @gameEngine?.CurrentGameSettings.Mode - 
-                                Sorting Mode: @(selectedSortMethod ?? "N/A") - 
+                            <div class="text-white mt-2">
+                                Order: @gameEngine?.CurrentGameSettings.Mode <br />
+                                Sorting Mode: @(selectedSortMethod ?? "") <br />
                                 Deck has no more cards left, draw a card to reshuffle!
                             </div>
                         }
                     </div>
-				
-                    <div class="round-message"> @actionLog </div>
-
-                </div>
-			
-
                 
-            <header class="opponent-zone">
-			    <div class="d-flex justify-content-center gap-3 flex-wrap mt-3">
-                    @if (gameEngine is not null)
-                    {
-                        @foreach (Player computerOpponent in gameEngine.AllPlayers.Skip(1))
-                        {
-                            <div class="opponent-hud">
-                                <span class="fw-bold">@computerOpponent.Name</span>
-                                <span class="card-count">@computerOpponent.Hand.Count</span>
-                                <small>Cards</small>
-                            </div>
-                        }
-                    }
+                    <div class="round-message text-warning mt-3"> @actionLog </div>
                 </div>
-            </header>
+            
+                <header class="opponent-zone mt-4">
+                    <div class="d-flex flex-column gap-3">
+                        @if (gameEngine is not null)
+                        {
+                            @foreach (Player computerOpponent in gameEngine.AllPlayers.Skip(1))
+                            {
+                                <div class="opponent-hud m-0 w-100">
+                                    <span class="fw-bold">@computerOpponent.Name</span>
+                                    <span class="card-count">@computerOpponent.Hand.Count</span>
+                                    <small>Cards</small>
+                                </div>
+                            }
+                        }
+                    </div>
+                </header>
+            </aside>
 
 
 

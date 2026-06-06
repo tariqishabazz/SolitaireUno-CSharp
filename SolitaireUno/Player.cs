@@ -1,4 +1,15 @@
-﻿namespace SolitaireUno
+﻿/*
+ Player.cs
+
+ Purpose:
+ - Represents a game participant that holds a hand of cards and can play or pick up cards.
+ - Contains sorting helpers for the player's hand and utility methods for pickup/play.
+
+ Commenting guideline applied:
+ - File-level purpose header added to follow Home.razor.cs style. Inline method summaries are preserved.
+*/
+
+namespace SolitaireUno
 {
     /// <summary>
     /// Represents a game participant that holds a hand of cards and can play or pick up cards.

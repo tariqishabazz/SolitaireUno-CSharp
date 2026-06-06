@@ -1,4 +1,12 @@
-﻿namespace SolitaireUno
+﻿/*
+ ValuesEnum.cs
+
+ Purpose:
+ - Defines the card face values used by RegularCard.
+
+*/
+
+namespace SolitaireUno
 {
     public enum Values
     {

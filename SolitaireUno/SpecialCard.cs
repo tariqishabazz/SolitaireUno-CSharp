@@ -1,4 +1,14 @@
-﻿namespace SolitaireUno
+﻿/*
+ SpecialCard.cs
+
+ Purpose:
+ - Represents special cards that trigger game effects (Skip, DrawTwo, DrawFour).
+
+ Commenting guideline applied:
+ - File-level purpose header added to match Home.razor.cs style.
+*/
+
+namespace SolitaireUno
 {
     /// <summary>
     /// Represents a special card that triggers game effects like skip, draw, or change order (beta).

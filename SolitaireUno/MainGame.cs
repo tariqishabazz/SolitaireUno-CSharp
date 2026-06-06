@@ -1,4 +1,15 @@
-﻿namespace SolitaireUno
+﻿/*
+ MainGame.cs
+
+ Purpose:
+ - Orchestrates the overall game: maintains players, the game deck, turn handlers, and implements the main turn-advancing logic.
+ - Responsible for game initialization (dealing hands, preparing the table) and processing each turn for both human and computer players.
+
+ Commenting guideline applied:
+ - File-level purpose header added to match the project's documentation style used in Home.razor.cs.
+*/
+
+namespace SolitaireUno
 {
     /// <summary>
     /// Main game orchestrator that manages players, deck and turn handlers.
@@ -43,7 +54,7 @@
 
             AllPlayers.Add(humanPlayer);
 
-          
+
             // ------------ ADDING COMPUTER PLAYERS ------------ //
 
             for (int i = 0; i < currentGameSettings.NumberOfPlayers; i++)
@@ -68,7 +79,7 @@
             _playerTurnHandler = new PlayerTurnHandler(humanPlayer, GameDeck);
             _computerTurnHandler = new ComputerTurnHandler(GameDeck, CurrentGameSettings.Difficulty);
 
-                    }
+        }
 
         /// <summary>
         /// Starts the game by preparing the initial table card and setting the starting player turn.
@@ -84,9 +95,9 @@
                     player.PickupCard(GameDeck.DealCard()!);
                 }
             }
-            
+
             LogicCard = GameDeck.PreventInitialSpecialCard();
-            
+
             if (LogicCard is null)
                 return;
 
@@ -107,6 +118,7 @@
         {
             bool turnSkipped = false;                               // bool for if a player was skipped 
             string uiMessage;                        // initial empty string for message to be sent back
+            int stepsToMove = 1;
 
             Player currentPlayer = AllPlayers[CurrentTurnIndex];    // holds the current player at time of turn
 
@@ -128,12 +140,17 @@
                 {
                     LastPlayedCard = cardPlayed;
 
-                    turnSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCard);
+                    var (potentialDrawMessage, targetSkipped) = GameMethods.ApplySpecialCardEffect(LastPlayedCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCard);
+
+                    if (!string.IsNullOrEmpty(potentialDrawMessage))
+                    {
+                        uiMessage += $"<br/>{potentialDrawMessage}";
+                    }
+
+                    stepsToMove = targetSkipped ? 2 : 1;
                 }
-
-                int stepsToMove = turnSkipped ? 2 : 1;                                      //if a player was skipped, we move "2" steps or players
-                CurrentTurnIndex = (CurrentTurnIndex + stepsToMove) % AllPlayers.Count;     // allows for circular looping of turns
-
+                //if a player was skipped, we move "2" steps or players
+                CurrentTurnIndex = (CurrentTurnIndex + stepsToMove) % AllPlayers.Count;
                 return (uiMessage, successfulDecision);
             }
 
@@ -154,11 +171,17 @@
                     {
                         LastPlayedCard = cardPlayed;
 
-                        turnSkipped = GameMethods.ApplySpecialCardEffect(LastPlayedCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCard);
+                        var (potentialDrawMessage, targetSkipped) = GameMethods.ApplySpecialCardEffect(LastPlayedCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCard);
+
+                        if (!string.IsNullOrEmpty(potentialDrawMessage))
+                        {
+                            uiMessage += $"<br/>{potentialDrawMessage}";
+                        }
+
+                        stepsToMove = targetSkipped ? 2 : 1;
                     }
 
-                    int stepsToMove = turnSkipped ? 2 : 1;                                      //if a player was skipped, we move "2" steps or players
-                    CurrentTurnIndex = (CurrentTurnIndex + stepsToMove) % AllPlayers.Count;     // allows for circular looping of turns
+                    CurrentTurnIndex = (CurrentTurnIndex + stepsToMove) % AllPlayers.Count;
                 }
 
                 return (uiMessage, isSuccessful);

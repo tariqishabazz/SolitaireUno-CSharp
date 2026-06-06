@@ -1,4 +1,15 @@
-﻿namespace SolitaireUno
+﻿/*
+ ComputerTurnHandler.cs
+
+ Purpose:
+ - Encapsulates computer turn handling including pickup/penalty logic and performing plays.
+ - Provides methods to process a computer player's turn and apply any resulting penalties or skips.
+
+ Commenting guideline applied:
+ - File-level purpose header added to match the project's consistent documentation style used in Home.razor.cs.
+*/
+
+namespace SolitaireUno
 {
     /// <summary>
     /// Handles the computer's turn and applies drawing/penalty logic.
@@ -27,38 +38,16 @@
 
             if (potentialComputerPlay is null)
             {
-                if (_deck.Length() > 0 || (_deck.Length() == 0 && !_deck.DeckReshuffled && currentGameSettings.Mode is not GameMode.Both))
+
+                if (_deck.Length() > 0 || _deck.Length() == 0 && (!_deck.DeckReshuffled || currentGameSettings.Mode is GameMode.Both))
                 {
-                    Card card = _deck.DealCard()!;
-                    currentComputerPlayer.PickupCard(card);
-
-
-                    // ------------- HANDLES POTENTIAL PENALTY --------------- //
-
-                    int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
-                    if (computerPotentialPenaltyCount > 0)
-                    {
-                        int actualPickupCount = 0;
-
-                        for (int i = 0; i < computerPotentialPenaltyCount; i++)
-                        {
-                            Card? addtionalPenaltyCard = _deck.DealCard();
-
-                            if (addtionalPenaltyCard is not null)
-                            {
-                                currentComputerPlayer.PickupCard(addtionalPenaltyCard);
-                                actualPickupCount++;
-                            }
-                        }
-                        return ($"{currentComputerPlayer.Name} decided to pick up and found the {penaltyCard}! They picked up {actualPickupCount} additional cards!", null, true);
-                    }
-
-                    else
-                        return ($"{currentComputerPlayer.Name} decided to pick up!", null, true);
+                    return HandlePickup(currentComputerPlayer, penaltyCard);
                 }
 
-                else if (_deck.Length() == 0 && _deck.DeckReshuffled)
+                else
+                {
                     return ($"{currentComputerPlayer.Name} decided to pass!", null, true);
+                }
             }
 
 
@@ -76,8 +65,8 @@
 
 
                 bool isSkipCard = potentialComputerPlay is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip;
-                bool isDrawTwo = potentialComputerPlay is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawTwo;
-                bool isDrawFour = potentialComputerPlay is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawFour;
+                bool isDrawTwoCard = potentialComputerPlay is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawTwo;
+                bool isDrawFourCard = potentialComputerPlay is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawFour;
 
                 if (isSkipCard)
                 {
@@ -90,8 +79,8 @@
                     return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} " +
                         $"and skipped {nextPlayer.Name}!", potentialComputerPlay, true);
                 }
-                
-                else if (isDrawFour || isDrawTwo)
+
+                else if (isDrawFourCard || isDrawTwoCard)
                 {
                     if (nextPlayer is not Computer)
                     {
@@ -105,9 +94,54 @@
 
                 return ($"{currentComputerPlayer.Name} decided to play: {potentialComputerPlay}!", potentialComputerPlay, true);
             }
-
-            return ($"{currentComputerPlayer.Name} got scared...", null, false);
         }
 
+
+        // ======================== PRIVATE METHODS FOR PICKUP LOGIC ========================= //
+
+
+        /// <summary>
+        /// Handles the logic for a computer player to pick up a card in non-both game modes, applying any penalty cards
+        /// as required.
+        /// </summary>
+        /// <remarks>This method is intended for use in game modes where only one type of pickup is
+        /// allowed. It determines if a penalty applies and ensures the correct number of cards are picked up by the
+        /// computer player.</remarks>
+        /// <param name="currentComputerPlayer">The computer player who is performing the pickup action.</param>
+        /// <param name="penaltyCard">The penalty card that may trigger additional cards to be picked up, depending on the game rules.</param>
+        /// <returns>A tuple containing a message describing the action taken, the card played (always null in this context), and
+        /// a value indicating whether the move was successful.</returns>
+        private (string message, Card? playedCard, bool successfulMove) HandlePickup(Player currentComputerPlayer, Card penaltyCard)
+        {
+            Card card = _deck.DealCard()!;
+            currentComputerPlayer.PickupCard(card);
+
+            // ------------- HANDLES POTENTIAL PENALTY --------------- //
+
+            return HandlePotentialPenalty(currentComputerPlayer, card, penaltyCard);
+        }
+
+
+        private (string message, Card? playedCard, bool successfulMove) HandlePotentialPenalty(Player currentComputerPlayer, Card card, Card penaltyCard)
+        {
+            int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
+
+            if (computerPotentialPenaltyCount == 0) // No penalty, just a normal pickup
+                return ($"{currentComputerPlayer.Name} decided to pick up!", null, true);
+
+            int actualPickupCount = 0;
+
+            for (int i = 0; i < computerPotentialPenaltyCount; i++)
+            {
+                Card? addtionalPenaltyCard = _deck.DealCard();
+
+                if (addtionalPenaltyCard is not null)
+                {
+                    currentComputerPlayer.PickupCard(addtionalPenaltyCard);
+                    actualPickupCount++;
+                }
+            }
+            return ($"{currentComputerPlayer.Name} decided to pick up and found the {penaltyCard}! They picked up {actualPickupCount} additional cards!", null, true);
+        }
     }
 }

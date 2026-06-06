@@ -1,4 +1,12 @@
-﻿namespace SolitaireUno
+﻿/*
+ SpecialCardType.cs
+
+ Purpose:
+ - Enum for special Uno-style cards that alter the game state when played.
+
+*/
+
+namespace SolitaireUno
 {
     /// <summary>
     /// Types of special cards that cause game effects.

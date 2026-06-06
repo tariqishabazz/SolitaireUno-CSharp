@@ -1,4 +1,15 @@
-﻿namespace SolitaireUno
+﻿/*
+ PlayerTurnHandler.cs
+
+ Purpose:
+ - Encapsulates human player turn handling: validating decisions, performing pickups,
+   handling passes, and applying penalties.
+
+ Commenting guideline applied:
+ - File-level purpose header added to match the Home.razor.cs style.
+*/
+
+namespace SolitaireUno
 {
     /// <summary>
     /// Handles the logic for a human player's turn, including pick-up, pass and play logic.
@@ -39,70 +50,99 @@
 
             if (playerDecision == "pickup")
             {
+                if (deck.Length() > 0 || (deck.Length() == 0 && (!deck.DeckReshuffled || currentGameSettings.Mode is GameMode.Both)))
+                    return HandlePickup(penaltyCard);
 
-                if (deck.Length() > 0 || (deck.Length() == 0 && !deck.DeckReshuffled && currentGameSettings.Mode is not GameMode.Both))
-                {
-                    Card card = deck.DealCard()!;
-                    player.PickupCard(card);
-
-                    int playerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
-
-                    if (playerPotentialPenaltyCount > 0)
-                    {
-                        int actualPickupCount = 0;
-
-                        for (int i = 0; i < playerPotentialPenaltyCount; i++)
-                        {
-                            Card? additionalPenaltyCard = deck.DealCard();
-
-                            if (additionalPenaltyCard is null)
-                                break;
-
-                            player.PickupCard(additionalPenaltyCard);
-                            actualPickupCount++;
-
-                        }
-
-                        return (true, $"You decided to pick up and found the {penaltyCard}! You picked up {actualPickupCount} additional cards!", null);
-                    }
-
-                    return (true, "You decided to pick up!", null);
-                }
+                else
+                    return (false, "The deck is empty and has been reshuffled! You can't pick up, you must pass or play!", null);
             }
 
 
 
             // --------------- ENSURING DECISION IS VALID -------------- //
 
-            if (!int.TryParse(playerDecision, out int decisionAsNumber)) // IF THE DECISION ISNT A NUMBER
-                return (false, "That isn't a valid move, please try again", null);
+            Card? validCard = ValidateDecision(playerDecision, logicCard, currentGameSettings);
 
-            if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count) // IF DECISION ISNT WITHIN RANGE OF CARDS
-                return (false, "Invalid card index", null);
-
-            Card potentialCard = player.Hand[decisionAsNumber - 1];
-
-            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings)) // IF DECISION ISNT A VALID MOVE
-                return (false, "That is not a valid move, please try again", null);
-
+            if (validCard is null)
+                return (false, "Invalid choice! Please choose a valid card, pickup or pass!", null);
 
             // --------------- PLAYS AND SETS CARD -------------- //
 
-            player.PlayCard(potentialCard);
-            deck.AddToDiscardPile(potentialCard);
+            player.PlayCard(validCard);
+            deck.AddToDiscardPile(validCard);
 
-            visualCard = potentialCard;
+            visualCard = validCard;
 
-            if (potentialCard is RegularCard)
-                logicCard = potentialCard;
+            if (validCard is RegularCard)
+                logicCard = validCard;
 
-            if (potentialCard is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
-                return (true, $"You played: {potentialCard} and skipped {nextPlayer.Name}!", potentialCard);
+            if (validCard is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
+            {
+                return (true, $"You played: {validCard} and skipped {nextPlayer.Name}!", validCard);
+            }
 
-            else if ((potentialCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (potentialCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
-                return (true, $"You played: {potentialCard}, so {nextPlayer.Name} had to draw!", potentialCard);
+            else if ((validCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (validCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
+            {
+                return (true, $"You played: {validCard}, so {nextPlayer.Name} had to draw!", validCard);
+            }
 
-            return (true, $" You played: {potentialCard}!", potentialCard);
+            return (true, $" You played: {validCard}!", validCard);
+        }
+
+
+        // ================ ALL METHODS =============== //
+
+
+        /// <summary>
+        /// Handles the player's action to pick up a card in response to a penalty, dealing the appropriate number of
+        /// cards and updating the player's hand accordingly.
+        /// </summary>
+        /// <param name="penaltyCard">The penalty card that triggered the pickup action. Determines the number of additional cards the player may
+        /// need to pick up.</param>
+        /// <returns>A tuple containing a value indicating whether the move was successful, a message describing the outcome, and
+        /// the card played, if any. The played card is always null in this context.</returns>
+        public (bool sucessfulMove, string message, Card? playedCard) HandlePickup(Card penaltyCard)
+        {
+            Card card = deck.DealCard()!;
+            player.PickupCard(card);
+
+            int playerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
+
+            if (playerPotentialPenaltyCount > 0)
+            {
+                int actualPickupCount = 0;
+
+                for (int i = 0; i < playerPotentialPenaltyCount; i++)
+                {
+                    Card? additionalPenaltyCard = deck.DealCard();
+
+                    if (additionalPenaltyCard is null)
+                        break;
+
+                    player.PickupCard(additionalPenaltyCard);
+                    actualPickupCount++;
+                }
+
+                return (true, $"You decided to pick up and found the {penaltyCard}! You picked up {actualPickupCount} additional cards!", null);
+            }
+
+            return (true, "You decided to pick up!", null);
+        }
+
+        private Card? ValidateDecision(string playerDecision, Card logicCard, GameSettings currentGameSettings)
+        {
+            if (!int.TryParse(playerDecision, out int decisionAsNumber)) // IF THE DECISION ISNT A NUMBER
+                return null;
+
+            Card potentialCard = player.Hand[decisionAsNumber - 1];
+
+            if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count) // IF DECISION ISNT WITHIN RANGE OF CARDS
+                return null;
+
+            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings)) // IF DECISION ISNT A VALID MOVE
+                return null;
+
+            return potentialCard;
         }
     }
 }
