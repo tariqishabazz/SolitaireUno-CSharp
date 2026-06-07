@@ -1,12 +1,4 @@
-﻿/*
- Deck.cs
-
- Purpose:
- - Represents a shuffled deck of cards and provides draw/discard operations, reshuffling logic and helpers used by the game.
-
- Commenting guideline applied:
- - File-level header added to follow the project's consistent documentation style.
-*/
+﻿// Deck.cs — shuffled deck and draw/discard operations with reshuffle logic.
 
 namespace SolitaireUno
 {
@@ -15,7 +7,7 @@ namespace SolitaireUno
     /// </summary>
     public class Deck
     {
-        private readonly Random random = new();
+        private readonly Random random = Random.Shared;
 
         private readonly GameMode _currentGameMode;
 
@@ -25,8 +17,11 @@ namespace SolitaireUno
         private readonly int _additionalSpecialCards = 2;
         private int _reshuffleCount = 0;
 
-        private bool _deckReshuffled = false;
-
+        public int ReshuffleCount
+        {
+            get { return _reshuffleCount; }
+            set { _reshuffleCount = value; }
+        }
 
         public List<Card> DiscardPile
         {
@@ -40,12 +35,6 @@ namespace SolitaireUno
             set { _gameDeck = value; }
         }
 
-        public bool DeckReshuffled
-        {
-            get { return _deckReshuffled; }
-            set { _deckReshuffled = value; }
-        }
-
         public GameMode CurrentGameMode
         {
             get
@@ -53,13 +42,6 @@ namespace SolitaireUno
                 return _currentGameMode;
             }
         }
-
-        public int DeckReshuffleCount
-        {
-            get { return _reshuffleCount; }
-            private set { _reshuffleCount = value; }
-        }
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Deck"/> class and inserts the penalty card into the deck.
@@ -87,16 +69,18 @@ namespace SolitaireUno
 
             // ------------------ PENALTY CARD MANIPULATION ----------------- //
 
-            RegularCard penaltyCard = new(Suits.Spades, Values.Queen);
+            List<RegularCard> penaltyCards = [ new(Suits.Spades, Values.Queen), new(Suits.Spades, Values.Ace) ];
 
-            int index = _gameDeck.FindIndex(card => card is RegularCard regularCard && regularCard.IsEqual(penaltyCard));
-            _gameDeck.RemoveAt(index);
+            _gameDeck.RemoveAll(card => card is RegularCard regularCard && penaltyCards.Any(penaltyCard => regularCard.IsEqual(penaltyCard)));
 
-            int firstPenaltyPositionIndex = 22;
-            int secondPenaltyPositionIndex = 45;
+            int firstPenaltyPositionIndex = 30;
+            int secondPenaltyPositionIndex = 50;
 
-            int randomPosition = random.Next(firstPenaltyPositionIndex, secondPenaltyPositionIndex);
-            _gameDeck.Insert(randomPosition, penaltyCard);
+            foreach (RegularCard penaltyCard in penaltyCards)
+            {
+                int randomPosition = random.Next(firstPenaltyPositionIndex, secondPenaltyPositionIndex);
+                _gameDeck.Insert(randomPosition, penaltyCard);
+            }
         }
 
         /// <summary>
@@ -157,6 +141,8 @@ namespace SolitaireUno
         /// <returns>The dealt card, or null when no cards are available.</returns>
         public Card? DealCard()
         {
+            int maxAllowedReshuffles = _currentGameMode == GameMode.Both ? 3 : 1;
+
             if (_gameDeck.Count > 0)
             {
                 Card dealtCard = _gameDeck[0];
@@ -165,9 +151,7 @@ namespace SolitaireUno
                 return dealtCard;
             }
 
-            // this will only trigger if the deck is empty AND (game mode is Both OR if the deck has not been reshuffled yet),
-            // allowing for one reshuffle in Ascending/Descending modes
-            else if (_gameDeck.Count == 0 && (_currentGameMode is GameMode.Both || !_deckReshuffled))
+            else if (_gameDeck.Count == 0 && _reshuffleCount < maxAllowedReshuffles)
             {
                 return ResetDeckAndDealCard();
             }
@@ -207,8 +191,6 @@ namespace SolitaireUno
 
             InHouseShuffle();
             DiscardPile.Add(lastCardOnTable);
-
-            _deckReshuffled = true;
 
             _reshuffleCount++;
         }

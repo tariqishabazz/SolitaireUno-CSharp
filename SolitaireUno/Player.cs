@@ -14,10 +14,6 @@ namespace SolitaireUno
     /// <summary>
     /// Represents a game participant that holds a hand of cards and can play or pick up cards.
     /// </summary>
-    /// <remarks>
-    /// Initializes a new instance of <see cref="Player"/> and deals an initial hand from the game deck.
-    /// </remarks>
-    /// <param name="gameDeck">The deck used to draw the initial hand.</param>
     public class Player()
     {
         public List<Card> Hand = [];

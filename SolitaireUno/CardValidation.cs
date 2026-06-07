@@ -1,23 +1,17 @@
-﻿/*
- CardValidation.cs
-
- Purpose:
- - Helper methods that determine whether a played card is valid given the current logic card, game mode and suit enforcement rules.
- - Contains helper checks for ascending/descending sequences and wrap-around rules.
-
- Commenting guideline applied:
- - File-level purpose header added to align with Home.razor.cs style while preserving existing method summaries.
-*/
+﻿// CardValidation.cs
+// Helpers to validate whether a played card is legal given the current table card
+// and game settings (mode and suit rules).
 
 namespace SolitaireUno
 {
     /// <summary>
-    /// Card validation helpers (play validity, wrap-around, suit checks).
+    /// Validation helpers for card plays: sequence checks (ascending/descending), wrap-around rules, special-card detection and suit comparisons.
     /// </summary>
     public class CardValidation
     {
         /// <summary>
-        /// Determines whether a potential play is valid given the current table card, game mode, and suit enforcement.
+        /// Returns true when <paramref name="potentialPlay"/> is a legal play against <paramref name="logicCardShown"/> under <paramref name="currentGameSettings"/>.
+        /// Regular cards must follow sequence and optional suit rules; special cards are always valid.
         /// </summary>
         public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameSettings currentGameSettings)
         {
@@ -38,14 +32,16 @@ namespace SolitaireUno
                 if (!isValidSequence)
                     return false;
 
-                return !currentGameSettings.SuitsEnforced || NotSameColor(firstRegularCard, secondRegularCard); // ensures cards aren't same color if enforcing suits
+                // If suits are enforced, the two regular cards must be of different color groups (red vs black).
+                return !currentGameSettings.SuitsEnforced || NotSameColor(firstRegularCard, secondRegularCard);
             }
 
+            // Special cards are valid plays regardless of regular-card sequencing.
             return IsSpecialCard(potentialPlay);
         }
 
         /// <summary>
-        /// Valid when the potential play value is exactly one less than the shown card, or a wrap-around case.
+        /// True when the potential play's value is exactly one less than the shown card, or when a descending wrap-around applies.
         /// </summary>
         private static bool IsValidDescending(Card potentialPlay, Card currentlyShown)
         {
@@ -57,7 +53,7 @@ namespace SolitaireUno
         }
 
         /// <summary>
-        /// Valid when the potential play value is exactly one greater than the shown card, or a wrap-around case.
+        /// True when the potential play's value is exactly one greater than the shown card, or when an ascending wrap-around applies.
         /// </summary>
         private static bool IsValidAscending(Card potentialPlay, Card currentlyShown)
         {
@@ -69,7 +65,7 @@ namespace SolitaireUno
         }
 
         /// <summary>
-        /// Handles Ace/King wrap-around depending on game mode.
+        /// Handles Ace/King wrap-around. For Descending mode, King follows Ace; for Ascending mode, Ace follows King.
         /// </summary>
         private static bool IsWrapAround(Card potentalPlay, Card currentlyShown, GameMode gameMode)
         {
@@ -85,14 +81,12 @@ namespace SolitaireUno
         }
 
         /// <summary>
-        /// Determines whether the specified card is a special card.
+        /// Returns true when the supplied card is a special card.
         /// </summary>
-        /// <param name="potentialPlay">The card to evaluate for special status. Cannot be null.</param>
-        /// <returns>true if the specified card is a special card; otherwise, false.</returns>
         public static bool IsSpecialCard(Card potentialPlay) => potentialPlay is SpecialCard;
 
         /// <summary>
-        /// Returns true when the two regular cards are not of the same color grouping (red on red. black on black).
+        /// Returns true when the two regular cards are different color groups (red vs black).
         /// </summary>
         public static bool NotSameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
         {

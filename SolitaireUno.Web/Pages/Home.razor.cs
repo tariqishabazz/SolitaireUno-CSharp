@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using System.Text;
 
 namespace SolitaireUno.Web.Pages
 {
@@ -9,35 +10,23 @@ namespace SolitaireUno.Web.Pages
      - Blazor component code-behind for the Home page. Hosts the UI-facing game loop
        interactions and provides helper methods for card image selection, hand sorting,
        simulated delays, and checking win conditions.
-
-     Commenting guidelines applied here:
-     - Public or important members have XML documentation for IntelliSense.
-     - Removed inline end-of-line comments; their intent is described above the relevant
-       code blocks as block comments to keep the implementation lines uncluttered.
     */
 
-    public partial class Home : ComponentBase
+    public partial class Home : ComponentBase, IDisposable
     {
-        // ============= ALL PROPERTIES ============= //
+        // ============= ALL TIMER PROPERTIES ============= //
 
-        /// <summary>
-        /// The active game engine instance. Null when no game is running.
-        /// </summary>
+        private PeriodicTimer? _timer;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
+        private TimeSpan _gameUptime = TimeSpan.Zero;
+
+
+        // ============= ALL GAME PROPERTIES ============= //
+
         private MainGame? gameEngine;
 
-        /// <summary>
-        /// Whether a game has been started and cards are dealt.
-        /// </summary>
         private bool gameStarted = false;
-
-        /// <summary>
-        /// Tracks when an AI/computer player is performing its turn to disable human input.
-        /// </summary>
         private bool aComputerIsThinking = false;
-
-        /// <summary>
-        /// Whether suits are enforced in the current game settings.
-        /// </summary>
         private bool suitEnforcement = false;
 
         private string gameOverMessage = string.Empty;
@@ -45,6 +34,7 @@ namespace SolitaireUno.Web.Pages
 
         private GameMode selectedMode = GameMode.Ascending;
         private GameDifficulty selectedDifficulty = GameDifficulty.Easy;
+
         private string selectedCardColor = "yellow";
         private string selectedSortMethod = "None";
 
@@ -90,13 +80,18 @@ namespace SolitaireUno.Web.Pages
         /// </summary>
         private void StartNewGame()
         {
+            /* Reset game states and properties to their initial values. 
+             *      This ensures that starting a new game
+             *      will clear any previous game data and UI messages. */
+
             gameOverMessage = string.Empty;
             aComputerIsThinking = false;
+            _gameUptime = TimeSpan.Zero;
+
+            // Create and start game with desired configurations //
 
             GameSettings currentGameSettings = new GameSettings(selectedMode, selectedDifficulty, suitEnforcement, selectedPlayerCount);
-
             Deck freshDeck = new Deck(currentGameSettings.Mode);
-
             gameEngine = new MainGame(freshDeck, currentGameSettings);
             gameEngine.StartGame();
 
@@ -145,6 +140,9 @@ namespace SolitaireUno.Web.Pages
             if (!string.IsNullOrEmpty(humanTurnResult.message))
                 await UpdateMessageAndUI(humanTurnResult.message);
 
+            if(LongUIMessage(humanTurnResult.message))
+                await Task.Delay(5000);
+
             if (!humanTurnResult.successfulDecision)
                 return;
 
@@ -173,6 +171,9 @@ namespace SolitaireUno.Web.Pages
 
                 if (!string.IsNullOrEmpty(message))
                     await UpdateMessageAndUI(message);
+
+                if(LongUIMessage(message))
+                    await Task.Delay(5000);
 
                 if (!successfulDecision)
                     return;
@@ -269,10 +270,11 @@ namespace SolitaireUno.Web.Pages
         /// <returns>A task that completes after a randomized delay.</returns>
         private static async Task SimulatedDelay()
         {
-            Random random = new Random();
-            int randomWaitingPeriod = (random.Next(7) + 4) * 400;
+            Random random = Random.Shared;
 
-            await Task.Delay(randomWaitingPeriod);
+            int waitTime = 1700 + (random.Next() % 650);
+
+            await Task.Delay(waitTime);
         }
 
         /// <summary>
@@ -302,5 +304,66 @@ namespace SolitaireUno.Web.Pages
             }
             return null;
         }
+
+
+        /* ================== TIMER METHODS ================= */
+
+        protected override void OnInitialized()
+        {
+            Task.Run(BackgroundTimerLoop);
+        }
+
+        private async Task BackgroundTimerLoop()
+        {
+            _timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+
+            try
+            {
+                while (await _timer.WaitForNextTickAsync(_cts.Token))
+                {
+                    if (gameStarted && string.IsNullOrEmpty(gameOverMessage))
+                    {
+                        _gameUptime = _gameUptime.Add(TimeSpan.FromSeconds(1));
+
+                        _ = InvokeAsync(StateHasChanged);
+                    }
+                }
+            }
+
+            catch (OperationCanceledException) { }
+        }
+
+        public void Dispose()
+        {
+            _cts.Cancel();
+            _timer?.Dispose();
+        }
+
+        private static bool LongUIMessage(string message)
+        {
+            // create new string to hold current word being built from characters in message
+            StringBuilder currentSentence = new StringBuilder();
+
+            int numberOfWords = 0;
+
+            // loop over each character in the message to find individual words
+            for (int character = 0; character < message.Length; character++)
+            {                
+                // if character is not a space, keep adding to current word string until space is found
+                if (char.IsLetterOrDigit(message[character]) || char.IsPunctuation(message[character]))
+                {
+                    currentSentence.Append(message[character]);
+                }
+                
+                // if character is a space, add previous index elements to form word in new string
+                if (char.IsWhiteSpace(message[character]))
+                {
+                    numberOfWords++;
+                }
+            }
+
+            return numberOfWords > 7;
+        }
+
     }
 }

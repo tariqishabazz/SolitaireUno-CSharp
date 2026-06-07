@@ -1,13 +1,4 @@
-﻿/*
- RegularCard.cs
-
- Purpose:
- - Concrete card type representing a standard playing card with a suit and a value.
- - Provides textual representation and equality helpers used by game logic.
-
- Commenting guideline applied:
- - File-level purpose header added to align with Home.razor.cs style.
-*/
+﻿// RegularCard.cs — concrete card with suit and value, plus ToString and equality helper.
 
 namespace SolitaireUno
 {

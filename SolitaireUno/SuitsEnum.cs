@@ -1,9 +1,4 @@
-﻿/*
- SuitsEnum.cs
-
- Purpose:
- - Defines the four suits used by RegularCard. Kept minimal intentionally.
-*/
+﻿// SuitsEnum.cs — defines the four suits used by RegularCard.
 
 namespace SolitaireUno
 {

@@ -1,12 +1,4 @@
-﻿/*
- SpecialCard.cs
-
- Purpose:
- - Represents special cards that trigger game effects (Skip, DrawTwo, DrawFour).
-
- Commenting guideline applied:
- - File-level purpose header added to match Home.razor.cs style.
-*/
+﻿// SpecialCard.cs — special cards that trigger game effects.
 
 namespace SolitaireUno
 {

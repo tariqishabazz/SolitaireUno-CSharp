@@ -1,12 +1,4 @@
-﻿/*
- ActionInstruction.cs
-
- Purpose:
- - Enum describing high-level actions that special cards instruct the game to perform.
-
- Commenting guideline applied:
- - File-level purpose header added to align with the project's documentation style.
-*/
+﻿// ActionInstruction.cs — enum of high-level actions for special cards.
 
 namespace SolitaireUno
 {

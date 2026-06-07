@@ -1,10 +1,4 @@
-﻿/*
- ValuesEnum.cs
-
- Purpose:
- - Defines the card face values used by RegularCard.
-
-*/
+﻿// ValuesEnum.cs — card face values used by RegularCard.
 
 namespace SolitaireUno
 {

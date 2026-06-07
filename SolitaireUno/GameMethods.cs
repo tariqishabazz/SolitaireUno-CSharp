@@ -1,12 +1,4 @@
-﻿/*
- GameMethods.cs
-
- Purpose:
- - Collection of stateless helper functions used across game logic (penalty calculation, special card effects, draw handling).
-
- Commenting guideline applied:
- - File-level header added to match project style used in Home.razor.cs.
-*/
+﻿// GameMethods.cs — stateless helper methods for penalties and special-card processing.
 
 namespace SolitaireUno
 {
@@ -19,15 +11,21 @@ namespace SolitaireUno
         /// Returns the penalty count if the dealt regular card equals the penalty card; otherwise 0.
         /// </summary>
         /// <param name="dealtCard">The card that was drawn or dealt to a player.</param>
-        /// <param name="penaltyCard">The configured penalty card to compare against.</param>
+        /// <param name="penaltyCards">The configured penalty cards to compare against.</param>
         /// <returns>The number of penalty cards to apply (0 when none).</returns>
-        public static int GetPenaltyCount(Card dealtCard, Card penaltyCard)
+        public static int GetPenaltyCount(Card dealtCard, List<RegularCard> penaltyCards)
         {
-            const int PenaltyCardCount = 4;
-
             if (dealtCard is RegularCard regularCard)
-                return regularCard.IsEqual(penaltyCard) ? PenaltyCardCount : 0;
-
+            {
+                foreach(RegularCard penaltyCard in penaltyCards)
+                {
+                    if(regularCard.IsEqual(penaltyCard))
+                    {
+                        return Random.Shared.Next(1, 6); // return a random number between 1 and 5 for extra evilness
+                    }
+                }
+            }
+            
             return 0;
         }
 
@@ -53,7 +51,7 @@ namespace SolitaireUno
         /// <param name="targetPlayer">The player who will receive any drawn cards or be skipped.</param>
         /// <param name="penaltyCard">The configured penalty card used to detect chained penalties.</param>
         /// <returns>A tuple containing an optional message and a flag indicating if the target player was skipped.</returns>
-        public static (string? potentialMessage, bool targetSkipped) ApplySpecialCardEffect(Card? lastPlayedCard, bool targetSkipped, Deck gameDeck, Player targetPlayer, Card penaltyCard)
+        public static (string? potentialMessage, bool targetSkipped) ApplySpecialCardEffect(Card? lastPlayedCard, bool targetSkipped, Deck gameDeck, Player targetPlayer, List<RegularCard> penaltyCards)
         {
             if (lastPlayedCard is not null)
             {
@@ -70,13 +68,13 @@ namespace SolitaireUno
                         break;
 
                     case ActionInstruction.DrawFour:
-                        potentialDrawMessage = ProcessDraw(4, targetPlayer, gameDeck, penaltyCard);
+                        potentialDrawMessage = ProcessDraw(4, targetPlayer, gameDeck, penaltyCards);
                         targetSkipped = true;
 
                         return (potentialDrawMessage, targetSkipped);
 
                     case ActionInstruction.DrawTwo:
-                        potentialDrawMessage = ProcessDraw(2, targetPlayer, gameDeck, penaltyCard);
+                        potentialDrawMessage = ProcessDraw(2, targetPlayer, gameDeck, penaltyCards);
                         targetSkipped = true;
 
                         return (potentialDrawMessage, targetSkipped);
@@ -95,11 +93,12 @@ namespace SolitaireUno
         /// <param name="drawAmount">Number of cards to draw.</param>
         /// <param name="unfortunateSoul">The player who must pick up the cards.</param>
         /// <param name="gameDeck">The deck used to draw cards from.</param>
-        /// <param name="penaltyCard">The configured penalty card used to detect chained penalties.</param>
-        public static string? ProcessDraw(int drawAmount, Player unfortunateSoul, Deck gameDeck, Card penaltyCard)
+        /// <param name="penaltyCards">The configured penalty cards used to detect chained penalties.</param>
+        public static string? ProcessDraw(int drawAmount, Player unfortunateSoul, Deck gameDeck, List<RegularCard> penaltyCards)
         {
             bool penaltyCardSpotted = false;
             int awardedPenalty = 0;
+            Card? drewCard = null;
 
             for (int i = 0; i < drawAmount; i++)
             {
@@ -107,8 +106,10 @@ namespace SolitaireUno
 
                 if (drawnCard is null)
                     break;
-
-                awardedPenalty = GetPenaltyCount(drawnCard, penaltyCard);
+                
+                drewCard = drawnCard;
+                
+                awardedPenalty = GetPenaltyCount(drawnCard, penaltyCards);
 
                 if (awardedPenalty > 0)
                 {
@@ -132,9 +133,9 @@ namespace SolitaireUno
                 return null;
 
             if (unfortunateSoul is Computer)
-                return $"During the draw, {unfortunateSoul.Name} picked up the {penaltyCard}. Along with the normal draw, they will recieve {awardedPenalty} additional card(s).";
+                return $" During the draw, {unfortunateSoul.Name} picked up the {drewCard}. Along with the normal draw, they will recieve {awardedPenalty} additional card(s).";
             else
-                return $"During the draw, {unfortunateSoul.Name} picked up the {penaltyCard}. Along with the normal draw, you will recieve {awardedPenalty} additional card(s).";
+                return $" During the draw, {unfortunateSoul.Name} picked up the {drewCard}. Along with the normal draw, you will recieve {awardedPenalty} additional card(s).";
         }
     }
 }

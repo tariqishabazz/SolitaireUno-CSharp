@@ -1,13 +1,4 @@
-﻿/*
- Card.cs
-
- Purpose:
- - Base abstract type for all card types in the game (RegularCard, SpecialCard).
- - Kept intentionally lightweight: behavior and properties are implemented on concrete types.
-
- Commenting guideline applied:
- - File-level header describing intent, matching Home.razor.cs style.
-*/
+﻿// Card.cs — base abstract type for all cards.
 
 namespace SolitaireUno
 {

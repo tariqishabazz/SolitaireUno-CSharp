@@ -1,13 +1,4 @@
-﻿/*
- PlayerTurnHandler.cs
-
- Purpose:
- - Encapsulates human player turn handling: validating decisions, performing pickups,
-   handling passes, and applying penalties.
-
- Commenting guideline applied:
- - File-level purpose header added to match the Home.razor.cs style.
-*/
+﻿// PlayerTurnHandler.cs — handles human player's turn logic (validate, pickup, pass, play).
 
 namespace SolitaireUno
 {
@@ -22,12 +13,13 @@ namespace SolitaireUno
         /// <param name="logicCard">Reference to the logic card used for validation.</param>
         /// <param name="visualCard">Reference to the visual card shown to the UI.</param>
         /// <param name="penaltyCard">The configured penalty card.</param>
-        /// <param name="playerDecision">Player input string representing their action.</param>
-        /// <param name="gameMode">The current game mode for validation.</param>
-        /// <param name="suitEnforcement">Whether suit enforcement is active.</param>
-        /// <returns>Tuple indicating success, a UI message, and the played card if any.</returns>
-        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, Card penaltyCard, string playerDecision, Player nextPlayer, GameSettings currentGameSettings)
+        /// <param name="playerDecision">Player input string representing their action (card index, "pickup", or "pass").</param>
+        /// <param name="nextPlayer">The player who will act next (used for messages and penalty application).</param>
+        /// <param name="currentGameSettings">Current game settings (mode, difficulty, suit enforcement, player count).</param>
+        /// <returns>Tuple indicating whether the move was successful, a UI message, and the played card if any.</returns>
+        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, List<RegularCard> penaltyCards, string playerDecision, Player nextPlayer, GameSettings currentGameSettings)
         {
+            int maxReshufflesGranted = currentGameSettings.Mode is GameMode.Both ? 3 : 1;
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
 
 
@@ -35,11 +27,8 @@ namespace SolitaireUno
 
             if (playerDecision == "pass")
             {
-                if (deck.Length() > 0)
-                    return (false, "The deck still has cards!\n Either pick up or play!", null);
-
-                else if (deck.Length() == 0 && !deck.DeckReshuffled)
-                    return (false, "The deck hasn't been reshuffled! You can still pick up!", null);
+                if (deck.Length() > 0 || (deck.Length() == 0 && (deck.ReshuffleCount < maxReshufflesGranted)))
+                    return (false, "The deck still has cards or can be reshuffled!\n Either pick up or play!", null);
 
                 else
                     return (true, "You decided to pass!", null);
@@ -50,8 +39,8 @@ namespace SolitaireUno
 
             if (playerDecision == "pickup")
             {
-                if (deck.Length() > 0 || (deck.Length() == 0 && (!deck.DeckReshuffled || currentGameSettings.Mode is GameMode.Both)))
-                    return HandlePickup(penaltyCard);
+                if (deck.Length() > 0 || (deck.Length() == 0 && (deck.ReshuffleCount < maxReshufflesGranted)))
+                    return HandlePickup(penaltyCards);
 
                 else
                     return (false, "The deck is empty and has been reshuffled! You can't pick up, you must pass or play!", null);
@@ -101,12 +90,12 @@ namespace SolitaireUno
         /// need to pick up.</param>
         /// <returns>A tuple containing a value indicating whether the move was successful, a message describing the outcome, and
         /// the card played, if any. The played card is always null in this context.</returns>
-        public (bool sucessfulMove, string message, Card? playedCard) HandlePickup(Card penaltyCard)
+        public (bool sucessfulMove, string message, Card? playedCard) HandlePickup(List<RegularCard> penaltyCards)
         {
             Card card = deck.DealCard()!;
             player.PickupCard(card);
 
-            int playerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
+            int playerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCards);
 
             if (playerPotentialPenaltyCount > 0)
             {
@@ -123,7 +112,7 @@ namespace SolitaireUno
                     actualPickupCount++;
                 }
 
-                return (true, $"You decided to pick up and found the {penaltyCard}! You picked up {actualPickupCount} additional cards!", null);
+                return (true, $"You decided to pick up and found the {card}! You picked up {actualPickupCount} additional cards!", null);
             }
 
             return (true, "You decided to pick up!", null);

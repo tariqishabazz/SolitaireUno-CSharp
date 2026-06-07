@@ -1,13 +1,4 @@
-﻿/*
- ComputerTurnHandler.cs
-
- Purpose:
- - Encapsulates computer turn handling including pickup/penalty logic and performing plays.
- - Provides methods to process a computer player's turn and apply any resulting penalties or skips.
-
- Commenting guideline applied:
- - File-level purpose header added to match the project's consistent documentation style used in Home.razor.cs.
-*/
+﻿// ComputerTurnHandler.cs — handles computer turn processing and pickup/penalty logic.
 
 namespace SolitaireUno
 {
@@ -22,14 +13,14 @@ namespace SolitaireUno
         /// <summary>
         /// Processes the computer's turn and returns a message and the card played if any.
         /// </summary>
+        /// <param name="currentComputerPlayer">The computer player taking the turn.</param>
         /// <param name="logicCard">Reference to the logic card used for validation.</param>
         /// <param name="visualCard">Reference to the visual card shown to the UI.</param>
         /// <param name="penaltyCard">The configured penalty card.</param>
-        /// <param name="opponentHandSize">Number of cards the opponent currently holds.</param>
-        /// <param name="currentGameMode">Current game mode for validation.</param>
-        /// <param name="suitEnforcement">Whether suit enforcement is active.</param>
-        /// <returns>Tuple containing a UI message and the card played, if any.</returns>
-        public (string message, Card? playedCard, bool successfulMove) HandleTurn(Computer currentComputerPlayer, ref Card logicCard, ref Card visualCard, Card penaltyCard, Player nextPlayer, GameSettings currentGameSettings)
+        /// <param name="nextPlayer">The player who will act next (used for messages and penalty application).</param>
+        /// <param name="currentGameSettings">Current game settings (mode, difficulty, suit enforcement, player count).</param>
+        /// <returns>Tuple containing a UI message, the card played (if any), and whether the move was successful.</returns>
+        public (string message, Card? playedCard, bool successfulMove) HandleTurn(Computer currentComputerPlayer, ref Card logicCard, ref Card visualCard, List<RegularCard> penaltyCards, Player nextPlayer, GameSettings currentGameSettings)
         {
             Card? potentialComputerPlay = currentComputerPlayer.MakeMove(logicCard, nextPlayer.Hand.Count, _deck.Length(), currentGameSettings);
 
@@ -38,10 +29,11 @@ namespace SolitaireUno
 
             if (potentialComputerPlay is null)
             {
+                int maxAllowedReshuffles = currentGameSettings.Mode is GameMode.Both ? 3 : 1;
 
-                if (_deck.Length() > 0 || _deck.Length() == 0 && (!_deck.DeckReshuffled || currentGameSettings.Mode is GameMode.Both))
+                if (_deck.Length() > 0 || _deck.Length() == 0 && (_deck.ReshuffleCount < maxAllowedReshuffles))
                 {
-                    return HandlePickup(currentComputerPlayer, penaltyCard);
+                    return HandlePickup(currentComputerPlayer, penaltyCards);
                 }
 
                 else
@@ -111,23 +103,25 @@ namespace SolitaireUno
         /// <param name="penaltyCard">The penalty card that may trigger additional cards to be picked up, depending on the game rules.</param>
         /// <returns>A tuple containing a message describing the action taken, the card played (always null in this context), and
         /// a value indicating whether the move was successful.</returns>
-        private (string message, Card? playedCard, bool successfulMove) HandlePickup(Player currentComputerPlayer, Card penaltyCard)
+        private (string message, Card? playedCard, bool successfulMove) HandlePickup(Player currentComputerPlayer, List<RegularCard> penaltyCards)
         {
             Card card = _deck.DealCard()!;
             currentComputerPlayer.PickupCard(card);
 
             // ------------- HANDLES POTENTIAL PENALTY --------------- //
 
-            return HandlePotentialPenalty(currentComputerPlayer, card, penaltyCard);
+            return HandlePotentialPenalty(currentComputerPlayer, card, penaltyCards);
         }
 
 
-        private (string message, Card? playedCard, bool successfulMove) HandlePotentialPenalty(Player currentComputerPlayer, Card card, Card penaltyCard)
+        private (string message, Card? playedCard, bool successfulMove) HandlePotentialPenalty(Player currentComputerPlayer, Card card, List<RegularCard> penaltyCards)
         {
-            int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCard);
+            int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCards);
 
             if (computerPotentialPenaltyCount == 0) // No penalty, just a normal pickup
+            {
                 return ($"{currentComputerPlayer.Name} decided to pick up!", null, true);
+            }
 
             int actualPickupCount = 0;
 
@@ -141,7 +135,7 @@ namespace SolitaireUno
                     actualPickupCount++;
                 }
             }
-            return ($"{currentComputerPlayer.Name} decided to pick up and found the {penaltyCard}! They picked up {actualPickupCount} additional cards!", null, true);
+            return ($"{currentComputerPlayer.Name} decided to pick up and found the {card}! They picked up {actualPickupCount} additional cards!", null, true);
         }
     }
 }

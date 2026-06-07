@@ -1,10 +1,4 @@
-﻿/*
- SpecialCardType.cs
-
- Purpose:
- - Enum for special Uno-style cards that alter the game state when played.
-
-*/
+﻿// SpecialCardType.cs — enum of special card types that trigger game effects.
 
 namespace SolitaireUno
 {

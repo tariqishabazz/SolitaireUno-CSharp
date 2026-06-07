@@ -1,13 +1,4 @@
-﻿/*
- MainGame.cs
-
- Purpose:
- - Orchestrates the overall game: maintains players, the game deck, turn handlers, and implements the main turn-advancing logic.
- - Responsible for game initialization (dealing hands, preparing the table) and processing each turn for both human and computer players.
-
- Commenting guideline applied:
- - File-level purpose header added to match the project's documentation style used in Home.razor.cs.
-*/
+﻿// MainGame.cs — orchestrates game flow, players, deck and turn advancement.
 
 namespace SolitaireUno
 {
@@ -33,16 +24,13 @@ namespace SolitaireUno
         public Card? LogicCard;
         public Card? VisualCard;
 
-        internal RegularCard PenaltyCard { get; private set; }
+        internal List <RegularCard> PenaltyCards { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MainGame"/> class.
+        /// Initializes a new instance of <see cref="MainGame"/> with the provided deck and game settings.
         /// </summary>
         /// <param name="deck">The deck to use for gameplay.</param>
-        /// <param name="gameModeChoice">The game mode (ascending or descending).</param>
-        /// <param name="suitEnforcement">Whether suit enforcement is enabled.</param>
-        /// <param name="gameDifficulty">Difficulty level for computer AI.</param>
-        /// <param name="numberOfPlayers">The number of players in game</param>
+        /// <param name="currentGameSettings">The game settings (mode, difficulty, suit enforcement, player count).</param>
         public MainGame(Deck deck, GameSettings currentGameSettings)
         {
             CurrentGameSettings = currentGameSettings;
@@ -68,9 +56,13 @@ namespace SolitaireUno
             }
 
 
-            // -------- SETTING PENALTY CARD, DECK ------- //
+            // -------- SETTING PENALTY CARDS, DECK ------- //
 
-            PenaltyCard = new RegularCard(Suits.Spades, Values.Queen);
+            PenaltyCards = new List<RegularCard>
+            {
+                new RegularCard(Suits.Spades, Values.Ace),
+                new RegularCard(Suits.Spades, Values.Queen)
+            };
 
             GameDeck = deck;
 
@@ -78,7 +70,6 @@ namespace SolitaireUno
 
             _playerTurnHandler = new PlayerTurnHandler(humanPlayer, GameDeck);
             _computerTurnHandler = new ComputerTurnHandler(GameDeck, CurrentGameSettings.Difficulty);
-
         }
 
         /// <summary>
@@ -86,7 +77,9 @@ namespace SolitaireUno
         /// </summary>
         public void StartGame()
         {
-            int startingHandSize = 21 / AllPlayers.Count; // dividing from 21 so the deck isn't immediately depleted
+            int maxNumberOfCardsToDeal = 21;
+
+            int startingHandSize = maxNumberOfCardsToDeal / AllPlayers.Count; // dividing from maxNumber so the deck isn't immediately depleted
 
             foreach (Player player in AllPlayers)
             {
@@ -104,9 +97,8 @@ namespace SolitaireUno
             GameDeck.AddToDiscardPile(LogicCard);
             VisualCard = LogicCard;
 
-            // resetting this bool to false at the start of the game,
-            // so that if the deck was reshuffled during a previous game, it will be reset for the new game
-            GameDeck.DeckReshuffled = false;
+            // resetting this for each new game
+            GameDeck.ReshuffleCount = 0;
         }
 
         /// <summary>
@@ -132,7 +124,7 @@ namespace SolitaireUno
             {
                 int nextPlayersIndex = (CurrentTurnIndex + 1) % AllPlayers.Count;
 
-                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, ref LogicCard, ref VisualCard, PenaltyCard, AllPlayers[nextPlayersIndex], CurrentGameSettings);
+                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, ref LogicCard, ref VisualCard, PenaltyCards, AllPlayers[nextPlayersIndex], CurrentGameSettings);
 
                 uiMessage = message;
 
@@ -140,11 +132,11 @@ namespace SolitaireUno
                 {
                     LastPlayedCard = cardPlayed;
 
-                    var (potentialDrawMessage, targetSkipped) = GameMethods.ApplySpecialCardEffect(LastPlayedCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCard);
+                    var (potentialDrawMessage, targetSkipped) = GameMethods.ApplySpecialCardEffect(LastPlayedCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCards);
 
                     if (!string.IsNullOrEmpty(potentialDrawMessage))
                     {
-                        uiMessage += $"<br/>{potentialDrawMessage}";
+                        uiMessage += $"{potentialDrawMessage}";
                     }
 
                     stepsToMove = targetSkipped ? 2 : 1;
@@ -161,7 +153,7 @@ namespace SolitaireUno
             {
                 int nextPlayersIndex = (CurrentTurnIndex + 1) % AllPlayers.Count;
 
-                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCard, playerDecision, AllPlayers[nextPlayersIndex], CurrentGameSettings);
+                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCards, playerDecision, AllPlayers[nextPlayersIndex], CurrentGameSettings);
 
                 uiMessage = message;
 
@@ -171,7 +163,7 @@ namespace SolitaireUno
                     {
                         LastPlayedCard = cardPlayed;
 
-                        var (potentialDrawMessage, targetSkipped) = GameMethods.ApplySpecialCardEffect(LastPlayedCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCard);
+                        var (potentialDrawMessage, targetSkipped) = GameMethods.ApplySpecialCardEffect(LastPlayedCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCards);
 
                         if (!string.IsNullOrEmpty(potentialDrawMessage))
                         {
