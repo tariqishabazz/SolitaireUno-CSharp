@@ -17,15 +17,15 @@ namespace SolitaireUno
         {
             if (dealtCard is RegularCard regularCard)
             {
-                foreach(RegularCard penaltyCard in penaltyCards)
+                foreach (RegularCard penaltyCard in penaltyCards)
                 {
-                    if(regularCard.IsEqual(penaltyCard))
+                    if (regularCard.IsEqual(penaltyCard))
                     {
                         return Random.Shared.Next(1, 6); // return a random number between 1 and 5 for extra evilness
                     }
                 }
             }
-            
+
             return 0;
         }
 
@@ -106,9 +106,9 @@ namespace SolitaireUno
 
                 if (drawnCard is null)
                     break;
-                
+
                 drewCard = drawnCard;
-                
+
                 awardedPenalty = GetPenaltyCount(drawnCard, penaltyCards);
 
                 if (awardedPenalty > 0)
@@ -139,3 +139,16 @@ namespace SolitaireUno
         }
     }
 }
+
+
+/*
+ MESSAGES:
+    Trace played: DrawFour, so Sally had to draw! During the draw, Sally picked up the Ace of Spades. Along with the normal draw, they will recieve 4 additional card(s).
+    You played: DrawFour, so Trace had to draw! During the draw, Trace picked up the DrawTwo. Along with the normal draw, they will recieve 0 additional card(s).
+    Sally played: DrawFour, so Viper had to draw! During the draw, Viper picked up the Two of Hearts. Along with the normal draw, they will recieve 0 additional card(s).
+    Trace decided to pick up and found the Ace of Spades! They picked up 2 additional cards!
+
+ 
+ 
+ 
+ */

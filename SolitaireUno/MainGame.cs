@@ -24,7 +24,7 @@ namespace SolitaireUno
         public Card? LogicCard;
         public Card? VisualCard;
 
-        internal List <RegularCard> PenaltyCards { get; private set; }
+        internal List<RegularCard> PenaltyCards { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of <see cref="MainGame"/> with the provided deck and game settings.
@@ -167,7 +167,7 @@ namespace SolitaireUno
 
                         if (!string.IsNullOrEmpty(potentialDrawMessage))
                         {
-                            uiMessage += $"<br/>{potentialDrawMessage}";
+                            uiMessage += $"{potentialDrawMessage}";
                         }
 
                         stepsToMove = targetSkipped ? 2 : 1;

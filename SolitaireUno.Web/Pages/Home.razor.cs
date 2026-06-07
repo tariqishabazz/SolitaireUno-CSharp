@@ -99,7 +99,7 @@ namespace SolitaireUno.Web.Pages
             SortHand();
 
             gameStarted = true;
-            actionLog = "Cards dealt. It is your turn.";
+            actionLog = "Cards Dealt. It is your turn.";
         }
 
         // =================== PLAYTURN() ==================== //
@@ -130,7 +130,7 @@ namespace SolitaireUno.Web.Pages
              will return a message and success flag describing the play result.
             */
             if (IsHumanTurn)
-                actionLog += "\n\nYour turn.";
+                actionLog += "\n\nYour Turn.";
 
             // Holds the amount of cards the human player had before playing a turn
             int? playerHandCountBeforeEveryoneGoes = HumanPlayer?.Hand.Count;
@@ -140,7 +140,7 @@ namespace SolitaireUno.Web.Pages
             if (!string.IsNullOrEmpty(humanTurnResult.message))
                 await UpdateMessageAndUI(humanTurnResult.message);
 
-            if(LongUIMessage(humanTurnResult.message))
+            if (LongUIMessage(humanTurnResult.message))
                 await Task.Delay(5000);
 
             if (!humanTurnResult.successfulDecision)
@@ -150,7 +150,7 @@ namespace SolitaireUno.Web.Pages
             Player? winner = ShowWinCondition();
             if (winner is not null)
             {
-                gameOverMessage = "You have won! 🎉";
+                gameOverMessage = "You have Won! 🎉";
                 return;
             }
 
@@ -172,7 +172,7 @@ namespace SolitaireUno.Web.Pages
                 if (!string.IsNullOrEmpty(message))
                     await UpdateMessageAndUI(message);
 
-                if(LongUIMessage(message))
+                if (LongUIMessage(message))
                     await Task.Delay(5000);
 
                 if (!successfulDecision)
@@ -182,7 +182,7 @@ namespace SolitaireUno.Web.Pages
                 winner = ShowWinCondition();
                 if (winner is not null)
                 {
-                    gameOverMessage = $"{winner.Name} has won! 🎉";
+                    gameOverMessage = $"{winner.Name} has Won! 🎉";
                     return;
                 }
 
@@ -200,7 +200,7 @@ namespace SolitaireUno.Web.Pages
             if (playerHandCountAfterEveryoneGoes > playerHandCountBeforeEveryoneGoes && selectedSortMethod is not null)
                 SortHand();
 
-            await UpdateMessageAndUI("Your turn");
+            await UpdateMessageAndUI("Your Turn");
         }
 
 
@@ -348,13 +348,13 @@ namespace SolitaireUno.Web.Pages
 
             // loop over each character in the message to find individual words
             for (int character = 0; character < message.Length; character++)
-            {                
+            {
                 // if character is not a space, keep adding to current word string until space is found
                 if (char.IsLetterOrDigit(message[character]) || char.IsPunctuation(message[character]))
                 {
                     currentSentence.Append(message[character]);
                 }
-                
+
                 // if character is a space, add previous index elements to form word in new string
                 if (char.IsWhiteSpace(message[character]))
                 {

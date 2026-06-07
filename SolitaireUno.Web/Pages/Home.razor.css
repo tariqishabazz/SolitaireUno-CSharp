@@ -36,6 +36,7 @@ body {
     overflow: hidden;
     position: relative; /* establishes a localized z-index context */
     transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+
 }
 
 /* Card image filling behavior: keeps aspect, fills box and applies a small scale to hide seams */
@@ -90,6 +91,7 @@ body {
    Purpose: main game container, sidebar and play area grid layout
    Notes: grid is used for layout. A prior version declared display:flex and
    then display:grid; the flex declaration was removed to avoid conflicts.
+   Added a dedicated "Message" row at the top so round-message spans full width above cards.
    ====================================================================== */
 .solitaire-table {
     background-color: #2a4d3a; /* Deep card-table green */
@@ -102,7 +104,12 @@ body {
 
     display: grid;
     grid-template-columns: 280px 1fr;
-    grid-template-areas: "Sidebar Play" "Sidebar Hand";
+    grid-template-rows: auto auto auto;
+    grid-template-areas: 
+      "Sidebar Message"
+      "Sidebar GameOverMessage"
+      "Sidebar Play"
+      "Sidebar Hand";
     gap: 2rem;
 }
 
@@ -119,10 +126,32 @@ body {
     text-align: left;
 }
 
-.solitaire-table .game-info .round-message {
-    margin-top: 10px;
+/* ======================================================================
+   Message row
+   Purpose: positions the round message above the play/hand areas in its own row
+   ====================================================================== */
+.solitaire-table .round-message {
+    grid-area: Message;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     color: white;
+    text-align: center;
+    padding: 0.5rem 0;
+    font-weight: bolder;
 }
+
+.solitaire-table .game-over-message{
+    grid-area: GameOverMessage;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+    padding: 0.5rem 0;
+    font-weight: bolder;
+}
+
 
 /* ======================================================================
    Player / Opponent zones
@@ -135,8 +164,18 @@ body {
 .player-zone {
     grid-area: Hand;
     text-align: center;
-    max-height: 35dvh;
+    height: 35dvh;
+    flex-direction: column;
     padding-bottom: env(safe-area-inset-bottom, 3dvh);
+}
+
+.player-controls{
+    flex-shrink: 0;
+}
+
+
+.card-scroller{
+
 }
 
 .active-play-area {
@@ -144,7 +183,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 3rem; /* space between deck and discard */
+    gap: 2rem; /* space between deck and discard */
     flex-grow: 1; /* pushes the header up and footer down */
 }
 
@@ -223,6 +262,28 @@ footer.player-zone div.d-flex{
     backdrop-filter: blur(10px);
     border: 2px dotted orange;
 }
+
+
+.radial-fan {
+    /* 1. Find the center and distance from center */
+    --middle: calc((var(--total) - 1) / 2);
+    --offset: calc(var(--index) - var(--middle));
+    /* 2. Constrain the total fan angle */
+    --max-angle: 40deg;
+    --angle-per-card: calc(var(--max-angle) / var(--total));
+    /* 3. THE TRUE CURVE: Squaring the offset creates a smooth, quadratic parabola */
+    --y-drop: calc(var(--offset) * var(--offset) * 2.0px);
+    /* 4. THE GPU FIX: translateZ(0) forces hardware acceleration to preserve image quality */
+    transform: rotate(calc(var(--offset) * var(--angle-per-card))) translateY(var(--y-drop));
+    transform-origin: bottom center;
+    transition: transform 1.0s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 0 1px transparent;
+}
+    
+
+
+
+
 
 /* ======================================================================
    Animations
