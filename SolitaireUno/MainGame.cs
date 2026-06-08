@@ -19,6 +19,9 @@ namespace SolitaireUno
         public GameSettings CurrentGameSettings { get; private set; }
 
         public int CurrentTurnIndex { get; private set; }
+        public int ConsecutivePasses { get; private set; } = 0;
+
+        public bool LeapFrogMode { get; private set; } = false;
 
         public Card? LastPlayedCard { get; private set; }
         public Card? LogicCard;
@@ -124,9 +127,12 @@ namespace SolitaireUno
             {
                 int nextPlayersIndex = (CurrentTurnIndex + 1) % AllPlayers.Count;
 
-                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, ref LogicCard, ref VisualCard, PenaltyCards, AllPlayers[nextPlayersIndex], CurrentGameSettings);
+                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, ref LogicCard, ref VisualCard, PenaltyCards, AllPlayers[nextPlayersIndex], CurrentGameSettings, LeapFrogMode);
 
                 uiMessage = message;
+
+                StalemateMonitor(cardPlayed);
+
 
                 if (cardPlayed is not null)
                 {
@@ -153,12 +159,14 @@ namespace SolitaireUno
             {
                 int nextPlayersIndex = (CurrentTurnIndex + 1) % AllPlayers.Count;
 
-                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCards, playerDecision, AllPlayers[nextPlayersIndex], CurrentGameSettings);
+                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCards, playerDecision, AllPlayers[nextPlayersIndex], CurrentGameSettings, LeapFrogMode);
 
                 uiMessage = message;
 
                 if (isSuccessful)
                 {
+                    StalemateMonitor(cardPlayed);
+
                     if (cardPlayed is not null)
                     {
                         LastPlayedCard = cardPlayed;
@@ -178,6 +186,16 @@ namespace SolitaireUno
 
                 return (uiMessage, isSuccessful);
             }
+        }
+
+        private void StalemateMonitor(Card? cardPlayed)
+        {
+            bool isDeckDead = GameDeck.Length() == 0
+                              && GameDeck.ReshuffleCount >= (CurrentGameSettings.Mode == GameMode.Both ? 3 : 1);
+
+            ConsecutivePasses = (cardPlayed is null && isDeckDead) ? ConsecutivePasses + 1 : 0;
+
+            LeapFrogMode = ConsecutivePasses >= AllPlayers.Count;
         }
     }
 }

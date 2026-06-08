@@ -14,7 +14,7 @@ namespace SolitaireUno
         private List<Card> _gameDeck = [];
         private List<Card> _discardPile = [];
 
-        private readonly int _additionalSpecialCards = 2;
+        private readonly int _additionalSpecialCards = 1;
         private int _reshuffleCount = 0;
 
         public int ReshuffleCount

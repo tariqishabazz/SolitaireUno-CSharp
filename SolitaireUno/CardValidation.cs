@@ -10,34 +10,45 @@ namespace SolitaireUno
     public class CardValidation
     {
         /// <summary>
-        /// Returns true when <paramref name="potentialPlay"/> is a legal play against <paramref name="logicCardShown"/> under <paramref name="currentGameSettings"/>.
+        /// Returns true when <paramref name="potentialPlay"/> is a legal play against <paramref name="logicCardShown"/> under <paramref name="gameSettings"/>.
         /// Regular cards must follow sequence and optional suit rules; special cards are always valid.
         /// </summary>
-        public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameSettings currentGameSettings)
+        public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameSettings gameSettings, bool isLeapFrog)
         {
-            if (potentialPlay is RegularCard firstRegularCard && logicCardShown is RegularCard secondRegularCard)
+            if (potentialPlay is not RegularCard firstCard || logicCardShown is not RegularCard secondCard)
+                return IsSpecialCard(potentialPlay);
+
+            if (IsSameValue(firstCard, secondCard))
+                return !gameSettings.SuitsEnforced || NotSameColor(firstCard, secondCard);
+
+            int potentialCardValue = (int)firstCard.Value;
+            int currentCardValue = (int)secondCard.Value;
+
+            bool isValidSequence = false;
+
+            if(gameSettings.Mode is GameMode.Ascending || gameSettings.Mode is GameMode.Both)
             {
-                bool isValidSequence;
+                int stepsForward = potentialCardValue > currentCardValue ? potentialCardValue - currentCardValue : potentialCardValue - currentCardValue + 13;
 
-                if (currentGameSettings.Mode == GameMode.Both)
+                if (isLeapFrog || stepsForward is 1)
                 {
-                    isValidSequence = IsValidAscending(potentialPlay, logicCardShown) || IsValidDescending(potentialPlay, logicCardShown);
+                    isValidSequence = true;
                 }
-
-                else
-                {
-                    isValidSequence = currentGameSettings.Mode == GameMode.Descending ? IsValidDescending(potentialPlay, logicCardShown) : IsValidAscending(potentialPlay, logicCardShown);
-                }
-
-                if (!isValidSequence)
-                    return false;
-
-                // If suits are enforced, the two regular cards must be of different color groups (red vs black).
-                return !currentGameSettings.SuitsEnforced || NotSameColor(firstRegularCard, secondRegularCard);
             }
 
-            // Special cards are valid plays regardless of regular-card sequencing.
-            return IsSpecialCard(potentialPlay);
+            if(!isValidSequence && (gameSettings.Mode is GameMode.Descending || gameSettings.Mode is GameMode.Both))
+            {
+                int stepsBackward = currentCardValue > potentialCardValue ? currentCardValue - potentialCardValue : currentCardValue - potentialCardValue + 13;
+
+                if (isLeapFrog || stepsBackward is 1)
+                    isValidSequence = true;
+            }
+
+            if (!isValidSequence)
+                return false;
+
+            return !gameSettings.SuitsEnforced || NotSameColor(firstCard, secondCard);
+
         }
 
         /// <summary>
@@ -95,5 +106,23 @@ namespace SolitaireUno
 
             return isFirstCardRed != isSecondCardRed;
         }
+
+        /// <summary>
+        /// Returns true when the two regular cards are of the same suit.
+        /// </summary>
+        /// <param name="firstRegularCard"></param>
+        /// <param name="secondRegularCard"></param>
+        /// <returns></returns>
+        public static bool IsSameSuit(RegularCard firstRegularCard, RegularCard secondRegularCard) => firstRegularCard.Suit == secondRegularCard.Suit;
+                
+
+        /// <summary>
+        /// Returns true when the two regular cards are of the same value.
+        /// </summary>
+        /// <param name="firstRegularCard"></param>
+        /// <param name="secondRegularCard"></param>
+        /// <returns></returns>
+        public static bool IsSameValue(RegularCard firstRegularCard, RegularCard secondRegularCard) => firstRegularCard.Value == secondRegularCard.Value;
+        
     }
 }

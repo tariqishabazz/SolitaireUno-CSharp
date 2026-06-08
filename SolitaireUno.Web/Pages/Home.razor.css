@@ -14,8 +14,11 @@ body {
 }
 
 .game-setup-screen {
-    max-width: 450px;
+    max-width: 500px;
     border-radius: 15px;
+
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 /* ======================================================================
@@ -25,7 +28,7 @@ body {
 
 /* Classic Solitaire Card Design */
 .solitaire-card {
-    width: clamp(60px, 8vw, 100px);
+    width: clamp(60px, 5.7vw, 100px);
     aspect-ratio: 2/3;
     height: auto;
 
@@ -64,7 +67,7 @@ body {
    Purpose: appearance of the deck pile (stacked cards indicator)
    ====================================================================== */
 .solitaire-deck {
-    width: clamp(60px, 8vw, 100px);
+    width: clamp(60px, 5.7vw, 100px);
     aspect-ratio: 2/3;
     height: auto;
 
@@ -98,7 +101,7 @@ body {
     border-radius: 12px;
     box-shadow: inset 0 0 40px rgba(0,0,0,0.7); /* Inner shadow for depth */
     padding: 2rem;
-    height: 100%;
+    height: 100vh;
     box-sizing: border-box;
     overflow: hidden;
 
@@ -119,7 +122,7 @@ body {
     flex-direction: column;
     border-right: 2px dashed rgba(255, 255, 255, 0.2);
     padding-right: 1.5rem;
-    overflow-y:auto;
+    overflow-y: auto;
 }
 
 .table-sidebar .game-info {
@@ -185,6 +188,8 @@ body {
     align-items: center;
     gap: 2rem; /* space between deck and discard */
     flex-grow: 1; /* pushes the header up and footer down */
+
+    transform: translateY(-70px);
 }
 
 .underneath-card {
@@ -202,6 +207,10 @@ footer.player-zone div.d-flex{
     position: relative;
     margin-left: -25px;
     margin-right: -25px;
+}
+
+.player-zone {
+    transform: translateY(-70px);
 }
 
 /* Bring hovered stack to front */
@@ -272,7 +281,7 @@ footer.player-zone div.d-flex{
     --max-angle: 40deg;
     --angle-per-card: calc(var(--max-angle) / var(--total));
     /* 3. THE TRUE CURVE: Squaring the offset creates a smooth, quadratic parabola */
-    --y-drop: calc(var(--offset) * var(--offset) * 2.0px);
+    --y-drop: calc(var(--offset) * var(--offset) * .7px);
     /* 4. THE GPU FIX: translateZ(0) forces hardware acceleration to preserve image quality */
     transform: rotate(calc(var(--offset) * var(--angle-per-card))) translateY(var(--y-drop));
     transform-origin: bottom center;

@@ -20,9 +20,9 @@ namespace SolitaireUno
         /// <param name="nextPlayer">The player who will act next (used for messages and penalty application).</param>
         /// <param name="currentGameSettings">Current game settings (mode, difficulty, suit enforcement, player count).</param>
         /// <returns>Tuple containing a UI message, the card played (if any), and whether the move was successful.</returns>
-        public (string message, Card? playedCard, bool successfulMove) HandleTurn(Computer currentComputerPlayer, ref Card logicCard, ref Card visualCard, List<RegularCard> penaltyCards, Player nextPlayer, GameSettings currentGameSettings)
+        public (string message, Card? playedCard, bool successfulMove) HandleTurn(Computer currentComputerPlayer, ref Card logicCard, ref Card visualCard, List<RegularCard> penaltyCards, Player nextPlayer, GameSettings currentGameSettings, bool isLeapFrog)
         {
-            Card? potentialComputerPlay = currentComputerPlayer.MakeMove(logicCard, nextPlayer.Hand.Count, _deck.Length(), currentGameSettings);
+            Card? potentialComputerPlay = currentComputerPlayer.MakeMove(logicCard, nextPlayer.Hand.Count, _deck.Length(), currentGameSettings, isLeapFrog);
 
 
             // ----------------- IF COMPUTER HAS NO POTENTIAL PLAY ------------------ //

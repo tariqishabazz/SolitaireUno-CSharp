@@ -29,6 +29,7 @@ namespace SolitaireUno
             return 0;
         }
 
+
         /// <summary>
         /// Returns the action instruction associated with a special card; regular cards return DoNothing.
         /// </summary>
@@ -41,6 +42,7 @@ namespace SolitaireUno
             SpecialCard { CardType: SpecialCardType.DrawFour } => ActionInstruction.DrawFour,
             _ => ActionInstruction.DoNothing
         };
+
 
         /// <summary>
         /// Applies special-card effects (skip/draw) to the target player and returns whether they were skipped.
@@ -107,13 +109,13 @@ namespace SolitaireUno
                 if (drawnCard is null)
                     break;
 
-                drewCard = drawnCard;
-
                 awardedPenalty = GetPenaltyCount(drawnCard, penaltyCards);
 
                 if (awardedPenalty > 0)
                 {
                     penaltyCardSpotted = true;
+                    
+                    drewCard = drawnCard;
 
                     for (int j = 0; j < awardedPenalty; j++)
                     {
@@ -147,8 +149,10 @@ namespace SolitaireUno
     You played: DrawFour, so Trace had to draw! During the draw, Trace picked up the DrawTwo. Along with the normal draw, they will recieve 0 additional card(s).
     Sally played: DrawFour, so Viper had to draw! During the draw, Viper picked up the Two of Hearts. Along with the normal draw, they will recieve 0 additional card(s).
     Trace decided to pick up and found the Ace of Spades! They picked up 2 additional cards!
+    Trace played: DrawTwo, so Sally had to draw! During the draw, Sally picked up the Ten of Hearts. Along with the normal draw, they will recieve 0 additional card(s).
+    Trace played: DrawFour, so Sally had to draw! During the draw, Sally picked up the Eight of Diamonds. Along with the normal draw, they will recieve 0 additional card(s).
+    You played: DrawFour, so Trace had to draw! During the draw, Trace picked up the Two of Hearts. Along with the normal draw, they will recieve 0 additional card(s).
+    Sally played: DrawFour, so you had to draw! During the draw, Human picked up the Queen of Spades. Along with the normal draw, you will recieve 0 additional card(s).
 
- 
- 
  
  */

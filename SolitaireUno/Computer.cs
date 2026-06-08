@@ -16,14 +16,14 @@ namespace SolitaireUno
         /// <param name="currentDeckSize">The current number of cards remaining in the deck.</param>
         /// <param name="currentGameSettings">The game settings (mode, difficulty, suit enforcement, player count).</param>
         /// <returns>The chosen card to play, or null if no valid move exists.</returns>
-        public Card? MakeMove(Card logicCard, int opponentHandSize, int currentDeckSize, GameSettings currentGameSettings)
+        public Card? MakeMove(Card logicCard, int opponentHandSize, int currentDeckSize, GameSettings currentGameSettings, bool isLeapFrog)
         {
             List<Card> regularMoves = [];
             List<Card> specialMoves = [];
 
             foreach (Card potentialCard in Hand)
             {
-                if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings))
+                if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog))
                     continue;
 
                 if (potentialCard is SpecialCard)

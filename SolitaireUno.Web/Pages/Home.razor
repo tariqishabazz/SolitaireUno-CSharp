@@ -76,7 +76,7 @@
 
                 <button class="btn btn-lg btn-success w-100 fw-bold" @onclick="StartNewGame">Start Game</button>
             
-            
+     
             
             </div>
         }
@@ -88,8 +88,8 @@
         
             <aside class="table-sidebar">
                 <div class="game-name-and-uptime">
-                    <h2 class="title mt-2 text-light">Solitaire Uno</h2>
-                    <h4 class="uptimer text-danger mb-3 fw-bold text-light">
+                    <h2 class="title mt-2" style=" color: #fff">Solitaire Uno</h2>
+                    <h4 class="uptimer text-danger mb-3 text-light">
 						Game Uptime: @_gameUptime.ToString(@"hh\:mm\:ss")
                         
                     </h4>
@@ -143,7 +143,7 @@
                         {
                             @foreach (Player computerOpponent in gameEngine.AllPlayers.Skip(1))
                             {
-                                <div class="opponent-hud m-0 w-100">
+                                <div class="opponent-hud m-0 w-70">
                                     <span class="fw-bold">@computerOpponent.Name</span>
                                     <span class="card-count">@computerOpponent.Hand.Count</span>
                                     <small>Cards</small>
@@ -161,7 +161,7 @@
                 @actionLog
             </div>
 
-            <div class="game-over-message">
+            <div class="game-over-message @(string.IsNullOrEmpty(gameOverMessage) ? "d-none" : "")">
                 @if (gameOverMessage != "")
                 {
                     <h3 class="text-success mt-4">
@@ -220,7 +220,7 @@
 
                 <footer class="player-zone">
                     <div class="player-controls">
-                        <button class="btn btn-outline-light mt-3 px-4"
+                        <button class="btn btn-outline-light px-4"
                                 @onclick='() => PlayTurn("pass")'>
                             Pass Turn
                         </button>

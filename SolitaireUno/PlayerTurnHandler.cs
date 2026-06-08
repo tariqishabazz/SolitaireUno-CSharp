@@ -17,7 +17,7 @@ namespace SolitaireUno
         /// <param name="nextPlayer">The player who will act next (used for messages and penalty application).</param>
         /// <param name="currentGameSettings">Current game settings (mode, difficulty, suit enforcement, player count).</param>
         /// <returns>Tuple indicating whether the move was successful, a UI message, and the played card if any.</returns>
-        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, List<RegularCard> penaltyCards, string playerDecision, Player nextPlayer, GameSettings currentGameSettings)
+        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, List<RegularCard> penaltyCards, string playerDecision, Player nextPlayer, GameSettings currentGameSettings, bool isLeapFrog)
         {
             int maxReshufflesGranted = currentGameSettings.Mode is GameMode.Both ? 3 : 1;
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
@@ -50,7 +50,7 @@ namespace SolitaireUno
 
             // --------------- ENSURING DECISION IS VALID -------------- //
 
-            Card? validCard = ValidateDecision(playerDecision, logicCard, currentGameSettings);
+            Card? validCard = ValidateDecision(playerDecision, logicCard, currentGameSettings, isLeapFrog);
 
             if (validCard is null)
                 return (false, "Invalid choice! Please choose a valid card, pickup or pass!", null);
@@ -118,7 +118,7 @@ namespace SolitaireUno
             return (true, "You decided to pick up!", null);
         }
 
-        private Card? ValidateDecision(string playerDecision, Card logicCard, GameSettings currentGameSettings)
+        private Card? ValidateDecision(ReadOnlySpan<char> playerDecision, Card logicCard, GameSettings currentGameSettings, bool isLeapFrog)
         {
             if (!int.TryParse(playerDecision, out int decisionAsNumber)) // IF THE DECISION ISNT A NUMBER
                 return null;
@@ -128,7 +128,7 @@ namespace SolitaireUno
             if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count) // IF DECISION ISNT WITHIN RANGE OF CARDS
                 return null;
 
-            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings)) // IF DECISION ISNT A VALID MOVE
+            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog)) // IF DECISION ISNT A VALID MOVE
                 return null;
 
             return potentialCard;
