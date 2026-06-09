@@ -21,6 +21,7 @@ namespace SolitaireUno
         public int CurrentTurnIndex { get; private set; }
         public int ConsecutivePasses { get; private set; } = 0;
 
+        // if stalemated, players can continue sequence through skipping values to break stalemate
         public bool LeapFrogMode { get; private set; } = false;
 
         public Card? LastPlayedCard { get; private set; }
@@ -61,11 +62,7 @@ namespace SolitaireUno
 
             // -------- SETTING PENALTY CARDS, DECK ------- //
 
-            PenaltyCards = new List<RegularCard>
-            {
-                new RegularCard(Suits.Spades, Values.Ace),
-                new RegularCard(Suits.Spades, Values.Queen)
-            };
+            PenaltyCards = [new(Suits.Spades, Values.Ace), new(Suits.Spades, Values.Queen)];
 
             GameDeck = deck;
 
@@ -108,7 +105,7 @@ namespace SolitaireUno
         /// Advances the game by one turn, handling either the player or computer move.
         /// </summary>
         /// <param name="playerDecision">Optional player input or command used during the player's turn.</param>
-        /// <returns>A UI message produced during the processed turn.</returns>
+        /// <returns>A UI message and bool validation produced during the processed turn.</returns>
         public (string message, bool validDecision) AdvanceTurn(string playerDecision = "")
         {
             bool turnSkipped = false;                               // bool for if a player was skipped 
@@ -128,9 +125,9 @@ namespace SolitaireUno
                 int nextPlayersIndex = (CurrentTurnIndex + 1) % AllPlayers.Count;
 
                 var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, ref LogicCard, ref VisualCard, PenaltyCards, AllPlayers[nextPlayersIndex], CurrentGameSettings, LeapFrogMode);
-
                 uiMessage = message;
 
+                // checking to see if players consecutively pass
                 StalemateMonitor(cardPlayed);
 
 
@@ -147,8 +144,10 @@ namespace SolitaireUno
 
                     stepsToMove = targetSkipped ? 2 : 1;
                 }
+
                 //if a player was skipped, we move "2" steps or players
                 CurrentTurnIndex = (CurrentTurnIndex + stepsToMove) % AllPlayers.Count;
+                
                 return (uiMessage, successfulDecision);
             }
 
@@ -160,11 +159,11 @@ namespace SolitaireUno
                 int nextPlayersIndex = (CurrentTurnIndex + 1) % AllPlayers.Count;
 
                 var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(ref LogicCard, ref VisualCard, PenaltyCards, playerDecision, AllPlayers[nextPlayersIndex], CurrentGameSettings, LeapFrogMode);
-
                 uiMessage = message;
 
                 if (isSuccessful)
                 {
+                    // checking to see if players consecutively pass
                     StalemateMonitor(cardPlayed);
 
                     if (cardPlayed is not null)
@@ -188,6 +187,11 @@ namespace SolitaireUno
             }
         }
 
+        /// <summary>
+        /// Verifies whether all players passed a round, indicating a stalemate.
+        /// </summary>
+        /// <remarks>It turns on Leapfrog mode if so.</remarks>
+        /// <param name="cardPlayed">The card a player MIGHT have played</param>
         private void StalemateMonitor(Card? cardPlayed)
         {
             bool isDeckDead = GameDeck.Length() == 0

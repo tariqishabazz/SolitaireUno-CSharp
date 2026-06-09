@@ -15,40 +15,52 @@ namespace SolitaireUno
         /// </summary>
         public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameSettings gameSettings, bool isLeapFrog)
         {
+            // If the potential play or the logic card shown are not regular cards,
+            // check to see if the potential play is a special card. 
             if (potentialPlay is not RegularCard firstCard || logicCardShown is not RegularCard secondCard)
                 return IsSpecialCard(potentialPlay);
 
+            // If the first card and the second card have the same value,
+            // check to see if we're enforcing suits. If we are, make sure
+            // they're not the same color. If we aren't, it's still valid regardless. 
             if (IsSameValue(firstCard, secondCard))
-                return !gameSettings.SuitsEnforced || NotSameColor(firstCard, secondCard);
+                return gameSettings.SuitsEnforced ? NotSameColor(firstCard, secondCard) : true;
+
+
 
             int potentialCardValue = (int)firstCard.Value;
             int currentCardValue = (int)secondCard.Value;
 
             bool isValidSequence = false;
 
-            if(gameSettings.Mode is GameMode.Ascending || gameSettings.Mode is GameMode.Both)
+
+            // ================ IF MODE IS ASC/BOTH ================ //
+
+            if (gameSettings.Mode is GameMode.Ascending or GameMode.Both)
             {
-                int stepsForward = potentialCardValue > currentCardValue ? potentialCardValue - currentCardValue : potentialCardValue - currentCardValue + 13;
+                int stepsForward = potentialCardValue > currentCardValue ?
+                    potentialCardValue - currentCardValue : potentialCardValue - currentCardValue + 13;
 
                 if (isLeapFrog || stepsForward is 1)
-                {
                     isValidSequence = true;
-                }
             }
 
-            if(!isValidSequence && (gameSettings.Mode is GameMode.Descending || gameSettings.Mode is GameMode.Both))
+            // ================= IF MODE IS DESC/BOTH ================= //
+
+            if (!isValidSequence && (gameSettings.Mode is GameMode.Descending or GameMode.Both))
             {
-                int stepsBackward = currentCardValue > potentialCardValue ? currentCardValue - potentialCardValue : currentCardValue - potentialCardValue + 13;
+                int stepsBackward = currentCardValue > potentialCardValue ?
+                    currentCardValue - potentialCardValue : currentCardValue - potentialCardValue + 13;
 
                 if (isLeapFrog || stepsBackward is 1)
                     isValidSequence = true;
             }
 
+
             if (!isValidSequence)
                 return false;
 
-            return !gameSettings.SuitsEnforced || NotSameColor(firstCard, secondCard);
-
+            return gameSettings.SuitsEnforced ? NotSameColor(firstCard, secondCard) : true;
         }
 
         /// <summary>

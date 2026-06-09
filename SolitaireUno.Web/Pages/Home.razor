@@ -98,41 +98,55 @@
 
                 <div class="game-info fw-bold" role="alert">
                     <div class="game-stats d-flex flex-column gap-2 mt-3">
-        
-                        <span class="badge rounded-pill text-start p-2 fs-6" style="background-color: #0d6efd;">
+
+                        <span class="badge rounded-pill text-start py-2 px-2" style="background-color: #0d6efd;">
                             Card Order: @gameEngine?.CurrentGameSettings.Mode
+                            
+                            @if (gameEngine?.LeapFrogMode is true)
+                            {
+                                <text> (Leapfrog Active)</text>
+                            }
+
                         </span>
-        
-                        <span class="badge rounded-pill text-start p-2 fs-6" style="background-color: #0dcaf0; color: #000;">
+
+                        <span class="badge rounded-pill text-start py-2 px-2" style="background-color: #0dcaf0; color: #000;">
                             Hand Sorting: @(selectedSortMethod ?? "None")
                         </span>
-        
-                        <span class="badge rounded-pill text-start p-2 fs-6" style="background-color: #dc3545;">
+
+                        <span class="badge rounded-pill text-start py-2 px-2" style="background-color: #dc3545;">
                             Suits Enforced: @(suitEnforcement ? "Yes" : "No")
                         </span>
 
                         @if (gameEngine?.GameDeck?.Length() > 1)
                         {
-                            <span class="badge rounded-pill text-start p-2 fs-6" style="background-color: #ffc107; color: #000;">
+                            <span class="badge rounded-pill text-start py-2 px-2" style="background-color: #ffc107; color: #000;">
                                 Deck: @gameEngine?.GameDeck?.Length() cards left
                             </span>
                         }
                         else if (gameEngine?.GameDeck?.Length() == 1)
                         {
-                            <span class="badge rounded-pill text-start p-2 fs-6" style="background-color: #ffc107; color: #000;">
+                            <span class="badge rounded-pill text-start py-2 px-2" style="background-color: #ffc107; color: #000;">
                                 Deck: 1 card left!
                             </span>
                         }
                         else
                         {
-                            <span class="badge rounded-pill text-start text-wrap p-2 fs-6" style="background-color: #ffc107; color: #000;">
+                            <span class="badge rounded-pill text-start text-wrap py-2 px-2" style="background-color: #ffc107; color: #000;">
                                 Deck: Empty. If allowed, draw!
                             </span>
                         }
 
-                        <span class="badge rounded-pill text-start text-wrap p-2 fs-6" style="background-color: #b3e917; color: #000;">
+                        <span class="badge rounded-pill text-start text-wrap py-2 px-2" style="background-color: #b3e917; color: #000;">
                             Deck shuffled: @gameEngine?.GameDeck.ReshuffleCount/@(gameEngine?.CurrentGameSettings.Mode is GameMode.Both ? 3 : 1 ) time(s)
                         </span>
+
+                        @if(gameEngine?.LeapFrogMode == true)
+                        {
+                            <span class="badge rounded-pill text-start py-2 px-2-" style="background-color: #dc3545;">
+                                Leapfrog Mode is on
+                            </span>
+                        }
+
 
                     </div>
                 </div>
@@ -146,7 +160,7 @@
                                 <div class="opponent-hud m-0 w-70">
                                     <span class="fw-bold">@computerOpponent.Name</span>
                                     <span class="card-count">@computerOpponent.Hand.Count</span>
-                                    <small>Cards</small>
+                                    <small>Card(s)</small>
                                 </div>
                             }
                         }
@@ -155,7 +169,8 @@
             </aside>
 
 
-          
+            <div class="game-board-column">
+
 
             <div class="round-message text-warning mt-3">
                 @actionLog
@@ -240,14 +255,26 @@
                             int totalCards = gameEngine?.AllPlayers[0].Hand.Count ?? 1;
 
                             <div @key="card" class="card-draw-wrapper animate-draw" >
-                                <div class="radial-fan" style="--index: @i; --total: @totalCards">
-                                    
-                                    <div class="solitaire-card"
-                                        @onclick='() => PlayTurn(buttonIndex.ToString())'>
-                                        <img src="@GetCardImagePath(card)" alt="@card?.ToString()" />
-                                    </div>
+                                @if (totalCards < 12)
+                                {
+                                    <div class="radial-fan" style="--index: @i; --total: @totalCards">
 
-                                </div>
+                                        <div class="solitaire-card"
+                                        @onclick='() => PlayTurn(buttonIndex.ToString())'>
+                                            <img src="@GetCardImagePath(card)" alt="@card?.ToString()" />
+                                        </div>
+
+                                    </div>
+                                }
+                                else
+                                {
+
+                                        <div class="solitaire-card"
+                                             @onclick='() => PlayTurn(buttonIndex.ToString())'>
+                                            <img src="@GetCardImagePath(card)" alt="@card?.ToString()" />
+                                        </div>
+
+                                }
                             </div>
                         }
 
@@ -255,6 +282,8 @@
 
                    
                 </footer>
+                </div>
             </div>
     }
 </div>
+

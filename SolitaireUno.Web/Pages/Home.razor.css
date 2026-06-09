@@ -28,18 +28,18 @@ body {
 
 /* Classic Solitaire Card Design */
 .solitaire-card {
-    width: clamp(60px, 5.7vw, 100px);
+    height: clamp(100px, 20vh, 200px);
+    width: auto;
     aspect-ratio: 2/3;
-    height: auto;
+    contain: layout paint; /* Prevents visual card changes from reflowing the entire DOM */
 
     border-radius: 8px;
     background-color: white;
-    box-shadow: -3px 0 10px rgba(0,0,0,0.4); /* Left-sided shadow to separate overlapped cards */
+    box-shadow: -3px 0 10px rgba(0,0,0,0.4);
     cursor: pointer;
     overflow: hidden;
-    position: relative; /* establishes a localized z-index context */
+    position: relative;
     transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-
 }
 
 /* Card image filling behavior: keeps aspect, fills box and applies a small scale to hide seams */
@@ -67,20 +67,13 @@ body {
    Purpose: appearance of the deck pile (stacked cards indicator)
    ====================================================================== */
 .solitaire-deck {
-    width: clamp(60px, 5.7vw, 100px);
+    height: clamp(100px, 20vh, 200px);
     aspect-ratio: 2/3;
-    height: auto;
 
     border-radius: 8px;
     border: 4px solid white;
     box-shadow: -1px -1px 0 #aaa, -2px -2px 0 #fff, -3px -3px 0 #aaa, -4px -4px 0 #fff, -5px -5px 0 #aaa;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 14px;
     overflow: hidden;
     transition: transform 0.1s;
 }
@@ -97,32 +90,26 @@ body {
    Added a dedicated "Message" row at the top so round-message spans full width above cards.
    ====================================================================== */
 .solitaire-table {
-    background-color: #2a4d3a; /* Deep card-table green */
+    background-color: #2a4d3a;
     border-radius: 12px;
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.7); /* Inner shadow for depth */
-    padding: 2rem;
-    height: 100vh;
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.7);
+    padding: 1rem;
+    height: 95vh;
     box-sizing: border-box;
     overflow: hidden;
-
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    grid-template-rows: auto auto auto;
-    grid-template-areas: 
-      "Sidebar Message"
-      "Sidebar GameOverMessage"
-      "Sidebar Play"
-      "Sidebar Hand";
-    gap: 2rem;
+    display: flex; /* Flexbox removes the complex row math */
+    gap: 1rem;
 }
 
-.table-sidebar{
-    grid-area: Sidebar;
-    display:flex;
-    flex-direction: column;
-    border-right: 2px dashed rgba(255, 255, 255, 0.2);
-    padding-right: 1.5rem;
-    overflow-y: auto;
+.solitaire-table .game-stats{
+
+}
+
+.table-sidebar {
+    width: 280px;
+    flex-shrink: 0; /* Prevents sidebar from squishing */
+    justify-content: start;
+    overflow: hidden;
 }
 
 .table-sidebar .game-info {
@@ -164,6 +151,13 @@ body {
     text-align: center;
 }
 
+    .opponent-zone .d-flex {
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem !important;
+    }
+
 .player-zone {
     grid-area: Hand;
     text-align: center;
@@ -182,14 +176,12 @@ body {
 }
 
 .active-play-area {
-    grid-area: Play;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 2rem; /* space between deck and discard */
-    flex-grow: 1; /* pushes the header up and footer down */
-
-    transform: translateY(-70px);
+    gap: 2rem;
+    flex-grow: 1;
+    flex-shrink: 1;
 }
 
 .underneath-card {
@@ -210,7 +202,13 @@ footer.player-zone div.d-flex{
 }
 
 .player-zone {
-    transform: translateY(-70px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Safely anchors the entire hand area to the bottom */
+    text-align: center;
+    height: 45dvh;
+    padding-bottom: env(safe-area-inset-bottom, 3dvh);
+    margin-bottom: 30px;
 }
 
 /* Bring hovered stack to front */
@@ -245,7 +243,10 @@ footer.player-zone div.d-flex{
     flex-direction: column;
     align-items: center;
     min-width: 120px;
-    margin-bottom: 19px;
+    padding: clamp(4px, 1vh, 5px) 15px;
+    flex: 1 1 45%;
+    margin: 0;
+    min-width: 0;
 }
 
 .opponent-hud .card-count {
@@ -254,19 +255,32 @@ footer.player-zone div.d-flex{
     color: #ffd700;
 }
 
+
+.game-board-column {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: space-between;
+}
+
+
 /* ======================================================================
    Player action button styles
    Purpose: generic styling for player-zone buttons. A duplicate of these
    rules existed earlier in the file; the duplicate was removed and the
    rules consolidated here to avoid maintenance errors.
    ====================================================================== */
-.solitaire-table .player-zone .btn {
-    margin-top: 5px;
+
+.solitaire-table .game-over-message{
+
+}
+
+.solitaire-table .game-over-message .btn {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
 }
 
-.solitaire-table .player-zone .btn:hover {
+.solitaire-table .btn:hover {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 2px dotted orange;
@@ -285,7 +299,7 @@ footer.player-zone div.d-flex{
     /* 4. THE GPU FIX: translateZ(0) forces hardware acceleration to preserve image quality */
     transform: rotate(calc(var(--offset) * var(--angle-per-card))) translateY(var(--y-drop));
     transform-origin: bottom center;
-    transition: transform 1.0s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: transform 2.0s cubic-bezier(0.2, 0.8, 0.2, 1);
     box-shadow: 0 0 1px transparent;
 }
     

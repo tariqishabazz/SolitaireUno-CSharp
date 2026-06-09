@@ -153,6 +153,7 @@ namespace SolitaireUno
     Trace played: DrawFour, so Sally had to draw! During the draw, Sally picked up the Eight of Diamonds. Along with the normal draw, they will recieve 0 additional card(s).
     You played: DrawFour, so Trace had to draw! During the draw, Trace picked up the Two of Hearts. Along with the normal draw, they will recieve 0 additional card(s).
     Sally played: DrawFour, so you had to draw! During the draw, Human picked up the Queen of Spades. Along with the normal draw, you will recieve 0 additional card(s).
+    You played: DrawTwo, so Trace had to draw! During the draw, Trace picked up the Queen of Spades. Along with the normal draw, they will recieve 0 additional card(s).
 
  
  */
