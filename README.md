@@ -23,8 +23,3 @@ The project includes a dedicated `SolitaireUno.Tests` suite. I focused on testin
 
 ## Known Issues
 
-
-## How to Run
-1. Clone the repo: `git clone https://github.com`
-2. Navigate to the App folder: `cd SolitaireUno`
-3. Run: `dotnet run`
