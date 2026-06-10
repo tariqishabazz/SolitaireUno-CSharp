@@ -26,7 +26,3 @@ The project includes a dedicated `SolitaireUno.Tests` suite. I focused on testin
 ## Data Flow
 After the game begins, the data moves from the Blazor component to the backend Game Engine. Then it moves information into the individual player/computer turn handlers. The handler then returns information to the Game Engine for move verfication and proper messaging. Then that information is sent back to the Blazor UI for the process to repeat.
 
-## How to Run
-1. Clone the repo: `git clone https://github.com`
-2. Navigate to the App folder: `cd SolitaireUno`
-3. Run: `dotnet run`
