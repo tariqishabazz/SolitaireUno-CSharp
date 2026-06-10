@@ -23,8 +23,9 @@ namespace SolitaireUno
 
             foreach (Card potentialCard in Hand)
             {
-                if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog))
-                    continue;
+                if(logicCard is not null)
+                    if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog))
+                        continue;
 
                 if (potentialCard is SpecialCard)
                     specialMoves.Add(potentialCard);

@@ -67,7 +67,7 @@ namespace SolitaireUno.Web.Pages
                 if (gameEngine is null)
                     return false;
 
-                return gameEngine?.AllPlayers[gameEngine.CurrentTurnIndex].Name == "Human";
+                return gameEngine?.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex].Name == "Human";
             }
         }
 
@@ -165,19 +165,22 @@ namespace SolitaireUno.Web.Pages
             {
                 aComputerIsThinking = true;
 
-                await UpdateMessageAndUI($"{gameEngine?.AllPlayers[gameEngine.CurrentTurnIndex].Name} is thinking...");
+                await UpdateMessageAndUI($"{gameEngine?.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex].Name} is thinking...");
 
-                (string message, bool successfulDecision) = gameEngine.AdvanceTurn("");
+                if (gameEngine is not null)
+                {
+                    (string message, bool successfulDecision) = gameEngine.AdvanceTurn(string.Empty);
 
-                if (!string.IsNullOrEmpty(message))
-                    await UpdateMessageAndUI(message);
+                    if (!string.IsNullOrEmpty(message))
+                        await UpdateMessageAndUI(message);
 
-                if (LongUIMessage(message))
-                    await Task.Delay(5000);
+                    if (LongUIMessage(message))
+                        await Task.Delay(5000);
 
-                if (!successfulDecision)
-                    return;
-
+                    if (!successfulDecision)
+                        return;
+                }
+                
                 // Check if a computer player has just won
                 winner = ShowWinCondition();
                 if (winner is not null)

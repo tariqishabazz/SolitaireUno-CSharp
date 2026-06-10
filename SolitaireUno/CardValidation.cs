@@ -27,7 +27,6 @@ namespace SolitaireUno
                 return gameSettings.SuitsEnforced ? NotSameColor(firstCard, secondCard) : true;
 
 
-
             int potentialCardValue = (int)firstCard.Value;
             int currentCardValue = (int)secondCard.Value;
 

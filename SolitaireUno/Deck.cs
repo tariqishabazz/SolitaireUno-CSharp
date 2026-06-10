@@ -12,7 +12,7 @@ namespace SolitaireUno
         private readonly GameMode _currentGameMode;
 
         private List<Card> _gameDeck = [];
-        private List<Card> _discardPile = [];
+        private Stack<Card> _discardPile = [];
 
         private readonly int _additionalSpecialCards = 1;
         private int _reshuffleCount = 0;
@@ -23,7 +23,7 @@ namespace SolitaireUno
             set { _reshuffleCount = value; }
         }
 
-        public List<Card> DiscardPile
+        public Stack<Card> DiscardPile
         {
             get { return _discardPile; }
             set { _discardPile = value; }
@@ -172,7 +172,7 @@ namespace SolitaireUno
         /// Adds a card to the discard pile.
         /// </summary>
         /// <param name="card">The card to add to the discard pile.</param>
-        public void AddToDiscardPile(Card card) => DiscardPile.Add(card);
+        public void AddToDiscardPile(Card card) => DiscardPile.Push(card);
 
         /// <summary>
         /// Clears the supplied collection.
@@ -180,17 +180,26 @@ namespace SolitaireUno
         /// <param name="collectionToBeCleared">The collection to clear.</param>
         public static void Empty(List<Card> collectionToBeCleared) => collectionToBeCleared.Clear();
 
+        public Card? ReverseDiscard()
+        {
+            if (DiscardPile.Count > 1 && DiscardPile.TryPop(out Card? pulledCard))
+                return pulledCard;
+            
+            return null;
+        }
+
         public void ResetGameDeck()
         {
-            Card lastCardOnTable = DiscardPile[DiscardPile.Count - 1];
+            Card lastCardOnTable = DiscardPile.Pop();
 
-            DiscardPile.RemoveAt(DiscardPile.Count - 1);
+            if (_gameDeck.Capacity < _gameDeck.Count + DiscardPile.Count)
+                _gameDeck.Capacity = _gameDeck.Count + DiscardPile.Count;
 
             _gameDeck.AddRange(DiscardPile);
             DiscardPile.Clear();
 
             InHouseShuffle();
-            DiscardPile.Add(lastCardOnTable);
+            DiscardPile.Push(lastCardOnTable);
 
             _reshuffleCount++;
         }

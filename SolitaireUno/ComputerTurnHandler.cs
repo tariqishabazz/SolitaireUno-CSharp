@@ -20,9 +20,9 @@ namespace SolitaireUno
         /// <param name="nextPlayer">The player who will act next (used for messages and penalty application).</param>
         /// <param name="currentGameSettings">Current game settings (mode, difficulty, suit enforcement, player count).</param>
         /// <returns>Tuple containing a UI message, the card played (if any), and whether the move was successful.</returns>
-        public (string message, Card? playedCard, bool successfulMove) HandleTurn(Computer currentComputerPlayer, ref Card logicCard, ref Card visualCard, List<RegularCard> penaltyCards, Player nextPlayer, GameSettings currentGameSettings, bool isLeapFrog)
+        public (string message, Card? playedCard, bool successfulMove) HandleTurn(Computer currentComputerPlayer, List<RegularCard> penaltyCards, Player nextPlayer, GameSettings currentGameSettings, GameState currentGameState)
         {
-            Card? potentialComputerPlay = currentComputerPlayer.MakeMove(logicCard, nextPlayer.Hand.Count, _deck.Length(), currentGameSettings, isLeapFrog);
+            Card? potentialComputerPlay = currentComputerPlayer.MakeMove(currentGameState.LogicCard, nextPlayer.Hand.Count, _deck.Length(), currentGameSettings, currentGameState.LeapFrogMode);
 
 
             // ----------------- IF COMPUTER HAS NO POTENTIAL PLAY ------------------ //
@@ -38,6 +38,23 @@ namespace SolitaireUno
 
                 else
                 {
+                    if(_deck.DiscardPile.Count > 1 && currentComputerPlayer.Hand.Count <= 6)
+                    {
+                        Card? pulledDiscardCard = _deck.ReverseDiscard();
+
+                        if(pulledDiscardCard is not null)
+                        {
+                            if (_deck.DiscardPile.TryPeek(out Card? previousCard))
+                            {
+                                currentGameState.VisualCard = previousCard;
+                                currentGameState.LogicCard = _deck.DiscardPile.FirstOrDefault(card => card is RegularCard) ?? previousCard;
+                            }
+
+                            currentComputerPlayer.Hand.Add(pulledDiscardCard);
+                            return ($"Reverse Reverse! {currentComputerPlayer.Name} pulled back the {pulledDiscardCard}!", null, true);
+                        }
+                    }
+
                     return ($"{currentComputerPlayer.Name} decided to pass!", null, true);
                 }
             }
@@ -47,18 +64,18 @@ namespace SolitaireUno
 
             else
             {
-                visualCard = potentialComputerPlay;
+                currentGameState.VisualCard = potentialComputerPlay;
 
                 if (potentialComputerPlay is RegularCard)
-                    logicCard = potentialComputerPlay;
+                    currentGameState.LogicCard = potentialComputerPlay;
 
                 currentComputerPlayer.PlayCard(potentialComputerPlay);
                 _deck.AddToDiscardPile(potentialComputerPlay);
 
 
-                bool isSkipCard = potentialComputerPlay is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip;
-                bool isDrawTwoCard = potentialComputerPlay is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawTwo;
-                bool isDrawFourCard = potentialComputerPlay is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawFour;
+                bool isSkipCard = potentialComputerPlay is SpecialCard specialCard && specialCard.CardType is SpecialCardType.Skip;
+                bool isDrawTwoCard = potentialComputerPlay is SpecialCard specialCard2 && specialCard2.CardType is SpecialCardType.DrawTwo;
+                bool isDrawFourCard = potentialComputerPlay is SpecialCard specialCard3 && specialCard3.CardType is SpecialCardType.DrawFour;
 
                 if (isSkipCard)
                 {

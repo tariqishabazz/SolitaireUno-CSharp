@@ -102,7 +102,7 @@
                         <span class="badge rounded-pill text-start py-2 px-2" style="background-color: #0d6efd;">
                             Card Order: @gameEngine?.CurrentGameSettings.Mode
                             
-                            @if (gameEngine?.LeapFrogMode is true)
+                            @if (gameEngine?.CurrentState.LeapFrogMode is true)
                             {
                                 <text> (Leapfrog Active)</text>
                             }
@@ -140,7 +140,7 @@
                             Deck shuffled: @gameEngine?.GameDeck.ReshuffleCount/@(gameEngine?.CurrentGameSettings.Mode is GameMode.Both ? 3 : 1 ) time(s)
                         </span>
 
-                        @if(gameEngine?.LeapFrogMode == true)
+                        @if(gameEngine?.CurrentState.LeapFrogMode == true)
                         {
                             <span class="badge rounded-pill text-start py-2 px-2-" style="background-color: #dc3545;">
                                 Leapfrog Mode is on
@@ -206,18 +206,19 @@
                     </div>
 
 
-                    <div class="text-center" @key="gameEngine?.VisualCard">
-                        <div class="solitaire-card animate-play">
-                            <img src="@GetCardImagePath(gameEngine?.VisualCard)" alt="@gameEngine?.VisualCard?.ToString()" />
+                    <div class="text-center" @key="gameEngine?.CurrentState.VisualCard">
+                        <div class="discard-pile solitaire-card animate-play"
+                             @onclick='() => PlayTurn("gimmeTheLastDiscard")'>
+                            <img src="@GetCardImagePath(gameEngine?.CurrentState.VisualCard)" alt="@gameEngine?.CurrentState.VisualCard?.ToString()" />
                         </div>
                     </div>
 
 
-                    @if (gameEngine?.VisualCard is SpecialCard)
+                    @if (gameEngine?.CurrentState.VisualCard is SpecialCard)
                     {
                         <div class="text-center ms-4 underneath-card">
                             <div class="solitaire-card">
-                                <img src="@GetCardImagePath(gameEngine?.LogicCard)" alt="@gameEngine?.LogicCard?.ToString()" />
+                                <img src="@GetCardImagePath(gameEngine?.CurrentState.LogicCard)" alt="@gameEngine?.CurrentState.LogicCard?.ToString()" />
                             </div>
                         
                             <span class="text-white mt-2 d-block fw-bold">
@@ -255,8 +256,7 @@
                             int totalCards = gameEngine?.AllPlayers[0].Hand.Count ?? 1;
 
                             <div @key="card" class="card-draw-wrapper animate-draw" >
-                                @if (totalCards < 12)
-                                {
+                          
                                     <div class="radial-fan" style="--index: @i; --total: @totalCards">
 
                                         <div class="solitaire-card"
@@ -265,16 +265,8 @@
                                         </div>
 
                                     </div>
-                                }
-                                else
-                                {
-
-                                        <div class="solitaire-card"
-                                             @onclick='() => PlayTurn(buttonIndex.ToString())'>
-                                            <img src="@GetCardImagePath(card)" alt="@card?.ToString()" />
-                                        </div>
-
-                                }
+                            
+                                
                             </div>
                         }
 

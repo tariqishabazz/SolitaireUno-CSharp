@@ -17,10 +17,31 @@ namespace SolitaireUno
         /// <param name="nextPlayer">The player who will act next (used for messages and penalty application).</param>
         /// <param name="currentGameSettings">Current game settings (mode, difficulty, suit enforcement, player count).</param>
         /// <returns>Tuple indicating whether the move was successful, a UI message, and the played card if any.</returns>
-        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(ref Card logicCard, ref Card visualCard, List<RegularCard> penaltyCards, string playerDecision, Player nextPlayer, GameSettings currentGameSettings, bool isLeapFrog)
+        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(List<RegularCard> penaltyCards, string playerDecision, Player nextPlayer, GameSettings currentGameSettings, GameState currentGameState)
         {
             int maxReshufflesGranted = currentGameSettings.Mode is GameMode.Both ? 3 : 1;
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
+
+
+            if (playerDecision.Equals("gimmeTheLastDiscard", StringComparison.OrdinalIgnoreCase))
+            {
+                if(deck.Length() > 0 || deck.ReshuffleCount < maxReshufflesGranted)
+                    return (false, $"No reversing while deck has cards/can be reshuffled!", null);
+
+                Card? lastDiscardedCard = deck.ReverseDiscard();
+
+                if (lastDiscardedCard is null)
+                    return (false, $"You cannot pull the only card in the discard pile!", null);
+
+                if(deck.DiscardPile.TryPeek(out Card? previousCard))
+                {
+                    currentGameState.VisualCard = previousCard;
+                    currentGameState.LogicCard = deck.DiscardPile.FirstOrDefault(card => card is RegularCard) ?? previousCard;
+                }
+
+                player.Hand.Add(lastDiscardedCard);
+                return (true, $"Reverse Reverse! You pulled back the {lastDiscardedCard}!", null);
+            }
 
 
             // ---------------- PLAYER WANTS TO PASS ---------------- //
@@ -50,7 +71,7 @@ namespace SolitaireUno
 
             // --------------- ENSURING DECISION IS VALID -------------- //
 
-            Card? validCard = ValidateDecision(playerDecision, logicCard, currentGameSettings, isLeapFrog);
+            Card? validCard = ValidateDecision(playerDecision, currentGameState.LogicCard, currentGameSettings, currentGameState.LeapFrogMode);
 
             if (validCard is null)
                 return (false, "Invalid choice! Please choose a valid card, pickup or pass!", null);
@@ -60,10 +81,10 @@ namespace SolitaireUno
             player.PlayCard(validCard);
             deck.AddToDiscardPile(validCard);
 
-            visualCard = validCard;
+            currentGameState.VisualCard = validCard;
 
             if (validCard is RegularCard)
-                logicCard = validCard;
+                currentGameState.LogicCard = validCard;
 
             if (validCard is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
             {
@@ -128,8 +149,8 @@ namespace SolitaireUno
             if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count) // IF DECISION ISNT WITHIN RANGE OF CARDS
                 return null;
 
-            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog)) // IF DECISION ISNT A VALID MOVE
-                return null;
+                if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog)) // IF DECISION ISNT A VALID MOVE
+                    return null;
 
             return potentialCard;
         }
