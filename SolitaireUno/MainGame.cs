@@ -9,6 +9,7 @@ namespace SolitaireUno
 
         public int CurrentTurnIndex;
         public int ConsecutivePasses = 0;
+        public int PlayDirection = 1;
 
         public bool LeapFrogMode = false;
     }
@@ -22,7 +23,7 @@ namespace SolitaireUno
         public List<Player> AllPlayers { get; private set; } = [];
         public List<string> RandomComputerNames { get; } = ["Trace", "Sally", "Viper"];
         internal List<RegularCard> PenaltyCards { get; private set; }
-        
+
         public Deck GameDeck { get; set; }
 
         internal PlayerTurnHandler _playerTurnHandler;
@@ -30,14 +31,14 @@ namespace SolitaireUno
 
         public GameSettings CurrentGameSettings { get; private set; }
         public GameState CurrentState { get; private set; } = null!;
-        
+
         /// <summary>
         /// Initializes a new instance of <see cref="MainGame"/> with the provided deck and game settings.
         /// </summary>
         /// <param name="deck">The deck to use for gameplay.</param>
         /// <param name="currentGameSettings">The game settings (mode, difficulty, suit enforcement, player count).</param>
         public MainGame(Deck deck, GameSettings currentGameSettings)
-        {            
+        {
             CurrentGameSettings = currentGameSettings;
 
             Player humanPlayer = new()
@@ -86,9 +87,10 @@ namespace SolitaireUno
                 VisualCard = initialCard,
                 CurrentTurnIndex = 0,
                 ConsecutivePasses = 0,
-                LeapFrogMode = false
+                LeapFrogMode = false,
+                PlayDirection = 1
             };
-            
+
             int maxNumberOfCardsToDeal = 21;
             int startingHandSize = maxNumberOfCardsToDeal / AllPlayers.Count; // dividing from maxNumber so the deck isn't immediately depleted
 
@@ -136,9 +138,13 @@ namespace SolitaireUno
 
             if (currentPlayer is Computer computerPlayer)
             {
-                int nextPlayersIndex = (CurrentState.CurrentTurnIndex + 1) % AllPlayers.Count;
+                int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, 1, CurrentState.PlayDirection, AllPlayers.Count);
 
-                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer,PenaltyCards, AllPlayers[nextPlayersIndex], CurrentGameSettings, CurrentState);
+                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer,
+                                                                                                PenaltyCards,
+                                                                                                AllPlayers[nextPlayersIndex],
+                                                                                                CurrentGameSettings,
+                                                                                                CurrentState);
                 uiMessage = message;
 
                 // checking to see if players consecutively pass
@@ -146,20 +152,27 @@ namespace SolitaireUno
 
 
                 if (cardPlayed is not null)
-                {                  
+                {
 
-                    var (potentialDrawMessage, targetSkipped) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCards);
+                    var (potentialDrawMessage, targetSkipped, isDirectionReversed) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard,
+                                                                                                                        turnSkipped,
+                                                                                                                        GameDeck,
+                                                                                                                        AllPlayers[nextPlayersIndex],
+                                                                                                                        PenaltyCards, AllPlayers.Count);
 
                     if (!string.IsNullOrEmpty(potentialDrawMessage))
                     {
                         uiMessage += $"{potentialDrawMessage}";
                     }
 
+                    if (isDirectionReversed)
+                        CurrentState.PlayDirection *= -1;
+
                     stepsToMove = targetSkipped ? 2 : 1;
                 }
 
                 //if a player was skipped, we move "2" steps or players
-                CurrentState.CurrentTurnIndex = (CurrentState.CurrentTurnIndex + stepsToMove) % AllPlayers.Count;
+                CurrentState.CurrentTurnIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
                 return (uiMessage, successfulDecision);
             }
@@ -169,9 +182,13 @@ namespace SolitaireUno
 
             else
             {
-                int nextPlayersIndex = (CurrentState.CurrentTurnIndex + 1) % AllPlayers.Count;
+                int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, 1, CurrentState.PlayDirection, AllPlayers.Count);
 
-                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(PenaltyCards, playerDecision, AllPlayers[nextPlayersIndex], CurrentGameSettings, CurrentState);
+                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(PenaltyCards,
+                                                                                        playerDecision,
+                                                                                        AllPlayers[nextPlayersIndex],
+                                                                                        CurrentGameSettings,
+                                                                                        CurrentState);
                 uiMessage = message;
 
                 if (isSuccessful)
@@ -181,15 +198,22 @@ namespace SolitaireUno
 
                     if (cardPlayed is not null)
                     {
-                        var (potentialDrawMessage, targetSkipped) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard, turnSkipped, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCards);
+                        var (potentialDrawMessage, targetSkipped, isDirectionReversed) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard,
+                                                                                                                            turnSkipped,
+                                                                                                                            GameDeck,
+                                                                                                                            AllPlayers[nextPlayersIndex],
+                                                                                                                            PenaltyCards, AllPlayers.Count);
 
                         if (!string.IsNullOrEmpty(potentialDrawMessage))
                             uiMessage += $"{potentialDrawMessage}";
 
+                        if (isDirectionReversed)
+                            CurrentState.PlayDirection *= -1;
+
                         stepsToMove = targetSkipped ? 2 : 1;
                     }
 
-                    CurrentState.CurrentTurnIndex = (CurrentState.CurrentTurnIndex + stepsToMove) % AllPlayers.Count;
+                    CurrentState.CurrentTurnIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
                 }
 
                 return (uiMessage, isSuccessful);
@@ -209,6 +233,21 @@ namespace SolitaireUno
             CurrentState.ConsecutivePasses = (cardPlayed is null && isDeckDead) ? CurrentState.ConsecutivePasses + 1 : 0;
 
             CurrentState.LeapFrogMode = CurrentState.ConsecutivePasses >= AllPlayers.Count;
+        }
+
+        /// <summary>
+        /// Retrieves the next player's index determined on the games current <paramref name="direction"/>
+        /// </summary>
+        /// <param name="currentIndex">Represents the current players index/turn</param>
+        /// <param name="stepsToMove">The number of steps to increment</param>
+        /// <param name="direction">The current direction of the game (1 for forwards, -1 for backwards/reversed) </param>
+        /// <param name="totalPlayers">The number of players currently playing</param>
+        /// <returns></returns>
+        private int GetNextPlayerIndex(int currentIndex, int stepsToMove, int direction, int totalPlayers)
+        {
+            int nextPlayersIndex = (currentIndex + (stepsToMove * direction)) % totalPlayers;
+
+            return nextPlayersIndex < 0 ? nextPlayersIndex + totalPlayers : nextPlayersIndex;
         }
     }
 }

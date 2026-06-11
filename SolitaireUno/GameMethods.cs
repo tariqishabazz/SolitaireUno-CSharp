@@ -40,7 +40,7 @@ namespace SolitaireUno
             SpecialCard { CardType: SpecialCardType.Skip } => ActionInstruction.SkipTurn,
             SpecialCard { CardType: SpecialCardType.DrawTwo } => ActionInstruction.DrawTwo,
             SpecialCard { CardType: SpecialCardType.DrawFour } => ActionInstruction.DrawFour,
-            SpecialCard { CardType: SpecialCardType.Reverse} => ActionInstruction.Reverse,
+            SpecialCard { CardType: SpecialCardType.Reverse } => ActionInstruction.Reverse,
             _ => ActionInstruction.DoNothing
         };
 
@@ -52,45 +52,21 @@ namespace SolitaireUno
         /// <param name="targetSkipped">A flag indicating whether the target player is already skipped.</param>
         /// <param name="gameDeck">The deck used to draw penalty cards from.</param>
         /// <param name="targetPlayer">The player who will receive any drawn cards or be skipped.</param>
-        /// <param name="penaltyCard">The configured penalty card used to detect chained penalties.</param>
+        /// <param name="penaltyCards">The configured penalty cards used to detect chained penalties.</param>
         /// <returns>A tuple containing an optional message and a flag indicating if the target player was skipped.</returns>
-        public static (string? potentialMessage, bool targetSkipped) ApplySpecialCardEffect(Card? lastPlayedCard, bool targetSkipped, Deck gameDeck, Player targetPlayer, List<RegularCard> penaltyCards)
+        public static (string? potentialMessage, bool targetSkipped, bool isDirectionReversed) ApplySpecialCardEffect(Card? lastPlayedCard, bool targetSkipped, Deck gameDeck, Player targetPlayer, List<RegularCard> penaltyCards, int playerCount)
         {
-            if (lastPlayedCard is not null)
+            if (lastPlayedCard is null)
+                return (null, targetSkipped, false);
+
+            return SpecialCardAction(lastPlayedCard) switch
             {
-                ActionInstruction message = SpecialCardAction(lastPlayedCard);
-                string? potentialDrawMessage;
-
-                switch (message)
-                {
-                    case ActionInstruction.DoNothing:
-                        break;
-
-                    case ActionInstruction.SkipTurn:
-                        targetSkipped = true;
-                        break;
-
-                    case ActionInstruction.DrawFour:
-                        potentialDrawMessage = ProcessDraw(4, targetPlayer, gameDeck, penaltyCards);
-                        targetSkipped = true;
-
-                        return (potentialDrawMessage, targetSkipped);
-
-                    case ActionInstruction.DrawTwo:
-                        potentialDrawMessage = ProcessDraw(2, targetPlayer, gameDeck, penaltyCards);
-                        targetSkipped = true;
-
-                        return (potentialDrawMessage, targetSkipped);
-
-                    case ActionInstruction.Reverse:
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-
-            return (null, targetSkipped);
+                ActionInstruction.SkipTurn => (null, true, false),
+                ActionInstruction.DrawTwo => (ProcessDraw(2, targetPlayer, gameDeck, penaltyCards), true, false),
+                ActionInstruction.DrawFour => (ProcessDraw(4, targetPlayer, gameDeck, penaltyCards), true, false),
+                ActionInstruction.Reverse => playerCount == 2 ? ($"A reverse was played!", true, false) : ($"A reverse was played!", false, true), // IF ONLY 2 PLAYERS, REVERSE ACTS AS A NORMAL SKIP
+                _ => (null, targetSkipped, false)
+            };
         }
 
         /// <summary>
