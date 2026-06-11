@@ -36,23 +36,44 @@ namespace SolitaireUno
                     return HandlePickup(currentComputerPlayer, penaltyCards);
                 }
 
+
+                // =============== IF COMPUTER CAN'T PICKUP ============== //
+
                 else
                 {
-                    if(_deck.DiscardPile.Count > 1 && currentComputerPlayer.Hand.Count <= 6)
+                    // CHECK IF DISCARD PILE HAS AT LEAST 2 CARDS
+                    if (_deck.DiscardPile.Count > 1)
                     {
-                        Card? pulledDiscardCard = _deck.ReverseDiscard();
+                        Card potentialDiscard = _deck.ReverseDiscard()!;
 
-                        if(pulledDiscardCard is not null)
+                        // PEEK AT DISCARD PILE AFTER MOVING LAST DISCARD
+                        if (_deck.DiscardPile.TryPeek(out Card? potentialFutureVisualCard))
                         {
-                            if (_deck.DiscardPile.TryPeek(out Card? previousCard))
-                            {
-                                currentGameState.VisualCard = previousCard;
-                                currentGameState.LogicCard = _deck.DiscardPile.FirstOrDefault(card => card is RegularCard) ?? previousCard;
-                            }
+                            // STORE THE POTENTIAL FUTURE LOGIC CARD 
+                            Card potentialFutureLogicCard = _deck.DiscardPile.FirstOrDefault(card => card is RegularCard) ?? potentialFutureVisualCard;
 
-                            currentComputerPlayer.Hand.Add(pulledDiscardCard);
-                            return ($"Reverse Reverse! {currentComputerPlayer.Name} pulled back the {pulledDiscardCard}!", null, true);
+
+                            // THIS BOOL REPRESENTS WHETHER THE COMPUTER CAN
+                                // 1) PLAY ANOTHER CARD CURRENTLY IN THEIR HAND AGAINST THE FUTURE LOGICAL CARD
+                            bool iCanPlayCardInHand = currentComputerPlayer.Hand.Any(card => CardValidation.ValidCard(card, potentialFutureLogicCard, currentGameSettings, currentGameState.LeapFrogMode));
+
+                            // IF THE COMPUTER CAN PLAY, UPDATE THE GAME CARDS
+                            if(iCanPlayCardInHand)
+                            {
+                                currentGameState.VisualCard = potentialFutureVisualCard;
+                                currentGameState.LogicCard = potentialFutureLogicCard;
+
+                                // ADD THE PULLED DISCARD TO THEIR HAND
+                                currentComputerPlayer.Hand.Add(potentialDiscard);
+
+                                // RETURN MESSAGE
+                                return ($"Reverse Reverse! {currentComputerPlayer.Name} pulled a card, showing the {currentGameState.LogicCard}", null, true);
+                            }
                         }
+
+                        // IF WE HAVEN'T RETURNED AT THIS POINT, 
+                            // THE COMPUTER'S STRATEGY DIDN'T WORK, SO STORE THE CARD BACK IN THE PILE
+                        _deck.AddToDiscardPile(potentialDiscard);
                     }
 
                     return ($"{currentComputerPlayer.Name} decided to pass!", null, true);
@@ -80,25 +101,17 @@ namespace SolitaireUno
                 if (isSkipCard)
                 {
                     if (nextPlayer is not Computer)
-                    {
-                        return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} " +
-                            $"and skipped your turn!", potentialComputerPlay, true);
-                    }
+                        return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped your turn!", potentialComputerPlay, true);
 
-                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} " +
-                        $"and skipped {nextPlayer.Name}!", potentialComputerPlay, true);
+                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped {nextPlayer.Name}!", potentialComputerPlay, true);
                 }
 
                 else if (isDrawFourCard || isDrawTwoCard)
                 {
                     if (nextPlayer is not Computer)
-                    {
-                        return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay}, " +
-                            $"so you had to draw!", potentialComputerPlay, true);
-                    }
-
-                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay}, " +
-                        $"so {nextPlayer.Name} had to draw!", potentialComputerPlay, true);
+                        return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so you had to draw!", potentialComputerPlay, true);
+                    
+                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so {nextPlayer.Name} had to draw!", potentialComputerPlay, true);
                 }
 
                 return ($"{currentComputerPlayer.Name} decided to play: {potentialComputerPlay}!", potentialComputerPlay, true);
@@ -135,10 +148,10 @@ namespace SolitaireUno
         {
             int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCards);
 
-            if (computerPotentialPenaltyCount == 0) // No penalty, just a normal pickup
-            {
+            // NO PENALTY, NORMAL PICKUP
+            if (computerPotentialPenaltyCount == 0) 
                 return ($"{currentComputerPlayer.Name} decided to pick up!", null, true);
-            }
+            
 
             int actualPickupCount = 0;
 
@@ -152,6 +165,7 @@ namespace SolitaireUno
                     actualPickupCount++;
                 }
             }
+
             return ($"{currentComputerPlayer.Name} decided to pick up and found the {card}! They picked up {actualPickupCount} additional cards!", null, true);
         }
     }

@@ -3,7 +3,7 @@
 namespace SolitaireUno
 {
     /// <summary>
-    /// Represents a special card that triggers game effects like skip, draw, or change order (beta).
+    /// Represents a special card that triggers game effects like skip, draw, or reverse.
     /// </summary>
     public class SpecialCard(SpecialCardType specialCardType) : Card
     {

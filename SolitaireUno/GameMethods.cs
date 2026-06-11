@@ -40,6 +40,7 @@ namespace SolitaireUno
             SpecialCard { CardType: SpecialCardType.Skip } => ActionInstruction.SkipTurn,
             SpecialCard { CardType: SpecialCardType.DrawTwo } => ActionInstruction.DrawTwo,
             SpecialCard { CardType: SpecialCardType.DrawFour } => ActionInstruction.DrawFour,
+            SpecialCard { CardType: SpecialCardType.Reverse} => ActionInstruction.Reverse,
             _ => ActionInstruction.DoNothing
         };
 
@@ -80,6 +81,9 @@ namespace SolitaireUno
                         targetSkipped = true;
 
                         return (potentialDrawMessage, targetSkipped);
+
+                    case ActionInstruction.Reverse:
+                        break;
 
                     default:
                         break;

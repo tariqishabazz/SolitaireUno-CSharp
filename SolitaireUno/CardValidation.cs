@@ -17,12 +17,14 @@ namespace SolitaireUno
         {
             // If the potential play or the logic card shown are not regular cards,
             // check to see if the potential play is a special card. 
+            
             if (potentialPlay is not RegularCard firstCard || logicCardShown is not RegularCard secondCard)
                 return IsSpecialCard(potentialPlay);
 
             // If the first card and the second card have the same value,
             // check to see if we're enforcing suits. If we are, make sure
             // they're not the same color. If we aren't, it's still valid regardless. 
+            
             if (IsSameValue(firstCard, secondCard))
                 return gameSettings.SuitsEnforced ? NotSameColor(firstCard, secondCard) : true;
 
