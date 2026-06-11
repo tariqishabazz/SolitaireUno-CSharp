@@ -50,6 +50,7 @@ namespace SolitaireUno
             foreach (SpecialCardType specialCard in Enum.GetValues<SpecialCardType>())
             {
                 _gameDeck.Add(new SpecialCard(specialCard));
+
                 for (int i = 0; i < _additionalSpecialCards; i++)
                     _gameDeck.Add(new SpecialCard(specialCard));
             }
@@ -75,7 +76,7 @@ namespace SolitaireUno
         }
 
         /// <summary>
-        /// Prevents returning a special card as the initial face-up card by drawing 
+        /// Prevents returning a special card as the initial face-up card by drawing
         ///     until a non-special card is found.
         /// </summary>
         /// <returns>The first non-special card to be used on the table, or null if the deck is empty.</returns>
@@ -91,9 +92,7 @@ namespace SolitaireUno
                 List<Card> temporarySpecialCards = [firstCard];
 
                 if (Length() > 0)
-                {
                     firstCard = DealCard()!;
-                }
 
                 AddRange(temporarySpecialCards);
                 InHouseShuffle();
@@ -141,15 +140,9 @@ namespace SolitaireUno
 
                 return dealtCard;
             }
-
-            else if (_gameDeck.Count == 0 && _reshuffleCount < maxAllowedReshuffles)
-            {
-                return ResetDeckAndDealCard();
-            }
-
             else
             {
-                return null;
+                return _gameDeck.Count == 0 && _reshuffleCount < maxAllowedReshuffles ? ResetDeckAndDealCard() : null;
             }
         }
 
@@ -184,7 +177,9 @@ namespace SolitaireUno
             Card lastCardOnTable = DiscardPile.Pop();
 
             if (_gameDeck.Capacity < _gameDeck.Count + DiscardPile.Count)
+            {
                 _gameDeck.Capacity = _gameDeck.Count + DiscardPile.Count;
+            }
 
             _gameDeck.AddRange(DiscardPile);
             DiscardPile.Clear();
@@ -206,4 +201,3 @@ namespace SolitaireUno
         }
     }
 }
-

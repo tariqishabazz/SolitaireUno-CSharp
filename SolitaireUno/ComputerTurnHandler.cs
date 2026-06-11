@@ -24,7 +24,6 @@ namespace SolitaireUno
         {
             Card? potentialComputerPlay = currentComputerPlayer.MakeMove(currentGameState.LogicCard, nextPlayer.Hand.Count, _deck.Length(), currentGameSettings, currentGameState.LeapFrogMode);
 
-
             // ----------------- IF COMPUTER HAS NO POTENTIAL PLAY ------------------ //
 
             if (potentialComputerPlay is null)
@@ -32,13 +31,9 @@ namespace SolitaireUno
                 int maxAllowedReshuffles = currentGameSettings.Mode is GameMode.Both ? 3 : 1;
 
                 if (_deck.Length() > 0 || _deck.Length() == 0 && (_deck.ReshuffleCount < maxAllowedReshuffles))
-                {
                     return HandlePickup(currentComputerPlayer, penaltyCards);
-                }
-
 
                 // =============== IF COMPUTER CAN'T PICKUP ============== //
-
                 else
                 {
                     // CHECK IF DISCARD PILE HAS AT LEAST 2 CARDS
@@ -49,16 +44,15 @@ namespace SolitaireUno
                         // PEEK AT DISCARD PILE AFTER MOVING LAST DISCARD
                         if (_deck.DiscardPile.TryPeek(out Card? potentialFutureVisualCard))
                         {
-                            // STORE THE POTENTIAL FUTURE LOGIC CARD 
+                            // STORE THE POTENTIAL FUTURE LOGIC CARD IF KEEPING PULLED DISCARD
                             Card potentialFutureLogicCard = _deck.DiscardPile.FirstOrDefault(card => card is RegularCard) ?? potentialFutureVisualCard;
 
-
                             // THIS BOOL REPRESENTS WHETHER THE COMPUTER CAN
-                                // 1) PLAY ANOTHER CARD CURRENTLY IN THEIR HAND AGAINST THE FUTURE LOGICAL CARD
+                            // 1) PLAY ANOTHER CARD CURRENTLY IN THEIR HAND AGAINST THE FUTURE LOGICAL CARD
                             bool iCanPlayCardInHand = currentComputerPlayer.Hand.Any(card => CardValidation.ValidCard(card, potentialFutureLogicCard, currentGameSettings, currentGameState.LeapFrogMode));
 
                             // IF THE COMPUTER CAN PLAY, UPDATE THE GAME CARDS
-                            if(iCanPlayCardInHand)
+                            if (iCanPlayCardInHand)
                             {
                                 currentGameState.VisualCard = potentialFutureVisualCard;
                                 currentGameState.LogicCard = potentialFutureLogicCard;
@@ -67,22 +61,20 @@ namespace SolitaireUno
                                 currentComputerPlayer.Hand.Add(potentialDiscard);
 
                                 // RETURN MESSAGE
-                                return ($"Reverse Reverse! {currentComputerPlayer.Name} pulled a card, showing the {currentGameState.LogicCard}", null, true);
+                                return (message: $"Reverse Reverse! {currentComputerPlayer.Name} pulled a card, showing the {currentGameState.LogicCard}", playedCard: null, successfulMove: true);
                             }
                         }
 
-                        // IF WE HAVEN'T RETURNED AT THIS POINT, 
-                            // THE COMPUTER'S STRATEGY DIDN'T WORK, SO STORE THE CARD BACK IN THE PILE
+                        // IF WE HAVEN'T RETURNED AT THIS POINT,
+                        // THE COMPUTER'S STRATEGY DIDN'T WORK, SO STORE THE CARD BACK IN THE PILE
                         _deck.AddToDiscardPile(potentialDiscard);
                     }
 
-                    return ($"{currentComputerPlayer.Name} decided to pass!", null, true);
+                    return (message: $"{currentComputerPlayer.Name} decided to pass!", playedCard: null, successfulMove: true);
                 }
             }
 
-
-            // ------------------ COMPUTER HAS VALID PLAY --------------- // 
-
+            // ===================== COMPUTER HAS VALID PLAY ===================== //
             else
             {
                 currentGameState.VisualCard = potentialComputerPlay;
@@ -93,7 +85,6 @@ namespace SolitaireUno
                 currentComputerPlayer.PlayCard(potentialComputerPlay);
                 _deck.AddToDiscardPile(potentialComputerPlay);
 
-
                 bool isSkipCard = potentialComputerPlay is SpecialCard specialCard && specialCard.CardType is SpecialCardType.Skip;
                 bool isDrawTwoCard = potentialComputerPlay is SpecialCard specialCard2 && specialCard2.CardType is SpecialCardType.DrawTwo;
                 bool isDrawFourCard = potentialComputerPlay is SpecialCard specialCard3 && specialCard3.CardType is SpecialCardType.DrawFour;
@@ -101,26 +92,23 @@ namespace SolitaireUno
                 if (isSkipCard)
                 {
                     if (nextPlayer is not Computer)
-                        return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped your turn!", potentialComputerPlay, true);
+                        return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped your turn!", playedCard: potentialComputerPlay, successfulMove: true);
 
-                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped {nextPlayer.Name}!", potentialComputerPlay, true);
+                    return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped {nextPlayer.Name}!", playedCard: potentialComputerPlay, successfulMove: true);
                 }
-
                 else if (isDrawFourCard || isDrawTwoCard)
                 {
                     if (nextPlayer is not Computer)
-                        return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so you had to draw!", potentialComputerPlay, true);
-                    
-                    return ($"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so {nextPlayer.Name} had to draw!", potentialComputerPlay, true);
+                        return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so you had to draw!", playedCard: potentialComputerPlay, successfulMove: true);
+
+                    return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so {nextPlayer.Name} had to draw!", playedCard: potentialComputerPlay, successfulMove: true);
                 }
 
-                return ($"{currentComputerPlayer.Name} decided to play: {potentialComputerPlay}!", potentialComputerPlay, true);
+                return (message: $"{currentComputerPlayer.Name} decided to play: {potentialComputerPlay}!", playedCard: potentialComputerPlay, successfulMove: true);
             }
         }
 
-
         // ======================== PRIVATE METHODS FOR PICKUP LOGIC ========================= //
-
 
         /// <summary>
         /// Handles the logic for a computer player to pick up a card in non-both game modes, applying any penalty cards
@@ -130,7 +118,7 @@ namespace SolitaireUno
         /// allowed. It determines if a penalty applies and ensures the correct number of cards are picked up by the
         /// computer player.</remarks>
         /// <param name="currentComputerPlayer">The computer player who is performing the pickup action.</param>
-        /// <param name="penaltyCard">The penalty card that may trigger additional cards to be picked up, depending on the game rules.</param>
+        /// <param name="penaltyCards">The penalty cards that may trigger additional cards to be picked up, depending on the game rules.</param>
         /// <returns>A tuple containing a message describing the action taken, the card played (always null in this context), and
         /// a value indicating whether the move was successful.</returns>
         private (string message, Card? playedCard, bool successfulMove) HandlePickup(Player currentComputerPlayer, List<RegularCard> penaltyCards)
@@ -143,15 +131,20 @@ namespace SolitaireUno
             return HandlePotentialPenalty(currentComputerPlayer, card, penaltyCards);
         }
 
-
+        /// <summary>
+        /// Handles a computers pickup from deck and deals additional card if a penalty card was found.
+        /// </summary>
+        /// <param name="currentComputerPlayer"></param>
+        /// <param name="card"></param>
+        /// <param name="penaltyCards"></param>
+        /// <returns></returns>
         private (string message, Card? playedCard, bool successfulMove) HandlePotentialPenalty(Player currentComputerPlayer, Card card, List<RegularCard> penaltyCards)
         {
             int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCards);
 
             // NO PENALTY, NORMAL PICKUP
-            if (computerPotentialPenaltyCount == 0) 
-                return ($"{currentComputerPlayer.Name} decided to pick up!", null, true);
-            
+            if (computerPotentialPenaltyCount == 0)
+                return (message: $"{currentComputerPlayer.Name} decided to pick up!", playedCard: null, successfulMove: true);
 
             int actualPickupCount = 0;
 
@@ -166,7 +159,7 @@ namespace SolitaireUno
                 }
             }
 
-            return ($"{currentComputerPlayer.Name} decided to pick up and found the {card}! They picked up {actualPickupCount} additional cards!", null, true);
+            return (message: $"{currentComputerPlayer.Name} decided to pick up and found the {card}! They picked up {actualPickupCount} additional card(s)!", playedCard: null, successfulMove: true);
         }
     }
 }

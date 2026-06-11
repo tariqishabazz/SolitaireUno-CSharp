@@ -242,7 +242,7 @@
                         </button>
 
                         <h4 class="mt-4 text-white">
-                            Your Hand (@gameEngine?.AllPlayers[0].Hand.Count cards)
+                            Your Hand ~ @gameEngine?.AllPlayers[0].Hand.Count card(s)
                         </h4>
 
                     </div>
@@ -256,15 +256,16 @@
                             int totalCards = gameEngine?.AllPlayers[0].Hand.Count ?? 1;
 
                             <div @key="card" class="card-draw-wrapper animate-draw" >
-                          
-                                    <div class="radial-fan" style="--index: @i; --total: @totalCards">
+
+                                <div class="radial-fan"
+									 style="--index: @i; --total: @totalCards">
 
                                         <div class="solitaire-card"
                                         @onclick='() => PlayTurn(buttonIndex.ToString())'>
                                             <img src="@GetCardImagePath(card)" alt="@card?.ToString()" />
                                         </div>
 
-                                    </div>
+                                 </div>
                             
                                 
                             </div>

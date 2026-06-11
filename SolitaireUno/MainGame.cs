@@ -4,16 +4,16 @@ namespace SolitaireUno
 {
     public class GameState
     {
-        public required Card LogicCard;
-        public required Card VisualCard;
+        public Card LogicCard = null!;
+        public Card VisualCard = null!;
 
         public int CurrentTurnIndex;
         public int ConsecutivePasses = 0;
+        public int ConsecutivePickups = 0;
         public int PlayDirection = 1;
 
         public bool LeapFrogMode = false;
     }
-
 
     /// <summary>
     /// Main game orchestrator that manages players, deck and turn handlers.
@@ -21,7 +21,7 @@ namespace SolitaireUno
     public class MainGame
     {
         public List<Player> AllPlayers { get; private set; } = [];
-        public List<string> RandomComputerNames { get; } = ["Trace", "Sally", "Viper"];
+        public string[] RandomComputerNames { get; } = ["Trace", "Sally", "Viper"];
         internal List<RegularCard> PenaltyCards { get; private set; }
 
         public Deck GameDeck { get; set; }
@@ -48,7 +48,6 @@ namespace SolitaireUno
 
             AllPlayers.Add(humanPlayer);
 
-
             // ------------ ADDING COMPUTER PLAYERS ------------ //
 
             for (int i = 0; i < currentGameSettings.NumberOfPlayers; i++)
@@ -60,7 +59,6 @@ namespace SolitaireUno
 
                 AllPlayers.Add(computerPlayer);
             }
-
 
             // -------- SETTING PENALTY CARDS, DECK ------- //
 
@@ -85,10 +83,13 @@ namespace SolitaireUno
             {
                 LogicCard = initialCard,
                 VisualCard = initialCard,
+
                 CurrentTurnIndex = 0,
                 ConsecutivePasses = 0,
+                PlayDirection = 1,
+                ConsecutivePickups = 0,
+
                 LeapFrogMode = false,
-                PlayDirection = 1
             };
 
             int maxNumberOfCardsToDeal = 21;
@@ -97,9 +98,7 @@ namespace SolitaireUno
             foreach (Player player in AllPlayers)
             {
                 for (int i = 0; i < startingHandSize; i++)
-                {
                     player.PickupCard(GameDeck.DealCard()!);
-                }
             }
 
             if (CurrentState.LogicCard is null)
@@ -111,9 +110,6 @@ namespace SolitaireUno
             GameDeck.ReshuffleCount = 0;
         }
 
-
-
-
         /// <summary>
         /// Advances the game by one turn, handling either the player or computer move.
         /// </summary>
@@ -121,24 +117,22 @@ namespace SolitaireUno
         /// <returns>A UI message and bool validation produced during the processed turn.</returns>
         public (string message, bool validDecision) AdvanceTurn(string playerDecision = "")
         {
-            bool turnSkipped = false;                               // bool for if a player was skipped 
+            bool turnSkipped = false;                               // bool for if a player was skipped
             string uiMessage;                        // initial empty string for message to be sent back
             int stepsToMove = 1;
 
             Player currentPlayer = AllPlayers[CurrentState.CurrentTurnIndex];    // holds the current player at time of turn
 
-            if (CurrentState.LogicCard is null || CurrentState.VisualCard is null)
+            if (CurrentState.LogicCard is null || CurrentState.VisualCard is null) // RETURN EARLY IF ANY CARD IS NULL
                 return (string.Empty, false);
 
-
-
-
-
-            // ---------------- A COMPUTER'S TURN ----------------- //
+            // ===================== A COMPUTER'S TURN ===================== //
 
             if (currentPlayer is Computer computerPlayer)
             {
-                int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, 1, CurrentState.PlayDirection, AllPlayers.Count);
+                int computerHandAmountPreTurn = computerPlayer.Hand.Count;
+
+                int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
                 var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer,
                                                                                                 PenaltyCards,
@@ -147,22 +141,23 @@ namespace SolitaireUno
                                                                                                 CurrentState);
                 uiMessage = message;
 
-                // checking to see if players consecutively pass
-                StalemateMonitor(cardPlayed);
+                int computerHandAmountPostTurn = computerPlayer.Hand.Count;
 
+                // checking to see if players consecutively pass
+                StalemateMonitor(cardPlayed, computerHandAmountPreTurn, computerHandAmountPostTurn);
 
                 if (cardPlayed is not null)
                 {
-
-                    var (potentialDrawMessage, targetSkipped, isDirectionReversed) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard,
+                    var (potentialPlayMessage, targetSkipped, isDirectionReversed) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard,
                                                                                                                         turnSkipped,
                                                                                                                         GameDeck,
                                                                                                                         AllPlayers[nextPlayersIndex],
-                                                                                                                        PenaltyCards, AllPlayers.Count);
+                                                                                                                        PenaltyCards,
+                                                                                                                        AllPlayers.Count);
 
-                    if (!string.IsNullOrEmpty(potentialDrawMessage))
+                    if (!string.IsNullOrEmpty(potentialPlayMessage))
                     {
-                        uiMessage += $"{potentialDrawMessage}";
+                        uiMessage += $"{potentialPlayMessage}";
                     }
 
                     if (isDirectionReversed)
@@ -177,12 +172,12 @@ namespace SolitaireUno
                 return (uiMessage, successfulDecision);
             }
 
-
-            // --------------- HUMAN'S TURN -------------- // 
-
+            // ===================== HUMAN'S TURN ===================== //
             else
             {
-                int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, 1, CurrentState.PlayDirection, AllPlayers.Count);
+                int playerHandAmountPreTurn = currentPlayer.Hand.Count;
+
+                int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
                 var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(PenaltyCards,
                                                                                         playerDecision,
@@ -191,21 +186,24 @@ namespace SolitaireUno
                                                                                         CurrentState);
                 uiMessage = message;
 
+                int playerHandAmountPostTurn = currentPlayer.Hand.Count;
+
                 if (isSuccessful)
                 {
                     // checking to see if players consecutively pass
-                    StalemateMonitor(cardPlayed);
+                    StalemateMonitor(cardPlayed, playerHandAmountPreTurn, playerHandAmountPostTurn);
 
                     if (cardPlayed is not null)
                     {
-                        var (potentialDrawMessage, targetSkipped, isDirectionReversed) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard,
+                        var (potentialPlayMessage, targetSkipped, isDirectionReversed) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard,
                                                                                                                             turnSkipped,
                                                                                                                             GameDeck,
                                                                                                                             AllPlayers[nextPlayersIndex],
-                                                                                                                            PenaltyCards, AllPlayers.Count);
+                                                                                                                            PenaltyCards,
+                                                                                                                            AllPlayers.Count);
 
-                        if (!string.IsNullOrEmpty(potentialDrawMessage))
-                            uiMessage += $"{potentialDrawMessage}";
+                        if (!string.IsNullOrEmpty(potentialPlayMessage))
+                            uiMessage += $"{potentialPlayMessage}";
 
                         if (isDirectionReversed)
                             CurrentState.PlayDirection *= -1;
@@ -225,14 +223,18 @@ namespace SolitaireUno
         /// </summary>
         /// <remarks>It turns on Leapfrog mode if so.</remarks>
         /// <param name="cardPlayed">The card a player MIGHT have played</param>
-        private void StalemateMonitor(Card? cardPlayed)
+        private void StalemateMonitor(Card? cardPlayed, int handAmountPreTurn, int handAmountPostTurn)
         {
             bool isDeckDead = GameDeck.Length() == 0
                               && GameDeck.ReshuffleCount >= (CurrentGameSettings.Mode == GameMode.Both ? 3 : 1);
 
             CurrentState.ConsecutivePasses = (cardPlayed is null && isDeckDead) ? CurrentState.ConsecutivePasses + 1 : 0;
+            CurrentState.ConsecutivePickups = (cardPlayed is null && handAmountPreTurn < handAmountPostTurn) ? CurrentState.ConsecutivePickups + 1 : 0;
 
-            CurrentState.LeapFrogMode = CurrentState.ConsecutivePasses >= AllPlayers.Count;
+            // LEAPFROG WILL TURN ON IF...
+            // 1) THE DECK IS EMPTY AND CAN'T BE RESHUFFLED AND ALL PLAYERS PASS OR...
+            // 2) IF ALL PLAYERS REPEATEDLY PICKUP FOR 3 ROUNDS, HENCE * 3
+            CurrentState.LeapFrogMode = CurrentState.ConsecutivePasses >= AllPlayers.Count || CurrentState.ConsecutivePickups >= (AllPlayers.Count * 3);
         }
 
         /// <summary>
@@ -242,8 +244,8 @@ namespace SolitaireUno
         /// <param name="stepsToMove">The number of steps to increment</param>
         /// <param name="direction">The current direction of the game (1 for forwards, -1 for backwards/reversed) </param>
         /// <param name="totalPlayers">The number of players currently playing</param>
-        /// <returns></returns>
-        private int GetNextPlayerIndex(int currentIndex, int stepsToMove, int direction, int totalPlayers)
+        /// <returns>The next players index as an int</returns>
+        private static int GetNextPlayerIndex(int currentIndex, int stepsToMove, int direction, int totalPlayers)
         {
             int nextPlayersIndex = (currentIndex + (stepsToMove * direction)) % totalPlayers;
 

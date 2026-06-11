@@ -13,6 +13,11 @@ namespace SolitaireUno
         Skip,
 
         /// <summary>
+        /// Reverses direction of player turns
+        /// </summary>
+        Reverse,
+
+        /// <summary>
         /// Causes the target player to draw two cards.
         /// </summary>
         DrawTwo,
@@ -21,10 +26,5 @@ namespace SolitaireUno
         /// Causes the target player to draw four cards.
         /// </summary>
         DrawFour,
-
-        /// <summary>
-        /// Reverses direction of player turns
-        /// </summary>
-        Reverse
     }
 }

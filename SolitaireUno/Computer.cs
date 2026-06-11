@@ -23,13 +23,12 @@ namespace SolitaireUno
 
             foreach (Card potentialCard in Hand)
             {
-                if(logicCard is not null)
+                if (logicCard is not null)
                     if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog))
                         continue;
 
                 if (potentialCard is SpecialCard)
                     specialMoves.Add(potentialCard);
-
                 else
                     regularMoves.Add(potentialCard);
             }
@@ -38,7 +37,6 @@ namespace SolitaireUno
 
             if (totalValidMoves == 0)
                 return null;
-
 
             // ======= MAKES RANDOM EASY MOVE IN EASY MODE
             //          WHILE STILL CONSIDERING DECK SIZE  ====== //
@@ -52,7 +50,7 @@ namespace SolitaireUno
                         if (specialCard is SpecialCard special)
                         {
                             if (special.CardType is SpecialCardType.DrawTwo or SpecialCardType.DrawFour)
-                                return special;  
+                                return special;
                         }
                     }
                 }
@@ -64,7 +62,6 @@ namespace SolitaireUno
             // ======= CALCULATE PANIC THRESHOLD BASED ON DIFFICULTY ====== //
             int panicThreshold = currentGameSettings.Difficulty == GameDifficulty.Hard ? 4 : 7;
 
-
             // ======== CHANGE IF/WHEN ADDING NEW SPECIAL CARDS ======== //
             // ============ IF DECK IS RUNNING LOW ========== //
 
@@ -72,37 +69,34 @@ namespace SolitaireUno
             {
                 Card? fallbackSpecial = null;
 
-                foreach(Card specialCard in specialMoves)
+                foreach (Card specialCard in specialMoves)
                 {
-                    if(specialCard is SpecialCard special)
+                    if (specialCard is SpecialCard special)
                     {
                         if (special.CardType is SpecialCardType.DrawTwo or SpecialCardType.DrawFour)
                             return special;
-
                         else
                             fallbackSpecial = special;
                     }
                 }
 
-                if(fallbackSpecial is not null)
+                if (fallbackSpecial is not null)
                     return fallbackSpecial;
             }
 
-
             // ======== IF OPPONENT'S HAND SIZE IS GETTING SMALLER ======= //
 
-            if(opponentHandSize <= panicThreshold)
+            if (opponentHandSize <= panicThreshold)
             {
                 if (specialMoves.Count == 0)
                     if (regularMoves.Count > 0)
                         return regularMoves[Random.Shared.Next(regularMoves.Count)];
-               
+
                 if (totalValidMoves == 1 && specialMoves[0] is SpecialCard special && special.CardType == SpecialCardType.Skip)
                     return special;
 
                 return specialMoves[Random.Shared.Next(specialMoves.Count)];
             }
-
 
             // ========= IF NONE OF ABOVE, MAKE A RANDOM REGULAR/SPECIAL MOVE ======== //
 
@@ -110,7 +104,6 @@ namespace SolitaireUno
                 return regularMoves[Random.Shared.Next(regularMoves.Count)];
 
             return specialMoves[Random.Shared.Next(specialMoves.Count)];
-
         }
     }
 }

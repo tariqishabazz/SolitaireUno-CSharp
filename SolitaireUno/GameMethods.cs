@@ -15,20 +15,17 @@ namespace SolitaireUno
         /// <returns>The number of penalty cards to apply (0 when none).</returns>
         public static int GetPenaltyCount(Card dealtCard, List<RegularCard> penaltyCards)
         {
-            if (dealtCard is RegularCard regularCard)
+            if (dealtCard is not RegularCard regularCard)
+                return 0;
+
+            foreach (RegularCard penaltyCard in penaltyCards)
             {
-                foreach (RegularCard penaltyCard in penaltyCards)
-                {
-                    if (regularCard.IsEqual(penaltyCard))
-                    {
-                        return Random.Shared.Next(1, 6); // return a random number between 1 and 5 for extra evilness
-                    }
-                }
+                if (regularCard.IsEqual(penaltyCard))
+                    return Random.Shared.Next(1, 6); // return a random number between 1 and 5 for extra evilness
             }
 
             return 0;
         }
-
 
         /// <summary>
         /// Returns the action instruction associated with a special card; regular cards return DoNothing.
@@ -43,7 +40,6 @@ namespace SolitaireUno
             SpecialCard { CardType: SpecialCardType.Reverse } => ActionInstruction.Reverse,
             _ => ActionInstruction.DoNothing
         };
-
 
         /// <summary>
         /// Applies special-card effects (skip/draw) to the target player and returns whether they were skipped.
@@ -64,7 +60,7 @@ namespace SolitaireUno
                 ActionInstruction.SkipTurn => (null, true, false),
                 ActionInstruction.DrawTwo => (ProcessDraw(2, targetPlayer, gameDeck, penaltyCards), true, false),
                 ActionInstruction.DrawFour => (ProcessDraw(4, targetPlayer, gameDeck, penaltyCards), true, false),
-                ActionInstruction.Reverse => playerCount == 2 ? ($"A reverse was played!", true, false) : ($"A reverse was played!", false, true), // IF ONLY 2 PLAYERS, REVERSE ACTS AS A NORMAL SKIP
+                ActionInstruction.Reverse => playerCount == 2 ? (null, true, false) : (null, false, true), // IF ONLY 2 PLAYERS, REVERSE ACTS AS A NORMAL SKIP
                 _ => (null, targetSkipped, false)
             };
         }
@@ -125,7 +121,6 @@ namespace SolitaireUno
     }
 }
 
-
 /*
  MESSAGES:
     Trace played: DrawFour, so Sally had to draw! During the draw, Sally picked up the Ace of Spades. Along with the normal draw, they will recieve 4 additional card(s).
@@ -138,5 +133,4 @@ namespace SolitaireUno
     Sally played: DrawFour, so you had to draw! During the draw, Human picked up the Queen of Spades. Along with the normal draw, you will recieve 0 additional card(s).
     You played: DrawTwo, so Trace had to draw! During the draw, Trace picked up the Queen of Spades. Along with the normal draw, they will recieve 0 additional card(s).
 
- 
  */

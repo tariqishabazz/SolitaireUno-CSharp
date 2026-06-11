@@ -16,24 +16,22 @@ namespace SolitaireUno
         public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameSettings gameSettings, bool isLeapFrog)
         {
             // If the potential play or the logic card shown are not regular cards,
-            // check to see if the potential play is a special card. 
-            
+            // check to see if the potential play is a special card.
+
             if (potentialPlay is not RegularCard firstCard || logicCardShown is not RegularCard secondCard)
                 return IsSpecialCard(potentialPlay);
 
             // If the first card and the second card have the same value,
             // check to see if we're enforcing suits. If we are, make sure
-            // they're not the same color. If we aren't, it's still valid regardless. 
-            
-            if (IsSameValue(firstCard, secondCard))
-                return !gameSettings.SuitsEnforced || NotSameColor(firstCard, secondCard);
+            // they're not the same color. If we aren't, it's still valid regardless.
 
+            if (IsSameValue(firstCard, secondCard))
+                return !gameSettings.SuitsEnforced || !SameColor(firstCard, secondCard);
 
             int potentialCardValue = (int)firstCard.Value;
             int currentCardValue = (int)secondCard.Value;
 
             bool isValidSequence = false;
-
 
             // ================ IF MODE IS ASC/BOTH ================ //
 
@@ -42,8 +40,7 @@ namespace SolitaireUno
                 int stepsForward = potentialCardValue > currentCardValue ?
                     potentialCardValue - currentCardValue : potentialCardValue - currentCardValue + 13;
 
-                if (isLeapFrog || stepsForward is 1)
-                    isValidSequence = true;
+                isValidSequence = isLeapFrog || stepsForward is 1; // REMOVED IF CONDITION CHECK, NEAT!
             }
 
             // ================= IF MODE IS DESC/BOTH ================= //
@@ -53,15 +50,13 @@ namespace SolitaireUno
                 int stepsBackward = currentCardValue > potentialCardValue ?
                     currentCardValue - potentialCardValue : currentCardValue - potentialCardValue + 13;
 
-                if (isLeapFrog || stepsBackward is 1)
-                    isValidSequence = true;
+                isValidSequence = isLeapFrog || stepsBackward is 1;
             }
-
 
             if (!isValidSequence)
                 return false;
 
-            return !gameSettings.SuitsEnforced || NotSameColor(firstCard, secondCard);
+            return !gameSettings.SuitsEnforced || !SameColor(firstCard, secondCard);
         }
 
         /// <summary>
@@ -112,12 +107,12 @@ namespace SolitaireUno
         /// <summary>
         /// Returns true when the two regular cards are different color groups (red vs black).
         /// </summary>
-        public static bool NotSameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
+        public static bool SameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
         {
             bool isFirstCardRed = (firstRegularCard.Suit == Suits.Hearts || firstRegularCard.Suit == Suits.Diamonds);
             bool isSecondCardRed = (secondRegularCard.Suit == Suits.Hearts || secondRegularCard.Suit == Suits.Diamonds);
 
-            return isFirstCardRed != isSecondCardRed;
+            return isFirstCardRed == isSecondCardRed;
         }
 
         /// <summary>
@@ -128,7 +123,6 @@ namespace SolitaireUno
         /// <returns></returns>
         public static bool IsSameSuit(RegularCard firstRegularCard, RegularCard secondRegularCard) => firstRegularCard.Suit == secondRegularCard.Suit;
 
-
         /// <summary>
         /// Returns true when the two regular cards are of the same value.
         /// </summary>
@@ -136,6 +130,5 @@ namespace SolitaireUno
         /// <param name="secondRegularCard"></param>
         /// <returns></returns>
         public static bool IsSameValue(RegularCard firstRegularCard, RegularCard secondRegularCard) => firstRegularCard.Value == secondRegularCard.Value;
-
     }
 }

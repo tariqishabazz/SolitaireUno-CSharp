@@ -20,7 +20,6 @@ namespace SolitaireUno.Web.Pages
         private CancellationTokenSource _cts = new CancellationTokenSource();
         private TimeSpan _gameUptime = TimeSpan.Zero;
 
-
         // ============= ALL GAME PROPERTIES ============= //
 
         private MainGame? gameEngine;
@@ -45,6 +44,7 @@ namespace SolitaireUno.Web.Pages
          The code looks up a player whose Name equals "Human". If the engine is null,
          this property returns null.
         */
+
         public Player? HumanPlayer
         {
             get
@@ -60,6 +60,7 @@ namespace SolitaireUno.Web.Pages
          Indicates whether it is currently the human player's turn.
          Compares the player at CurrentTurnIndex to the expected "Human" player name.
         */
+
         public bool IsHumanTurn
         {
             get
@@ -71,8 +72,7 @@ namespace SolitaireUno.Web.Pages
             }
         }
 
-
-        // =================== STARTGAME() ==================== // 
+        // =================== STARTGAME() ==================== //
 
         /// <summary>
         /// Initializes and starts a new game using the selected settings.
@@ -80,7 +80,7 @@ namespace SolitaireUno.Web.Pages
         /// </summary>
         private void StartNewGame()
         {
-            /* Reset game states and properties to their initial values. 
+            /* Reset game states and properties to their initial values.
              *      This ensures that starting a new game
              *      will clear any previous game data and UI messages. */
 
@@ -116,18 +116,17 @@ namespace SolitaireUno.Web.Pages
                 return;
 
             /*
-             If the AI is thinking or the game has ended, ignore input.
-             This prevents race conditions and multiple actions from being processed
-             while a computer turn is resolving or the game is finished.
+                 If the AI is thinking or the game has ended, ignore input.
+                 This prevents race conditions and multiple actions from being processed
+                 while a computer turn is resolving or the game is finished.
             */
             if (aComputerIsThinking || gameOverMessage != string.Empty)
                 return;
 
-
-            // -------------------------- PLAYER'S TURN ----------------------------- //
+            // ===================== PLAYER'S TURN ===================== //
             /*
-             Record that the player's turn is beginning for the UI/log. The game engine
-             will return a message and success flag describing the play result.
+                 Record that the player's turn is beginning for the UI/log. The game engine
+                 will return a message and success flag describing the play result.
             */
             if (IsHumanTurn)
                 actionLog += "\n\nYour Turn.";
@@ -154,8 +153,8 @@ namespace SolitaireUno.Web.Pages
                 return;
             }
 
+            // ===================== COMPUTER'S TURN ===================== //
 
-            // -------------------------- COMPUTER'S TURN ----------------------------- //
             /*
              Continue advancing turns while it is not the human's turn and the game
              has not been won. This loop will let each computer player act in sequence
@@ -192,7 +191,6 @@ namespace SolitaireUno.Web.Pages
                 aComputerIsThinking = false;
             }
 
-
             // Holds the amount of cards human player had after everyone went
             int? playerHandCountAfterEveryoneGoes = HumanPlayer?.Hand.Count;
 
@@ -206,11 +204,7 @@ namespace SolitaireUno.Web.Pages
             await UpdateMessageAndUI("Your Turn");
         }
 
-
-
-
-        // ========================== BLAZOR METHODS ========================= //
-
+        // ========================== HELPER METHODS ========================= //
 
         /// <summary>
         /// Sets the proper card image path for a given card based on its concrete type
@@ -225,24 +219,19 @@ namespace SolitaireUno.Web.Pages
 
             if (card is RegularCard regularCard)
                 return $"images/cards/{regularCard.Value.ToString().ToLower()}_of_{regularCard.Suit.ToString().ToLower()}.png";
-
             else if (card is SpecialCard specialCard)
             {
-                switch (specialCard.CardType)
+                return specialCard.CardType switch
                 {
-                    case SpecialCardType.DrawFour:
-                        return $"images/cards/draw_four.png";
-
-                    case SpecialCardType.DrawTwo:
-                        return $"images/cards/{selectedCardColor}_draw_two.png";
-
-                    case SpecialCardType.Skip:
-                        return $"images/cards/{selectedCardColor}_skip.png";
-                    
-                    
-                }
+                    SpecialCardType.DrawFour => $"images/cards/draw_four.png",
+                    SpecialCardType.DrawTwo => $"images/cards/{selectedCardColor}_draw_two.png",
+                    SpecialCardType.Skip => $"images/cards/{selectedCardColor}_skip.png",
+                    SpecialCardType.Reverse => $"images/cards/{selectedCardColor}_reverse.png",
+                    _ => $"Card image not found"
+                };
             }
-            return $"images/cards/{selectedCardColor}_backing.png";
+
+            return $"Card image not found";
         }
 
         /// <summary>
@@ -276,7 +265,6 @@ namespace SolitaireUno.Web.Pages
         private static async Task SimulatedDelay()
         {
             Random random = Random.Shared;
-
             int waitTime = 1700 + (random.Next() % 650);
 
             await Task.Delay(waitTime);
@@ -299,17 +287,15 @@ namespace SolitaireUno.Web.Pages
         /// <returns>The winning player or null if nobody has won yet.</returns>
         private Player? ShowWinCondition()
         {
-            if (gameEngine is not null)
-            {
-                foreach (Player player in gameEngine.AllPlayers)
-                {
-                    if (player.Hand.Count == 0)
-                        return player;
-                }
-            }
+            if (gameEngine is null)
+                return null;
+
+            foreach (Player player in gameEngine.AllPlayers)
+                if (player.Hand.Count == 0)
+                    return player;
+
             return null;
         }
-
 
         /* ================== TIMER METHODS ================= */
 
@@ -334,7 +320,6 @@ namespace SolitaireUno.Web.Pages
                     }
                 }
             }
-
             catch (OperationCanceledException) { }
         }
 
@@ -368,8 +353,7 @@ namespace SolitaireUno.Web.Pages
                 }
             }
 
-            return numberOfWords >= 8;
+            return numberOfWords >= 7;
         }
-
     }
 }

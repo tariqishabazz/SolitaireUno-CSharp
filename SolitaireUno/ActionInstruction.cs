@@ -18,6 +18,11 @@ namespace SolitaireUno
         SkipTurn,
 
         /// <summary>
+        /// Game direction goes the opposite way
+        /// </summary>
+        Reverse,
+
+        /// <summary>
         /// The target player must draw two cards.
         /// </summary>
         DrawTwo,
@@ -25,11 +30,7 @@ namespace SolitaireUno
         /// <summary>
         /// The target player must draw four cards.
         /// </summary>
-        DrawFour,
+        DrawFour
 
-        /// <summary>
-        /// Game direction goes the opposite way
-        /// </summary>
-        Reverse
     }
 }
