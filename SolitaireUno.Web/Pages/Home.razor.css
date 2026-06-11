@@ -287,9 +287,9 @@ footer.player-zone div.d-flex{
 }
 
 
-.radial-fan {
+.radinal-fan {
     /* 1. Find the center and distance from center */
-    --middle: calc((var(--total) - 1) / 2);
+    --middle: calc((nvar(--total) - 1) / 2);
     --offset: calc(var(--index) - var(--middle));
     /* 2. Constrain the total fan angle */
     --max-angle: 40deg;

@@ -25,6 +25,11 @@ namespace SolitaireUno
         /// <summary>
         /// The target player must draw four cards.
         /// </summary>
-        DrawFour
+        DrawFour,
+
+        /// <summary>
+        /// Game direction goes the opposite way
+        /// </summary>
+        Reverse
     }
 }

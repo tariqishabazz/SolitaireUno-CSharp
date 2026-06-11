@@ -87,10 +87,8 @@ namespace SolitaireUno
         {
             IEnumerable<RegularCard> allPlayersRegularCards = Hand.OfType<RegularCard>();
 
-            var sortedSuitsAndValues = (from RegularCard regularCard in allPlayersRegularCards
-                                        orderby regularCard.Suit, regularCard.Value
-                                        select regularCard).ToList();
-
+            IOrderedEnumerable<RegularCard> sortedSuitsAndValues = allPlayersRegularCards.OrderBy(card => card.Suit)
+                                                             .ThenBy(card => card.Value);
 
             var sortedSpecials = AllSortedSpecialCards();
 

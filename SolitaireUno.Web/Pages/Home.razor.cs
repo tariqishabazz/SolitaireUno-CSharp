@@ -238,6 +238,8 @@ namespace SolitaireUno.Web.Pages
 
                     case SpecialCardType.Skip:
                         return $"images/cards/{selectedCardColor}_skip.png";
+                    
+                    
                 }
             }
             return $"images/cards/{selectedCardColor}_backing.png";
@@ -258,7 +260,7 @@ namespace SolitaireUno.Web.Pages
                     gameEngine?.AllPlayers[0].SortHandBySuit();
                     break;
 
-                case "Both Suits and Values":
+                case "By Suits, then Values":
                     gameEngine?.AllPlayers[0].SortHandBySuitAndValue();
                     break;
 
