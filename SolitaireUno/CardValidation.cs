@@ -24,7 +24,7 @@ namespace SolitaireUno
             // check to see if we're enforcing suits. If we are, make sure
             // they're not the same color. If we aren't, it's still valid regardless. 
             if (IsSameValue(firstCard, secondCard))
-                return gameSettings.SuitsEnforced ? NotSameColor(firstCard, secondCard) : true;
+                return !gameSettings.SuitsEnforced || NotSameColor(firstCard, secondCard);
 
 
             int potentialCardValue = (int)firstCard.Value;
@@ -59,7 +59,7 @@ namespace SolitaireUno
             if (!isValidSequence)
                 return false;
 
-            return gameSettings.SuitsEnforced ? NotSameColor(firstCard, secondCard) : true;
+            return !gameSettings.SuitsEnforced || NotSameColor(firstCard, secondCard);
         }
 
         /// <summary>
@@ -89,9 +89,9 @@ namespace SolitaireUno
         /// <summary>
         /// Handles Ace/King wrap-around. For Descending mode, King follows Ace; for Ascending mode, Ace follows King.
         /// </summary>
-        private static bool IsWrapAround(Card potentalPlay, Card currentlyShown, GameMode gameMode)
+        private static bool IsWrapAround(Card potentialPlay, Card currentlyShown, GameMode gameMode)
         {
-            if (potentalPlay is RegularCard potentialCard && currentlyShown is RegularCard currentCard)
+            if (potentialPlay is RegularCard potentialCard && currentlyShown is RegularCard currentCard)
             {
                 if (gameMode == GameMode.Descending)
                     return potentialCard.Value == Values.King && currentCard.Value == Values.Ace;
@@ -125,7 +125,7 @@ namespace SolitaireUno
         /// <param name="secondRegularCard"></param>
         /// <returns></returns>
         public static bool IsSameSuit(RegularCard firstRegularCard, RegularCard secondRegularCard) => firstRegularCard.Suit == secondRegularCard.Suit;
-                
+
 
         /// <summary>
         /// Returns true when the two regular cards are of the same value.
@@ -134,6 +134,6 @@ namespace SolitaireUno
         /// <param name="secondRegularCard"></param>
         /// <returns></returns>
         public static bool IsSameValue(RegularCard firstRegularCard, RegularCard secondRegularCard) => firstRegularCard.Value == secondRegularCard.Value;
-        
+
     }
 }

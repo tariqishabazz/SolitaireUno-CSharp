@@ -140,7 +140,7 @@ namespace SolitaireUno.Web.Pages
             if (!string.IsNullOrEmpty(humanTurnResult.message))
                 await UpdateMessageAndUI(humanTurnResult.message);
 
-            if (LongUIMessage(humanTurnResult.message))
+            if (LongUIMessage(humanTurnResult.message) && gameOverMessage != string.Empty)
                 await Task.Delay(5000);
 
             if (!humanTurnResult.successfulDecision)
@@ -174,13 +174,13 @@ namespace SolitaireUno.Web.Pages
                     if (!string.IsNullOrEmpty(message))
                         await UpdateMessageAndUI(message);
 
-                    if (LongUIMessage(message))
+                    if (LongUIMessage(message) && gameOverMessage != string.Empty)
                         await Task.Delay(5000);
 
                     if (!successfulDecision)
                         return;
                 }
-                
+
                 // Check if a computer player has just won
                 winner = ShowWinCondition();
                 if (winner is not null)
@@ -231,7 +231,7 @@ namespace SolitaireUno.Web.Pages
                 switch (specialCard.CardType)
                 {
                     case SpecialCardType.DrawFour:
-                        return $"images/cards/drawfour.png";
+                        return $"images/cards/draw_four.png";
 
                     case SpecialCardType.DrawTwo:
                         return $"images/cards/{selectedCardColor}_draw_two.png";
@@ -361,11 +361,12 @@ namespace SolitaireUno.Web.Pages
                 // if character is a space, add previous index elements to form word in new string
                 if (char.IsWhiteSpace(message[character]))
                 {
+                    currentSentence.Append(message[character]);
                     numberOfWords++;
                 }
             }
 
-            return numberOfWords > 7;
+            return numberOfWords >= 8;
         }
 
     }

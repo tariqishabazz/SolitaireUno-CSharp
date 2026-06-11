@@ -19,29 +19,20 @@ namespace SolitaireUno
 
         public int ReshuffleCount
         {
-            get { return _reshuffleCount; }
-            set { _reshuffleCount = value; }
+            get => _reshuffleCount; set => _reshuffleCount = value;
         }
 
         public Stack<Card> DiscardPile
         {
-            get { return _discardPile; }
-            set { _discardPile = value; }
+            get => _discardPile; set => _discardPile = value;
         }
 
         public List<Card> GameDeck
         {
-            get { return _gameDeck; }
-            set { _gameDeck = value; }
+            get => _gameDeck; set => _gameDeck = value;
         }
 
-        public GameMode CurrentGameMode
-        {
-            get
-            {
-                return _currentGameMode;
-            }
-        }
+        public GameMode CurrentGameMode => _currentGameMode;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Deck"/> class and inserts the penalty card into the deck.
@@ -69,7 +60,7 @@ namespace SolitaireUno
 
             // ------------------ PENALTY CARD MANIPULATION ----------------- //
 
-            List<RegularCard> penaltyCards = [ new(Suits.Spades, Values.Queen), new(Suits.Spades, Values.Ace) ];
+            List<RegularCard> penaltyCards = [new(Suits.Spades, Values.Queen), new(Suits.Spades, Values.Ace)];
 
             _gameDeck.RemoveAll(card => card is RegularCard regularCard && penaltyCards.Any(penaltyCard => regularCard.IsEqual(penaltyCard)));
 
@@ -184,7 +175,7 @@ namespace SolitaireUno
         {
             if (DiscardPile.Count > 1 && DiscardPile.TryPop(out Card? pulledCard))
                 return pulledCard;
-            
+
             return null;
         }
 

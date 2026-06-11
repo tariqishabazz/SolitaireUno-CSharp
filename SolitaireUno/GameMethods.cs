@@ -99,7 +99,8 @@ namespace SolitaireUno
         public static string? ProcessDraw(int drawAmount, Player unfortunateSoul, Deck gameDeck, List<RegularCard> penaltyCards)
         {
             bool penaltyCardSpotted = false;
-            int awardedPenalty = 0;
+            int awardedPenaltyCount = 0;
+
             Card? drewCard = null;
 
             for (int i = 0; i < drawAmount; i++)
@@ -109,12 +110,14 @@ namespace SolitaireUno
                 if (drawnCard is null)
                     break;
 
-                awardedPenalty = GetPenaltyCount(drawnCard, penaltyCards);
+                int awardedPenalty = GetPenaltyCount(drawnCard, penaltyCards);
 
                 if (awardedPenalty > 0)
                 {
+                    awardedPenaltyCount = awardedPenalty;
+
                     penaltyCardSpotted = true;
-                    
+
                     drewCard = drawnCard;
 
                     for (int j = 0; j < awardedPenalty; j++)
@@ -135,9 +138,9 @@ namespace SolitaireUno
                 return null;
 
             if (unfortunateSoul is Computer)
-                return $" During the draw, {unfortunateSoul.Name} picked up the {drewCard}. Along with the normal draw, they will recieve {awardedPenalty} additional card(s).";
+                return $" During the draw, {unfortunateSoul.Name} picked up the {drewCard}. Along with the normal draw, they will receive {awardedPenaltyCount} additional card(s).";
             else
-                return $" During the draw, {unfortunateSoul.Name} picked up the {drewCard}. Along with the normal draw, you will recieve {awardedPenalty} additional card(s).";
+                return $" During the draw, you picked up the {drewCard}. Along with the normal draw, you will receive {awardedPenaltyCount} additional card(s).";
         }
     }
 }
