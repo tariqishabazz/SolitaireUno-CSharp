@@ -25,7 +25,7 @@ namespace SolitaireUno
 
             if (playerDecision.Equals("gimmeTheLastDiscard", StringComparison.OrdinalIgnoreCase))
             {
-                if(deck.Length() > 0 || deck.ReshuffleCount < maxReshufflesGranted)
+                if (deck.Length() > 0 || deck.ReshuffleCount < maxReshufflesGranted)
                     return (false, $"No reversing while deck has cards/can be reshuffled!", null);
 
                 Card? lastDiscardedCard = deck.ReverseDiscard();
@@ -33,7 +33,7 @@ namespace SolitaireUno
                 if (lastDiscardedCard is null)
                     return (false, $"You cannot pull the only card in the discard pile!", null);
 
-                if(deck.DiscardPile.TryPeek(out Card? previousCard))
+                if (deck.DiscardPile.TryPeek(out Card? previousCard))
                 {
                     currentGameState.VisualCard = previousCard;
                     currentGameState.LogicCard = deck.DiscardPile.FirstOrDefault(card => card is RegularCard) ?? previousCard;
@@ -133,7 +133,7 @@ namespace SolitaireUno
                     actualPickupCount++;
                 }
 
-                return (true, $"You decided to pick up and found the {card}! You picked up {actualPickupCount} additional cards!", null);
+                return (true, $"You decided to pick up and found the {card}! You picked up {actualPickupCount} additional cards(s)!", null);
             }
 
             return (true, "You decided to pick up!", null);
@@ -149,8 +149,8 @@ namespace SolitaireUno
             if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count) // IF DECISION ISNT WITHIN RANGE OF CARDS
                 return null;
 
-                if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog)) // IF DECISION ISNT A VALID MOVE
-                    return null;
+            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog)) // IF DECISION ISNT A VALID MOVE
+                return null;
 
             return potentialCard;
         }
