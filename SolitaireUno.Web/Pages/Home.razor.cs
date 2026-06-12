@@ -139,7 +139,7 @@ namespace SolitaireUno.Web.Pages
             if (!string.IsNullOrEmpty(humanTurnResult.message))
                 await UpdateMessageAndUI(humanTurnResult.message);
 
-            if (LongUIMessage(humanTurnResult.message) && gameOverMessage != string.Empty)
+            if (LongUIMessage(humanTurnResult.message) && gameOverMessage != "")
                 await Task.Delay(5000);
 
             if (!humanTurnResult.successfulDecision)
@@ -173,7 +173,7 @@ namespace SolitaireUno.Web.Pages
                     if (!string.IsNullOrEmpty(message))
                         await UpdateMessageAndUI(message);
 
-                    if (LongUIMessage(message) && gameOverMessage != string.Empty)
+                    if (LongUIMessage(message) && gameOverMessage != "")
                         await Task.Delay(5000);
 
                     if (!successfulDecision)

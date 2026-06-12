@@ -88,11 +88,11 @@
         
             <aside class="table-sidebar">
                 <div class="game-name-and-uptime">
-                    <h2 class="title mt-2" style=" color: #fff">Solitaire Uno</h2>
-                    <h4 class="uptimer text-danger mb-3 text-light">
+                    <h2 class="title" style=" color: #fff">SolitaireUno</h2>
+                    <h5 class="uptimer text-danger mb-3 text-light">
 						Game Uptime: @_gameUptime.ToString(@"hh\:mm\:ss")
                         
-                    </h4>
+                    </h5>
                     <hr class="text-white" />
                 </div>
 
@@ -176,24 +176,7 @@
                 @actionLog
             </div>
 
-            <div class="game-over-message @(string.IsNullOrEmpty(gameOverMessage) ? "d-none" : "")">
-                @if (gameOverMessage != "")
-                {
-                    <h3 class="text-success mt-4">
-                        @gameOverMessage
-                    </h3>
-
-                    <button class="btn mt-3 px-4 text-light"
-                            @onclick='() => StartNewGame()'>
-                        Play Again
-                    </button>
-
-                    <button class="btn mt-3 px-4 text-light"
-                            @onclick='() => gameStarted = false'>
-                        Main Menu
-                    </button>
-                }
-            </div>
+         
 
             
 
@@ -236,10 +219,33 @@
 
                 <footer class="player-zone">
                     <div class="player-controls">
-                        <button class="btn btn-outline-light px-4"
-                                @onclick='() => PlayTurn("pass")'>
-                            Pass Turn
-                        </button>
+                        
+                        @if(gameOverMessage == "")
+                        {
+                           <button class="btn btn-outline-light px-4" @onclick='() => PlayTurn("pass")'>
+                                Pass Turn
+                            </button>
+                        }
+                        
+                        else
+                        {
+                            <div class="game-over-message">
+                                    <h3 class="text-success mt-4">
+                                        @gameOverMessage
+                                    </h3>
+
+                                    <button class="btn mt-3 px-4 text-light"
+                                            @onclick='() => StartNewGame()'>
+                                        Play Again
+                                    </button>
+
+                                    <button class="btn mt-3 px-4 text-light"
+                                            @onclick='() => gameStarted = false'>
+                                        Main Menu
+                                    </button>
+                            </div>
+                        }
+
 
                         <h4 class="mt-4 text-white">
                             Your Hand ~ @gameEngine?.AllPlayers[0].Hand.Count card(s)
@@ -256,18 +262,13 @@
                             int totalCards = gameEngine?.AllPlayers[0].Hand.Count ?? 1;
 
                             <div @key="card" class="card-draw-wrapper animate-draw" >
+                                <div class="radial-card-fan @(totalCards >=12 ? "flat-card-fan" : "") mb-3" style="--index: @i; --total: @totalCards">
 
-                                <div class="radial-fan"
-									 style="--index: @i; --total: @totalCards">
-
-                                        <div class="solitaire-card"
-                                        @onclick='() => PlayTurn(buttonIndex.ToString())'>
+                                        <div class="solitaire-card" @onclick='() => PlayTurn(buttonIndex.ToString())'>
                                             <img src="@GetCardImagePath(card)" alt="@card?.ToString()" />
                                         </div>
 
                                  </div>
-                            
-                                
                             </div>
                         }
 

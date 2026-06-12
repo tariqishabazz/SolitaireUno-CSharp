@@ -16,7 +16,6 @@ body {
 .game-setup-screen {
     max-width: 500px;
     border-radius: 15px;
-
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -30,7 +29,6 @@ body {
 .solitaire-card {
     height: clamp(100px, 20vh, 200px);
     width: auto;
-    
     aspect-ratio: 2/3;
     contain: layout paint; /* Prevents visual card changes from reflowing the entire DOM */
 
@@ -43,15 +41,15 @@ body {
     transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Card image filling behavior: keeps aspect, fills box and applies a small scale to hide seams */
-.solitaire-card > img {
-    width: 100%;
-    height: 100%;
-    object-fit: fill;
-    display: block;
-    image-rendering: pixelated;
-    transform: scale(1.02); /* slight zoom to prevent 1px border artifacts */
-}
+    /* Card image filling behavior: keeps aspect, fills box and applies a small scale to hide seams */
+    .solitaire-card > img {
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+        display: block;
+        image-rendering: pixelated;
+        transform: scale(1.02); /* slight zoom to prevent 1px border artifacts */
+    }
 
 /* Deck image uses a slightly larger scale so the deck looks layered */
 .solitaire-deck > img {
@@ -70,7 +68,6 @@ body {
 .solitaire-deck {
     height: clamp(100px, 20vh, 200px);
     aspect-ratio: 2/3;
-
     border-radius: 8px;
     border: 4px solid white;
     box-shadow: -1px -1px 0 #aaa, -2px -2px 0 #fff, -3px -3px 0 #aaa, -4px -4px 0 #fff, -5px -5px 0 #aaa;
@@ -79,9 +76,9 @@ body {
     transition: transform 0.1s;
 }
 
-.solitaire-deck:active {
-    transform: translate(-3px, -3px);
-}
+    .solitaire-deck:active {
+        transform: translate(-3px, -3px);
+    }
 
 /* ======================================================================
    Table layout
@@ -102,20 +99,24 @@ body {
     gap: 1rem;
 }
 
-.solitaire-table .game-stats{
-
-}
+    .solitaire-table .game-stats {
+    }
 
 .table-sidebar {
-    width: 280px;
+    width: 300px;
     flex-shrink: 0; /* Prevents sidebar from squishing */
     justify-content: start;
     overflow: hidden;
+    margin-left: 40px;
+    background: rgba(255, 255, 255, 0.1); /* semi-transparent white */
+    border: 4px inset rgba(50, 28, 164, 1);
+    padding: 20px;
+    border-radius: 20px;
 }
 
-.table-sidebar .game-info {
-    text-align: left;
-}
+    .table-sidebar .game-info {
+        text-align: left;
+    }
 
 /* ======================================================================
    Message row
@@ -132,7 +133,7 @@ body {
     font-weight: bolder;
 }
 
-.solitaire-table .game-over-message{
+.solitaire-table .game-over-message {
     grid-area: GameOverMessage;
     display: flex;
     justify-content: center;
@@ -142,7 +143,6 @@ body {
     padding: 0.5rem 0;
     font-weight: bolder;
 }
-
 
 /* ======================================================================
    Player / Opponent zones
@@ -167,13 +167,11 @@ body {
     padding-bottom: env(safe-area-inset-bottom, 3dvh);
 }
 
-.player-controls{
+.player-controls {
     flex-shrink: 0;
 }
 
-
-.card-scroller{
-
+.card-scroller {
 }
 
 .active-play-area {
@@ -190,7 +188,7 @@ body {
     transform: scale(0.85);
 }
 
-footer.player-zone div.d-flex{
+footer.player-zone div.d-flex {
     gap: 0;
     padding-left: 40px;
 }
@@ -198,7 +196,7 @@ footer.player-zone div.d-flex{
 /* Card overlap wrapper: provides overlap layout and hover behavior */
 .card-draw-wrapper {
     position: relative;
-    margin-left: -25px;
+    margin-left: -20px;
     margin-right: -25px;
 }
 
@@ -212,21 +210,21 @@ footer.player-zone div.d-flex{
     margin-bottom: 30px;
 }
 
-/* Bring hovered stack to front */
-.player-zone .card-draw-wrapper:hover {
-    z-index: 10;
-}
+    /* Bring hovered stack to front */
+    .player-zone .card-draw-wrapper:hover {
+        z-index: 10;
+    }
 
-/* Lift the inner card when its wrapper is hovered */
-.player-zone .card-draw-wrapper:hover .solitaire-card {
-    transform: translateY(-20px);
-    box-shadow: 4px 10px 15px rgba(0,0,0,0.4);
-}
+        /* Lift the inner card when its wrapper is hovered */
+        .player-zone .card-draw-wrapper:hover .solitaire-card {
+            transform: translateY(-20px);
+            box-shadow: 4px 10px 15px rgba(0,0,0,0.4);
+        }
 
-/* Keep inner card margins at 0 so it stays centered inside its wrapper */
-.player-zone .solitaire-card {
-    margin: 0px;
-}
+    /* Keep inner card margins at 0 so it stays centered inside its wrapper */
+    .player-zone .solitaire-card {
+        margin: 0px;
+    }
 
 /* ======================================================================
    HUD / Opponent box
@@ -250,12 +248,11 @@ footer.player-zone div.d-flex{
     min-width: 0;
 }
 
-.opponent-hud .card-count {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #ffd700;
-}
-
+    .opponent-hud .card-count {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #ffd700;
+    }
 
 .game-board-column {
     display: flex;
@@ -264,7 +261,6 @@ footer.player-zone div.d-flex{
     justify-content: space-between;
 }
 
-
 /* ======================================================================
    Player action button styles
    Purpose: generic styling for player-zone buttons. A duplicate of these
@@ -272,14 +268,13 @@ footer.player-zone div.d-flex{
    rules consolidated here to avoid maintenance errors.
    ====================================================================== */
 
-.solitaire-table .game-over-message{
-
+.solitaire-table .game-over-message {
 }
 
-.solitaire-table .game-over-message .btn {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-}
+    .solitaire-table .game-over-message .btn {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
 
 .solitaire-table .btn:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -287,30 +282,25 @@ footer.player-zone div.d-flex{
     border: 2px dotted orange;
 }
 
-
-.radial-fan {
+.radial-card-fan {
     /* 1. Find the center and distance from center */
-    --middle: calc((nvar(--total) - 1) / 2);
+    --middle: calc((var(--total) - 1) / 2);
     --offset: calc(var(--index) - var(--middle));
-    
     /* 2. Constrain the total fan angle */
     --max-angle: 40deg;
     --angle-per-card: calc(var(--max-angle) / var(--total));
-    
     /* 3. THE TRUE CURVE: Squaring the offset creates a smooth, quadratic parabola */
-    --y-drop: calc(var(--offset) * var(--offset) * .7px);
-    
+    --y-drop: calc(var(--offset) * var(--offset) * 1.5px);
     /* 4. THE GPU FIX: translateZ(0) forces hardware acceleration to preserve image quality */
     transform: rotate(calc(var(--offset) * var(--angle-per-card))) translateY(var(--y-drop));
     transform-origin: bottom center;
     transition: transform 2.0s cubic-bezier(0.2, 0.8, 0.2, 1);
     box-shadow: 0 0 1px transparent;
 }
-    
 
-
-
-
+.radial-fan.flat-fan {
+    transform: rotate(0deg) translateY(0px);
+}
 
 /* ======================================================================
    Animations
@@ -350,4 +340,3 @@ footer.player-zone div.d-flex{
 .animate-play {
     animation: playToTable 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
-
