@@ -27,7 +27,7 @@ namespace SolitaireUno
             // Computer has no valid play available
             if (potentialComputerPlay is null)
             {
-                int maxAllowedReshuffles = currentGameSettings.Mode is GameMode.Both ? 3 : 1;
+                int maxAllowedReshuffles = currentGameSettings.Mode is GameMode.Both ? 2 : 1;
 
                 if (_deck.Length() > 0 || _deck.Length() == 0 && (_deck.ReshuffleCount < maxAllowedReshuffles))
                     return HandlePickup(currentComputerPlayer, penaltyCards);
@@ -117,43 +117,21 @@ namespace SolitaireUno
         /// a value indicating whether the move was successful.</returns>
         private (string message, Card? playedCard, bool successfulMove) HandlePickup(Player currentComputerPlayer, List<RegularCard> penaltyCards)
         {
-            Card card = _deck.DealCard()!;
-            currentComputerPlayer.PickupCard(card);
+            var (drawnCard, penaltyCount, actualPenaltyCardsDealt) = PickupProcessor.ProcessPickup(_deck, currentComputerPlayer, penaltyCards);
 
-            // ------------- HANDLES POTENTIAL PENALTY --------------- //
+            if (drawnCard is null)
+                return (message: $"{currentComputerPlayer.Name} couldn't pick up, deck is empty!", playedCard: null, successfulMove: true);
 
-            return HandlePotentialPenalty(currentComputerPlayer, card, penaltyCards);
+            return HandlePotentialPenalty(currentComputerPlayer, drawnCard, penaltyCount, actualPenaltyCardsDealt);
         }
 
-        /// <summary>
-        /// Handles a computers pickup from deck and deals additional card if a penalty card was found.
-        /// </summary>
-        /// <param name="currentComputerPlayer"></param>
-        /// <param name="card"></param>
-        /// <param name="penaltyCards"></param>
-        /// <returns></returns>
-        private (string message, Card? playedCard, bool successfulMove) HandlePotentialPenalty(Player currentComputerPlayer, Card card, List<RegularCard> penaltyCards)
+        private (string message, Card? playedCard, bool successfulMove) HandlePotentialPenalty(Player currentComputerPlayer, Card card, int penaltyCount, int actualPenaltyCardsDealt)
         {
-            int computerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCards);
-
             // NO PENALTY, NORMAL PICKUP
-            if (computerPotentialPenaltyCount == 0)
+            if (penaltyCount == 0)
                 return (message: $"{currentComputerPlayer.Name} decided to pick up!", playedCard: null, successfulMove: true);
 
-            int actualPickupCount = 0;
-
-            for (int i = 0; i < computerPotentialPenaltyCount; i++)
-            {
-                Card? additionalPenaltyCard = _deck.DealCard();
-
-                if (additionalPenaltyCard is not null)
-                {
-                    currentComputerPlayer.PickupCard(additionalPenaltyCard);
-                    actualPickupCount++;
-                }
-            }
-
-            return (message: $"{currentComputerPlayer.Name} decided to pick up and found the {card}! They picked up {actualPickupCount} additional card(s)!", playedCard: null, successfulMove: true);
+            return (message: $"{currentComputerPlayer.Name} decided to pick up and found the {card}! They picked up {actualPenaltyCardsDealt} additional card(s)!", playedCard: null, successfulMove: true);
         }
     }
 }

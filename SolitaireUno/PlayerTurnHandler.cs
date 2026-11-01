@@ -103,28 +103,13 @@ namespace SolitaireUno
         /// the card played, if any. The played card is always null in this context.</returns>
         public (bool sucessfulMove, string message, Card? playedCard) HandlePickup(List<RegularCard> penaltyCards)
         {
-            Card card = deck.DealCard()!;
-            player.PickupCard(card);
+            var (drawnCard, penaltyCount, actualPenaltyCardsDealt) = PickupProcessor.ProcessPickup(deck, player, penaltyCards);
 
-            int playerPotentialPenaltyCount = GameMethods.GetPenaltyCount(card, penaltyCards);
+            if (drawnCard is null)
+                return (true, "The deck is empty! You must pass.", null);
 
-            if (playerPotentialPenaltyCount > 0)
-            {
-                int actualPickupCount = 0;
-
-                for (int i = 0; i < playerPotentialPenaltyCount; i++)
-                {
-                    Card? additionalPenaltyCard = deck.DealCard();
-
-                    if (additionalPenaltyCard is null)
-                        break;
-
-                    player.PickupCard(additionalPenaltyCard);
-                    actualPickupCount++;
-                }
-
-                return (true, $"You decided to pick up and found the {card}! You picked up {actualPickupCount} additional cards(s)!", null);
-            }
+            if (penaltyCount > 0)
+                return (true, $"You decided to pick up and found the {drawnCard}! You picked up {actualPenaltyCardsDealt} additional card(s)!", null);
 
             return (true, "You decided to pick up!", null);
         }
@@ -134,10 +119,10 @@ namespace SolitaireUno
             if (!int.TryParse(playerDecision, out int decisionAsNumber))
                 return null;
 
-            Card potentialCard = player.Hand[decisionAsNumber - 1];
-
             if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count)
                 return null;
+
+            Card potentialCard = player.Hand[decisionAsNumber - 1];
 
             if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog))
                 return null;

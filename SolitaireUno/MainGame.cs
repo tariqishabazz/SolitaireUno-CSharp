@@ -1,5 +1,3 @@
-﻿// MainGame.cs — orchestrates game flow, players, deck and turn advancement.
-
 namespace SolitaireUno
 {
     public class GameState
@@ -28,10 +26,10 @@ namespace SolitaireUno
 
         internal PlayerTurnHandler _playerTurnHandler;
         internal ComputerTurnHandler _computerTurnHandler;
+        private readonly GameRules _gameRules;
 
         public GameSettings CurrentGameSettings { get; private set; }
         public GameState? CurrentState { get; private set; } = null;
-
 
         /// <summary>
         /// Initializes a new instance of <see cref="MainGame"/> with the provided deck and game settings.
@@ -41,27 +39,20 @@ namespace SolitaireUno
         public MainGame(Deck deck, GameSettings currentGameSettings)
         {
             CurrentGameSettings = currentGameSettings;
+            _gameRules = new GameRules(currentGameSettings);
 
-            Player humanPlayer = new()
-            {
-                Name = "Human"
-            };
-
+            Player humanPlayer = new() { Name = "Human" };
             AllPlayers.Add(humanPlayer);
 
             // Add computer players
             for (int i = 0; i < currentGameSettings.NumberOfPlayers; i++)
             {
-                Computer computerPlayer = new()
-                {
-                    Name = $"{RandomComputerNames[ i ]}"
-                };
-
+                Computer computerPlayer = new() { Name = $"{RandomComputerNames[ i ]}" };
                 AllPlayers.Add(computerPlayer);
             }
 
             // Initialize penalty cards and game deck
-            PenaltyCards = [new(Suits.Spades, Values.Ace), new(Suits.Spades, Values.Queen)];
+            PenaltyCards = [ new(Suits.Spades, Values.Ace), new(Suits.Spades, Values.Queen) ];
 
             GameDeck = deck;
 
@@ -70,29 +61,26 @@ namespace SolitaireUno
             _computerTurnHandler = new ComputerTurnHandler(GameDeck, CurrentGameSettings.Difficulty);
         }
 
-
         /// <summary>
         /// Starts the game by preparing the initial table card and setting the starting player turn.
         /// </summary>
         public void StartGame()
         {
-            Card initialCard = GameDeck.PreventInitialSpecialCard()!;
+            Card initialCard = new GameInitialization(GameDeck).PreventInitialSpecialCard()!;
 
             CurrentState = new GameState
             {
                 LogicCard = initialCard,
                 VisualCard = initialCard,
-
                 CurrentTurnIndex = 0,
                 ConsecutivePasses = 0,
                 PlayDirection = 1,
                 ConsecutivePickups = 0,
-
                 LeapFrogMode = false,
             };
 
             int maxNumberOfCardsToDeal = 21;
-            int startingHandSize = maxNumberOfCardsToDeal / AllPlayers.Count; // dividing from maxNumber so the deck isn't immediately depleted
+            int startingHandSize = maxNumberOfCardsToDeal / AllPlayers.Count;
 
             foreach (Player player in AllPlayers)
             {
@@ -109,7 +97,6 @@ namespace SolitaireUno
             GameDeck.ReshuffleCount = 0;
         }
 
-
         /// <summary>
         /// Advances the game by one turn, handling either the player or computer move.
         /// </summary>
@@ -117,11 +104,10 @@ namespace SolitaireUno
         /// <returns>A UI message and bool validation produced during the processed turn.</returns>
         public (string message, bool validDecision) AdvanceTurn(string playerDecision = "")
         {
-            bool turnSkipped = false;
             string uiMessage;
             int stepsToMove = 1;
 
-            Player currentPlayer = AllPlayers[CurrentState.CurrentTurnIndex];
+            Player currentPlayer = AllPlayers[ CurrentState!.CurrentTurnIndex ];
 
             if (CurrentState.LogicCard is null || CurrentState.VisualCard is null)
                 return (string.Empty, false);
@@ -130,40 +116,17 @@ namespace SolitaireUno
             if (currentPlayer is Computer computerPlayer)
             {
                 int computerHandAmountPreTurn = computerPlayer.Hand.Count;
-
                 int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
-                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer,
-                                                                                                PenaltyCards,
-                                                                                                AllPlayers[ nextPlayersIndex ],
-                                                                                                CurrentGameSettings,
-                                                                                                CurrentState);
+                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, PenaltyCards, AllPlayers[ nextPlayersIndex ], CurrentGameSettings, CurrentState);
                 uiMessage = message;
-
                 int computerHandAmountPostTurn = computerPlayer.Hand.Count;
 
                 // Monitor for stalemate conditions
-                StalemateMonitor(cardPlayed, computerHandAmountPreTurn, computerHandAmountPostTurn);
+                _gameRules.CheckStalemateConditions(cardPlayed, computerHandAmountPreTurn, computerHandAmountPostTurn, GameDeck.Length(), GameDeck.ReshuffleCount, CurrentState);
 
                 if (cardPlayed is not null)
-                {
-                    var (potentialPlayMessage, targetSkipped, isDirectionReversed) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard,
-                                                                                                                        turnSkipped,
-                                                                                                                        GameDeck,
-                                                                                                                        AllPlayers[ nextPlayersIndex ],
-                                                                                                                        PenaltyCards,
-                                                                                                                        AllPlayers.Count);
-
-                    if (!string.IsNullOrEmpty(potentialPlayMessage))
-                    {
-                        uiMessage += $"{potentialPlayMessage}";
-                    }
-
-                    if (isDirectionReversed)
-                        CurrentState.PlayDirection *= -1;
-
-                    stepsToMove = targetSkipped ? 2 : 1;
-                }
+                    (uiMessage, stepsToMove) = ProcessTurnResult(cardPlayed, nextPlayersIndex, uiMessage);
 
                 // Advance to next player (skip +1 if previous player was skipped)
                 CurrentState.CurrentTurnIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
@@ -175,40 +138,19 @@ namespace SolitaireUno
             else
             {
                 int playerHandAmountPreTurn = currentPlayer.Hand.Count;
-
                 int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
-                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(PenaltyCards,
-                                                                                        playerDecision,
-                                                                                        AllPlayers[ nextPlayersIndex ],
-                                                                                        CurrentGameSettings,
-                                                                                        CurrentState);
+                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(PenaltyCards, playerDecision, AllPlayers[ nextPlayersIndex ], CurrentGameSettings, CurrentState);
                 uiMessage = message;
-
                 int playerHandAmountPostTurn = currentPlayer.Hand.Count;
 
                 if (isSuccessful)
                 {
                     // Monitor for stalemate conditions
-                    StalemateMonitor(cardPlayed, playerHandAmountPreTurn, playerHandAmountPostTurn);
+                    _gameRules.CheckStalemateConditions(cardPlayed, playerHandAmountPreTurn, playerHandAmountPostTurn, GameDeck.Length(), GameDeck.ReshuffleCount, CurrentState);
 
                     if (cardPlayed is not null)
-                    {
-                        var (potentialPlayMessage, targetSkipped, isDirectionReversed) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard,
-                                                                                                                            turnSkipped,
-                                                                                                                            GameDeck,
-                                                                                                                            AllPlayers[ nextPlayersIndex ],
-                                                                                                                            PenaltyCards,
-                                                                                                                            AllPlayers.Count);
-
-                        if (!string.IsNullOrEmpty(potentialPlayMessage))
-                            uiMessage += $"{potentialPlayMessage}";
-
-                        if (isDirectionReversed)
-                            CurrentState.PlayDirection *= -1;
-
-                        stepsToMove = targetSkipped ? 2 : 1;
-                    }
+                        (uiMessage, stepsToMove) = ProcessTurnResult(cardPlayed, nextPlayersIndex, uiMessage);
 
                     CurrentState.CurrentTurnIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
                 }
@@ -218,22 +160,27 @@ namespace SolitaireUno
         }
 
         /// <summary>
-        /// Verifies whether all players passed a round, indicating a stalemate.
+        /// Processes the result of a turn: applies special card effects and determines next move distance.
         /// </summary>
-        /// <remarks>It turns on Leapfrog mode if so.</remarks>
-        /// <param name="cardPlayed">The card a player MIGHT have played</param>
-        private void StalemateMonitor(Card? cardPlayed, int handAmountPreTurn, int handAmountPostTurn)
+        /// <param name="cardPlayed">The card that was played.</param>
+        /// <param name="nextPlayersIndex">Index of the next player.</param>
+        /// <param name="currentMessage">The current UI message to append effects to.</param>
+        /// <returns>Updated message and steps to move for the next turn advancement.</returns>
+        private (string message, int stepsToMove) ProcessTurnResult(Card cardPlayed, int nextPlayersIndex, string currentMessage)
         {
-            bool isDeckDead = GameDeck.Length() == 0
-                              && GameDeck.ReshuffleCount >= (CurrentGameSettings.Mode == GameMode.Both ? 2 : 1);
+            var (potentialPlayMessage, targetSkipped, isDirectionReversed) = SpecialEffectHandler.ApplyEffect(CurrentState!.VisualCard, false, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCards, AllPlayers.Count);
 
-            CurrentState.ConsecutivePasses = (cardPlayed is null && isDeckDead) ? CurrentState.ConsecutivePasses + 1 : 0;
-            CurrentState.ConsecutivePickups = (cardPlayed is null && handAmountPreTurn < handAmountPostTurn) ? CurrentState.ConsecutivePickups + 1 : 0;
+            string updatedMessage = currentMessage;
 
-            // LEAPFROG WILL TURN ON IF...
-            // 1) THE DECK IS EMPTY AND CAN'T BE RESHUFFLED AND ALL PLAYERS PASS OR...
-            // 2) IF ALL PLAYERS REPEATEDLY PICKUP FOR 3 ROUNDS, HENCE * 3
-            CurrentState.LeapFrogMode = CurrentState.ConsecutivePasses >= AllPlayers.Count || CurrentState.ConsecutivePickups >= (AllPlayers.Count * 3);
+            if (!string.IsNullOrEmpty(potentialPlayMessage))
+                updatedMessage += $"{potentialPlayMessage}";
+
+            if (isDirectionReversed)
+                CurrentState.PlayDirection *= -1;
+
+            int stepsToMove = targetSkipped ? 2 : 1;
+
+            return (updatedMessage, stepsToMove);
         }
 
         /// <summary>
@@ -247,12 +194,7 @@ namespace SolitaireUno
         private static int GetNextPlayerIndex(int currentIndex, int stepsToMove, int direction, int totalPlayers)
         {
             int nextPlayersIndex = (currentIndex + (stepsToMove * direction)) % totalPlayers;
-
             return nextPlayersIndex < 0 ? nextPlayersIndex + totalPlayers : nextPlayersIndex;
         }
     }
 }
-
-// Modulus Help: See how many times right value can go into left value
-// multiply the right value times the amount it can go into initial left value
-// subtract the product from the initial left number, answer is remainder

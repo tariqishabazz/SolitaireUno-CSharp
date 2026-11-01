@@ -60,46 +60,6 @@ namespace SolitaireUno
         }
 
         /// <summary>
-        /// True when the potential play's value is exactly one less than the shown card, or when a descending wrap-around applies.
-        /// </summary>
-        private static bool IsValidDescending(Card potentialPlay, Card currentlyShown)
-        {
-            if (potentialPlay is RegularCard potentialCard && currentlyShown is RegularCard currentCard)
-                if ((int)potentialCard.Value == (int)currentCard.Value - 1)
-                    return true;
-
-            return IsWrapAround(potentialPlay, currentlyShown, GameMode.Descending);
-        }
-
-        /// <summary>
-        /// True when the potential play's value is exactly one greater than the shown card, or when an ascending wrap-around applies.
-        /// </summary>
-        private static bool IsValidAscending(Card potentialPlay, Card currentlyShown)
-        {
-            if (potentialPlay is RegularCard potentialCard && currentlyShown is RegularCard currentCard)
-                if ((int)potentialCard.Value == (int)currentCard.Value + 1)
-                    return true;
-
-            return IsWrapAround(potentialPlay, currentlyShown, GameMode.Ascending);
-        }
-
-        /// <summary>
-        /// Handles Ace/King wrap-around. For Descending mode, King follows Ace; for Ascending mode, Ace follows King.
-        /// </summary>
-        private static bool IsWrapAround(Card potentialPlay, Card currentlyShown, GameMode gameMode)
-        {
-            if (potentialPlay is RegularCard potentialCard && currentlyShown is RegularCard currentCard)
-            {
-                if (gameMode == GameMode.Descending)
-                    return potentialCard.Value == Values.King && currentCard.Value == Values.Ace;
-
-                return potentialCard.Value == Values.Ace && currentCard.Value == Values.King;
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Returns true when the supplied card is a special card.
         /// </summary>
         public static bool IsSpecialCard(Card potentialPlay) => potentialPlay is SpecialCard;
