@@ -1,4 +1,4 @@
-﻿// Computer.cs — AI player logic for selecting a move based on game settings.
+﻿// AI player logic for selecting a move based on game settings and board state.
 
 namespace SolitaireUno
 {
@@ -38,9 +38,7 @@ namespace SolitaireUno
             if (totalValidMoves == 0)
                 return null;
 
-            // ======= MAKES RANDOM EASY MOVE IN EASY MODE
-            //          WHILE STILL CONSIDERING DECK SIZE  ====== //
-
+            // Easy mode: make random moves while considering deck size
             if (currentGameSettings.Difficulty is GameDifficulty.Easy)
             {
                 if (currentDeckSize <= 15 && specialMoves.Count > 0)
@@ -59,12 +57,10 @@ namespace SolitaireUno
                 return randomIndex < regularMoves.Count ? regularMoves[randomIndex] : specialMoves[randomIndex - regularMoves.Count];
             }
 
-            // ======= CALCULATE PANIC THRESHOLD BASED ON DIFFICULTY ====== //
+            // Calculate panic threshold based on difficulty
             int panicThreshold = currentGameSettings.Difficulty == GameDifficulty.Hard ? 4 : 7;
 
-            // ======== CHANGE IF/WHEN ADDING NEW SPECIAL CARDS ======== //
-            // ============ IF DECK IS RUNNING LOW ========== //
-
+            // If deck is running low, prioritize penalty cards
             if (currentDeckSize <= 10 && specialMoves.Count > 0)
             {
                 Card? fallbackSpecial = null;
@@ -84,8 +80,7 @@ namespace SolitaireUno
                     return fallbackSpecial;
             }
 
-            // ======== IF OPPONENT'S HAND SIZE IS GETTING SMALLER ======= //
-
+            // If opponent's hand size is getting smaller, play special cards
             if (opponentHandSize <= panicThreshold)
             {
                 if (specialMoves.Count == 0)
@@ -98,8 +93,7 @@ namespace SolitaireUno
                 return specialMoves[Random.Shared.Next(specialMoves.Count)];
             }
 
-            // ========= IF NONE OF ABOVE, MAKE A RANDOM REGULAR/SPECIAL MOVE ======== //
-
+            // Otherwise, make a random valid move
             if (regularMoves.Count > 0)
                 return regularMoves[Random.Shared.Next(regularMoves.Count)];
 

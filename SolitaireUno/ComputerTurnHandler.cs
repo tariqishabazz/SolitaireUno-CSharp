@@ -24,8 +24,7 @@ namespace SolitaireUno
         {
             Card? potentialComputerPlay = currentComputerPlayer.MakeMove(currentGameState.LogicCard, nextPlayer.Hand.Count, _deck.Length(), currentGameSettings, currentGameState.LeapFrogMode);
 
-            // ----------------- IF COMPUTER HAS NO POTENTIAL PLAY ------------------ //
-
+            // Computer has no valid play available
             if (potentialComputerPlay is null)
             {
                 int maxAllowedReshuffles = currentGameSettings.Mode is GameMode.Both ? 3 : 1;
@@ -33,40 +32,37 @@ namespace SolitaireUno
                 if (_deck.Length() > 0 || _deck.Length() == 0 && (_deck.ReshuffleCount < maxAllowedReshuffles))
                     return HandlePickup(currentComputerPlayer, penaltyCards);
 
-                // =============== IF COMPUTER CAN'T PICKUP ============== //
+                // Computer cannot pick up, check for reverse discard option
                 else
                 {
-                    // CHECK IF DISCARD PILE HAS AT LEAST 2 CARDS
+                    // Check if discard pile has at least 2 cards to enable reverse
                     if (_deck.DiscardPile.Count > 1)
                     {
                         Card potentialDiscard = _deck.ReverseDiscard()!;
 
-                        // PEEK AT DISCARD PILE AFTER MOVING LAST DISCARD
+                        // Peek at discard pile after pulling the last card
                         if (_deck.DiscardPile.TryPeek(out Card? potentialFutureVisualCard))
                         {
-                            // STORE THE POTENTIAL FUTURE LOGIC CARD IF KEEPING PULLED DISCARD
+                            // Determine the logic card to validate against after pulling discard
                             Card potentialFutureLogicCard = _deck.DiscardPile.FirstOrDefault(card => card is RegularCard) ?? potentialFutureVisualCard;
 
-                            // THIS BOOL REPRESENTS WHETHER THE COMPUTER CAN
-                            // 1) PLAY ANOTHER CARD CURRENTLY IN THEIR HAND AGAINST THE FUTURE LOGICAL CARD
+                            // Check if computer can play a card in their hand against the future logical card
                             bool iCanPlayCardInHand = currentComputerPlayer.Hand.Any(card => CardValidation.ValidCard(card, potentialFutureLogicCard, currentGameSettings, currentGameState.LeapFrogMode));
 
-                            // IF THE COMPUTER CAN PLAY, UPDATE THE GAME CARDS
+                            // If the computer can play, update the game state cards
                             if (iCanPlayCardInHand)
                             {
                                 currentGameState.VisualCard = potentialFutureVisualCard;
                                 currentGameState.LogicCard = potentialFutureLogicCard;
 
-                                // ADD THE PULLED DISCARD TO THEIR HAND
+                                // Add the pulled discard to their hand
                                 currentComputerPlayer.Hand.Add(potentialDiscard);
 
-                                // RETURN MESSAGE
                                 return (message: $"Reverse Reverse! {currentComputerPlayer.Name} pulled a card, showing the {currentGameState.LogicCard}", playedCard: null, successfulMove: true);
                             }
                         }
 
-                        // IF WE HAVEN'T RETURNED AT THIS POINT,
-                        // THE COMPUTER'S STRATEGY DIDN'T WORK, SO STORE THE CARD BACK IN THE PILE
+                        // Reverse strategy failed, restore the card to the discard pile
                         _deck.AddToDiscardPile(potentialDiscard);
                     }
 
@@ -74,7 +70,7 @@ namespace SolitaireUno
                 }
             }
 
-            // ===================== COMPUTER HAS VALID PLAY ===================== //
+            // Computer has valid play available
             else
             {
                 currentGameState.VisualCard = potentialComputerPlay;
@@ -107,8 +103,6 @@ namespace SolitaireUno
                 return (message: $"{currentComputerPlayer.Name} decided to play: {potentialComputerPlay}!", playedCard: potentialComputerPlay, successfulMove: true);
             }
         }
-
-        // ======================== PRIVATE METHODS FOR PICKUP LOGIC ========================= //
 
         /// <summary>
         /// Handles the logic for a computer player to pick up a card in non-both game modes, applying any penalty cards

@@ -1,4 +1,4 @@
-﻿// Deck.cs — shuffled deck and draw/discard operations with reshuffle logic.
+﻿// Represents a shuffled deck of cards and provides draw/discard operations.
 
 namespace SolitaireUno
 {
@@ -41,8 +41,7 @@ namespace SolitaireUno
         {
             _currentGameMode = currentGameMode;
 
-            // -------------- ADDING THE 52 CARDS + SPECIAL CARDS -------------- //
-
+            // Add all regular cards (52 cards) and special cards
             foreach (Values value in Enum.GetValues<Values>())
                 foreach (Suits suit in Enum.GetValues<Suits>())
                     _gameDeck.Add(new RegularCard(suit, value));
@@ -55,12 +54,10 @@ namespace SolitaireUno
                     _gameDeck.Add(new SpecialCard(specialCard));
             }
 
-            // SHUFFLING
-
+            // Shuffle the deck
             InHouseShuffle();
 
-            // ------------------ PENALTY CARD MANIPULATION ----------------- //
-
+            // Insert penalty cards at controlled positions to ensure they are found during gameplay
             List<RegularCard> penaltyCards = [new(Suits.Spades, Values.Queen), new(Suits.Spades, Values.Ace)];
 
             _gameDeck.RemoveAll(card => card is RegularCard regularCard && penaltyCards.Any(penaltyCard => regularCard.IsEqual(penaltyCard)));
