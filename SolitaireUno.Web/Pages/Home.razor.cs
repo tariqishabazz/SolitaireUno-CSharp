@@ -65,10 +65,10 @@ namespace SolitaireUno.Web.Pages
         {
             get
             {
-                if (gameEngine is null)
+                if (gameEngine is null || gameEngine?.CurrentState is null)
                     return false;
 
-                return gameEngine?.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex].Name == "Human";
+                return gameEngine?.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name == "Human";
             }
         }
 
@@ -164,7 +164,8 @@ namespace SolitaireUno.Web.Pages
             {
                 aComputerIsThinking = true;
 
-                await UpdateMessageAndUI($"{gameEngine?.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex].Name} is thinking...");
+                if (gameEngine?.CurrentState is not null)
+                    await UpdateMessageAndUI($"{gameEngine?.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name} is thinking...");
 
                 if (gameEngine is not null)
                 {
@@ -239,22 +240,27 @@ namespace SolitaireUno.Web.Pages
         /// </summary>
         private void SortHand()
         {
-            switch (selectedSortMethod)
+            if (HumanPlayer is not null)
             {
-                case "Values":
-                    gameEngine?.AllPlayers[0].SortHandByValue();
-                    break;
+                PlayerHandSorter handSorter = new(HumanPlayer);
 
-                case "Suits":
-                    gameEngine?.AllPlayers[0].SortHandBySuit();
-                    break;
+                switch (selectedSortMethod)
+                {
+                    case "Values":
+                        handSorter.SortHandByValue();
+                        break;
 
-                case "By Suits, then Values":
-                    gameEngine?.AllPlayers[0].SortHandBySuitAndValue();
-                    break;
+                    case "Suits":
+                        handSorter.SortHandBySuit();
+                        break;
 
-                default:
-                    break;
+                    case "By Suits, then Values":
+                        handSorter.SortHandBySuitAndValue();
+                        break;
+
+                    default:
+                        break;
+                }
             }
         }
 
@@ -340,15 +346,15 @@ namespace SolitaireUno.Web.Pages
             for (int character = 0; character < message.Length; character++)
             {
                 // if character is not a space, keep adding to current word string until space is found
-                if (char.IsLetterOrDigit(message[character]) || char.IsPunctuation(message[character]))
+                if (char.IsLetterOrDigit(message[ character ]) || char.IsPunctuation(message[ character ]))
                 {
-                    currentSentence.Append(message[character]);
+                    currentSentence.Append(message[ character ]);
                 }
 
                 // if character is a space, add previous index elements to form word in new string
-                if (char.IsWhiteSpace(message[character]))
+                if (char.IsWhiteSpace(message[ character ]))
                 {
-                    currentSentence.Append(message[character]);
+                    currentSentence.Append(message[ character ]);
                     numberOfWords++;
                 }
             }

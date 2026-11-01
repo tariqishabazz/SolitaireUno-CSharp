@@ -84,8 +84,7 @@ namespace SolitaireUno
                 return (sucessfulMove: true, message: $"You played: {validCard} and skipped {nextPlayer.Name}!", playedCard: validCard);
             }
 
-            else if ((validCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour)
-                || (validCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
+            else if ((validCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (validCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
             {
                 return (true, $"You played: {validCard}, so {nextPlayer.Name} had to draw!", validCard);
             }
@@ -122,7 +121,7 @@ namespace SolitaireUno
             if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count)
                 return null;
 
-            Card potentialCard = player.Hand[decisionAsNumber - 1];
+            Card potentialCard = player.Hand[ decisionAsNumber - 1 ];
 
             if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog))
                 return null;

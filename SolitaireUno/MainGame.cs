@@ -72,7 +72,7 @@ namespace SolitaireUno
             {
                 LogicCard = initialCard,
                 VisualCard = initialCard,
-                CurrentTurnIndex = 0,
+                CurrentTurnIndex = Random.Shared.Next(4),
                 ConsecutivePasses = 0,
                 PlayDirection = 1,
                 ConsecutivePickups = 0,
@@ -107,58 +107,62 @@ namespace SolitaireUno
             string uiMessage;
             int stepsToMove = 1;
 
-            Player currentPlayer = AllPlayers[ CurrentState!.CurrentTurnIndex ];
-
-            if (CurrentState.LogicCard is null || CurrentState.VisualCard is null)
-                return (string.Empty, false);
-
-            // Process computer player's turn
-            if (currentPlayer is Computer computerPlayer)
+            if (CurrentState is not null)
             {
-                int computerHandAmountPreTurn = computerPlayer.Hand.Count;
-                int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
+                Player currentPlayer = AllPlayers[ CurrentState.CurrentTurnIndex ];
 
-                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, PenaltyCards, AllPlayers[ nextPlayersIndex ], CurrentGameSettings, CurrentState);
-                uiMessage = message;
-                int computerHandAmountPostTurn = computerPlayer.Hand.Count;
+                if (CurrentState.LogicCard is null || CurrentState.VisualCard is null)
+                    return (string.Empty, false);
 
-                // Monitor for stalemate conditions
-                _gameRules.CheckStalemateConditions(cardPlayed, computerHandAmountPreTurn, computerHandAmountPostTurn, GameDeck.Length(), GameDeck.ReshuffleCount, CurrentState);
-
-                if (cardPlayed is not null)
-                    (uiMessage, stepsToMove) = ProcessTurnResult(cardPlayed, nextPlayersIndex, uiMessage);
-
-                // Advance to next player (skip +1 if previous player was skipped)
-                CurrentState.CurrentTurnIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
-
-                return (uiMessage, successfulDecision);
-            }
-
-            // Process human player's turn
-            else
-            {
-                int playerHandAmountPreTurn = currentPlayer.Hand.Count;
-                int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
-
-                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(PenaltyCards, playerDecision, AllPlayers[ nextPlayersIndex ], CurrentGameSettings, CurrentState);
-                uiMessage = message;
-                int playerHandAmountPostTurn = currentPlayer.Hand.Count;
-
-                if (isSuccessful)
+                // Process computer player's turn
+                if (currentPlayer is Computer computerPlayer)
                 {
+                    int computerHandAmountPreTurn = computerPlayer.Hand.Count;
+                    int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
+
+                    var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, PenaltyCards, AllPlayers[ nextPlayersIndex ], CurrentGameSettings, CurrentState);
+                    uiMessage = message;
+                    int computerHandAmountPostTurn = computerPlayer.Hand.Count;
+
                     // Monitor for stalemate conditions
-                    _gameRules.CheckStalemateConditions(cardPlayed, playerHandAmountPreTurn, playerHandAmountPostTurn, GameDeck.Length(), GameDeck.ReshuffleCount, CurrentState);
+                    _gameRules.CheckStalemateConditions(cardPlayed, computerHandAmountPreTurn, computerHandAmountPostTurn, GameDeck.Length(), GameDeck.ReshuffleCount, CurrentState);
 
                     if (cardPlayed is not null)
                         (uiMessage, stepsToMove) = ProcessTurnResult(cardPlayed, nextPlayersIndex, uiMessage);
 
+                    // Advance to next player (skip +1 if previous player was skipped)
                     CurrentState.CurrentTurnIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
+
+                    return (uiMessage, successfulDecision);
                 }
 
-                return (uiMessage, isSuccessful);
-            }
-        }
+                // Process human player's turn
+                else
+                {
+                    int playerHandAmountPreTurn = currentPlayer.Hand.Count;
+                    int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
+                    var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(PenaltyCards, playerDecision, AllPlayers[ nextPlayersIndex ], CurrentGameSettings, CurrentState);
+                    uiMessage = message;
+                    int playerHandAmountPostTurn = currentPlayer.Hand.Count;
+
+                    if (isSuccessful)
+                    {
+                        // Monitor for stalemate conditions
+                        _gameRules.CheckStalemateConditions(cardPlayed, playerHandAmountPreTurn, playerHandAmountPostTurn, GameDeck.Length(), GameDeck.ReshuffleCount, CurrentState);
+
+                        if (cardPlayed is not null)
+                            (uiMessage, stepsToMove) = ProcessTurnResult(cardPlayed, nextPlayersIndex, uiMessage);
+
+                        CurrentState.CurrentTurnIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
+                    }
+
+                    return (uiMessage, isSuccessful);
+                }
+            }
+            else
+                throw new InvalidOperationException("The game's state did not render correctly.");
+        }
         /// <summary>
         /// Processes the result of a turn: applies special card effects and determines next move distance.
         /// </summary>
@@ -168,7 +172,7 @@ namespace SolitaireUno
         /// <returns>Updated message and steps to move for the next turn advancement.</returns>
         private (string message, int stepsToMove) ProcessTurnResult(Card cardPlayed, int nextPlayersIndex, string currentMessage)
         {
-            var (potentialPlayMessage, targetSkipped, isDirectionReversed) = SpecialEffectHandler.ApplyEffect(CurrentState!.VisualCard, false, GameDeck, AllPlayers[nextPlayersIndex], PenaltyCards, AllPlayers.Count);
+            var (potentialPlayMessage, targetSkipped, isDirectionReversed) = SpecialEffectHandler.ApplyEffect(CurrentState!.VisualCard, false, GameDeck, AllPlayers[ nextPlayersIndex ], PenaltyCards, AllPlayers.Count);
 
             string updatedMessage = currentMessage;
 

@@ -1,6 +1,6 @@
 ﻿namespace SolitaireUno
 {
-    internal class PlayerHandSorter(Player player)
+    public class PlayerHandSorter(Player player)
     {
         private readonly Player _player = player;
 

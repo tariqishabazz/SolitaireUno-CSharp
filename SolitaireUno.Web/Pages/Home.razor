@@ -102,7 +102,7 @@
                         <span class="badge rounded-pill text-start py-2 px-2" style="background-color: #0d6efd;">
                             Card Order: @gameEngine?.CurrentGameSettings.Mode
                             
-                            @if (gameEngine?.CurrentState.LeapFrogMode is true)
+                            @if (gameEngine?.CurrentState is not null && gameEngine?.CurrentState.LeapFrogMode is true)
                             {
                                 <text> (Leapfrog Active)</text>
                             }
@@ -140,7 +140,7 @@
                             Deck shuffled: @gameEngine?.GameDeck.ReshuffleCount/@(gameEngine?.CurrentGameSettings.Mode is GameMode.Both ? 2 : 1 ) time(s)
                         </span>
 
-                        @if(gameEngine?.CurrentState.LeapFrogMode == true)
+                        @if(gameEngine?.CurrentState is not null && gameEngine?.CurrentState.LeapFrogMode == true)
                         {
                             <span class="badge rounded-pill text-start py-2 px-2-" style="background-color: #dc3545;">
                                 Leapfrog Mode is on
@@ -188,16 +188,17 @@
                         </div>
                     </div>
 
-
-                    <div class="text-center" @key="gameEngine?.CurrentState.VisualCard">
-                        <div class="discard-pile solitaire-card animate-play"
-                             @onclick='() => PlayTurn("gimmeTheLastDiscard")'>
-                            <img src="@GetCardImagePath(gameEngine?.CurrentState.VisualCard)" alt="@gameEngine?.CurrentState.VisualCard?.ToString()" />
+                    @if (gameEngine?.CurrentState is not null)
+                    {
+                        <div class="text-center" @key="gameEngine?.CurrentState.VisualCard">
+                            <div class="discard-pile solitaire-card animate-play"
+                            @onclick='() => PlayTurn("gimmeTheLastDiscard")'>
+                                <img src="@GetCardImagePath(gameEngine?.CurrentState.VisualCard)" alt="@gameEngine?.CurrentState.VisualCard?.ToString()" />
+                            </div>
                         </div>
-                    </div>
+                    }
 
-
-                    @if (gameEngine?.CurrentState.VisualCard is SpecialCard)
+                    @if (gameEngine?.CurrentState is not null && gameEngine?.CurrentState.VisualCard is SpecialCard)
                     {
                         <div class="text-center ms-4 underneath-card">
                             <div class="solitaire-card">
