@@ -49,8 +49,7 @@ namespace SolitaireUno
 
             AllPlayers.Add(humanPlayer);
 
-            // ------------ ADDING COMPUTER PLAYERS ------------ //
-
+            // Add computer players
             for (int i = 0; i < currentGameSettings.NumberOfPlayers; i++)
             {
                 Computer computerPlayer = new()
@@ -61,14 +60,12 @@ namespace SolitaireUno
                 AllPlayers.Add(computerPlayer);
             }
 
-            // -------- SETTING PENALTY CARDS, DECK ------- //
-
-            PenaltyCards = [ new(Suits.Spades, Values.Ace), new(Suits.Spades, Values.Queen) ];
+            // Initialize penalty cards and game deck
+            PenaltyCards = [new(Suits.Spades, Values.Ace), new(Suits.Spades, Values.Queen)];
 
             GameDeck = deck;
 
-            // --------- SETTING TURN HANDLERS --------- //
-
+            // Initialize turn handlers
             _playerTurnHandler = new PlayerTurnHandler(humanPlayer, GameDeck);
             _computerTurnHandler = new ComputerTurnHandler(GameDeck, CurrentGameSettings.Difficulty);
         }
@@ -108,7 +105,7 @@ namespace SolitaireUno
 
             GameDeck.AddToDiscardPile(CurrentState.LogicCard);
 
-            // resetting this for each new game
+            // Reset reshuffle count for the new game
             GameDeck.ReshuffleCount = 0;
         }
 
@@ -120,17 +117,16 @@ namespace SolitaireUno
         /// <returns>A UI message and bool validation produced during the processed turn.</returns>
         public (string message, bool validDecision) AdvanceTurn(string playerDecision = "")
         {
-            bool turnSkipped = false;                               // bool for if a player was skipped
-            string uiMessage;                        // initial empty string for message to be sent back
+            bool turnSkipped = false;
+            string uiMessage;
             int stepsToMove = 1;
 
-            Player currentPlayer = AllPlayers[ CurrentState.CurrentTurnIndex ];    // holds the current player at time of turn
+            Player currentPlayer = AllPlayers[CurrentState.CurrentTurnIndex];
 
-            if (CurrentState.LogicCard is null || CurrentState.VisualCard is null) // RETURN EARLY IF ANY CARD IS NULL
+            if (CurrentState.LogicCard is null || CurrentState.VisualCard is null)
                 return (string.Empty, false);
 
-            // ===================== A COMPUTER'S TURN ===================== //
-
+            // Process computer player's turn
             if (currentPlayer is Computer computerPlayer)
             {
                 int computerHandAmountPreTurn = computerPlayer.Hand.Count;
@@ -146,7 +142,7 @@ namespace SolitaireUno
 
                 int computerHandAmountPostTurn = computerPlayer.Hand.Count;
 
-                // checking to see if players consecutively pass
+                // Monitor for stalemate conditions
                 StalemateMonitor(cardPlayed, computerHandAmountPreTurn, computerHandAmountPostTurn);
 
                 if (cardPlayed is not null)
@@ -169,13 +165,13 @@ namespace SolitaireUno
                     stepsToMove = targetSkipped ? 2 : 1;
                 }
 
-                //if a player was skipped, we move "2" steps or players
+                // Advance to next player (skip +1 if previous player was skipped)
                 CurrentState.CurrentTurnIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
                 return (uiMessage, successfulDecision);
             }
 
-            // ===================== HUMAN'S TURN ===================== //
+            // Process human player's turn
             else
             {
                 int playerHandAmountPreTurn = currentPlayer.Hand.Count;
@@ -193,7 +189,7 @@ namespace SolitaireUno
 
                 if (isSuccessful)
                 {
-                    // checking to see if players consecutively pass
+                    // Monitor for stalemate conditions
                     StalemateMonitor(cardPlayed, playerHandAmountPreTurn, playerHandAmountPostTurn);
 
                     if (cardPlayed is not null)

@@ -1,5 +1,7 @@
 ﻿// PlayerTurnHandler.cs — handles human player's turn logic (validate, pickup, pass, play).
 
+// Handles the logic for a human player's turn, including pick-up, pass and play logic.
+
 namespace SolitaireUno
 {
     /// <summary>
@@ -22,8 +24,6 @@ namespace SolitaireUno
             int maxReshufflesGranted = currentGameSettings.Mode is GameMode.Both ? 2 : 1;
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
 
-            // ---------------- PLAYER WANTS TO PULL LAST DISCARD ---------------- //
-
             if (playerDecision.Equals("gimmeTheLastDiscard", StringComparison.OrdinalIgnoreCase))
             {
                 if (deck.Length() > 0 || deck.ReshuffleCount < maxReshufflesGranted)
@@ -44,9 +44,7 @@ namespace SolitaireUno
                 return (true, $"Reverse Reverse! You pulled back the {lastDiscardedCard}!", null);
             }
 
-
-            // ---------------- PLAYER WANTS TO PASS ---------------- //
-
+            // Player wants to pass
             if (playerDecision == "pass")
             {
                 if (deck.Length() > 0 || (deck.Length() == 0 && (deck.ReshuffleCount < maxReshufflesGranted)))
@@ -56,9 +54,7 @@ namespace SolitaireUno
                     return (true, "You decided to pass!", null);
             }
 
-
-            // ---------------- PLAYER WANTS TO PICKUP ---------------- //
-
+            // Player wants to pick up a card
             if (playerDecision == "pickup")
             {
                 if (deck.Length() > 0 || (deck.Length() == 0 && (deck.ReshuffleCount < maxReshufflesGranted)))
@@ -68,18 +64,13 @@ namespace SolitaireUno
                     return (false, "The deck is empty and has been reshuffled! You can't pick up, you must pass or play!", null);
             }
 
-
-
-            // --------------- ENSURING DECISION IS VALID -------------- //
-
+            // Validate the player's card choice
             Card? validCard = ValidateDecision(playerDecision, currentGameState.LogicCard, currentGameSettings, currentGameState.LeapFrogMode);
 
             if (validCard is null)
                 return (false, "Invalid choice! Please choose a valid card, pickup or pass!", null);
 
-            
-            // --------------- PLAYS AND SETS CARD -------------- //
-
+            // Play the card and update game state
             player.PlayCard(validCard);
             deck.AddToDiscardPile(validCard);
 
@@ -101,10 +92,6 @@ namespace SolitaireUno
 
             return (true, $" You played: {validCard}!", validCard);
         }
-
-
-        // ================ ALL METHODS =============== //
-
 
         /// <summary>
         /// Handles the player's action to pick up a card in response to a penalty, dealing the appropriate number of
@@ -144,15 +131,15 @@ namespace SolitaireUno
 
         private Card? ValidateDecision(ReadOnlySpan<char> playerDecision, Card logicCard, GameSettings currentGameSettings, bool isLeapFrog)
         {
-            if (!int.TryParse(playerDecision, out int decisionAsNumber)) // IF THE DECISION ISNT A NUMBER
+            if (!int.TryParse(playerDecision, out int decisionAsNumber))
                 return null;
 
             Card potentialCard = player.Hand[decisionAsNumber - 1];
 
-            if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count) // IF DECISION ISNT WITHIN RANGE OF CARDS
+            if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count)
                 return null;
 
-            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog)) // IF DECISION ISNT A VALID MOVE
+            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog))
                 return null;
 
             return potentialCard;
