@@ -21,7 +21,7 @@ namespace SolitaireUno
     public class MainGame
     {
         public List<Player> AllPlayers { get; private set; } = [];
-        public string[] RandomComputerNames { get; } = ["Trace", "Sally", "Viper"];
+        public string[] RandomComputerNames { get; } = [ "Trace", "Sally", "Viper" ];
         internal List<RegularCard> PenaltyCards { get; private set; }
 
         public Deck GameDeck { get; set; }
@@ -30,7 +30,8 @@ namespace SolitaireUno
         internal ComputerTurnHandler _computerTurnHandler;
 
         public GameSettings CurrentGameSettings { get; private set; }
-        public GameState CurrentState { get; private set; } = null!;
+        public GameState? CurrentState { get; private set; } = null;
+
 
         /// <summary>
         /// Initializes a new instance of <see cref="MainGame"/> with the provided deck and game settings.
@@ -54,7 +55,7 @@ namespace SolitaireUno
             {
                 Computer computerPlayer = new()
                 {
-                    Name = $"{RandomComputerNames[i]}"
+                    Name = $"{RandomComputerNames[ i ]}"
                 };
 
                 AllPlayers.Add(computerPlayer);
@@ -62,7 +63,7 @@ namespace SolitaireUno
 
             // -------- SETTING PENALTY CARDS, DECK ------- //
 
-            PenaltyCards = [new(Suits.Spades, Values.Ace), new(Suits.Spades, Values.Queen)];
+            PenaltyCards = [ new(Suits.Spades, Values.Ace), new(Suits.Spades, Values.Queen) ];
 
             GameDeck = deck;
 
@@ -71,6 +72,7 @@ namespace SolitaireUno
             _playerTurnHandler = new PlayerTurnHandler(humanPlayer, GameDeck);
             _computerTurnHandler = new ComputerTurnHandler(GameDeck, CurrentGameSettings.Difficulty);
         }
+
 
         /// <summary>
         /// Starts the game by preparing the initial table card and setting the starting player turn.
@@ -110,6 +112,7 @@ namespace SolitaireUno
             GameDeck.ReshuffleCount = 0;
         }
 
+
         /// <summary>
         /// Advances the game by one turn, handling either the player or computer move.
         /// </summary>
@@ -121,7 +124,7 @@ namespace SolitaireUno
             string uiMessage;                        // initial empty string for message to be sent back
             int stepsToMove = 1;
 
-            Player currentPlayer = AllPlayers[CurrentState.CurrentTurnIndex];    // holds the current player at time of turn
+            Player currentPlayer = AllPlayers[ CurrentState.CurrentTurnIndex ];    // holds the current player at time of turn
 
             if (CurrentState.LogicCard is null || CurrentState.VisualCard is null) // RETURN EARLY IF ANY CARD IS NULL
                 return (string.Empty, false);
@@ -136,7 +139,7 @@ namespace SolitaireUno
 
                 var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer,
                                                                                                 PenaltyCards,
-                                                                                                AllPlayers[nextPlayersIndex],
+                                                                                                AllPlayers[ nextPlayersIndex ],
                                                                                                 CurrentGameSettings,
                                                                                                 CurrentState);
                 uiMessage = message;
@@ -151,7 +154,7 @@ namespace SolitaireUno
                     var (potentialPlayMessage, targetSkipped, isDirectionReversed) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard,
                                                                                                                         turnSkipped,
                                                                                                                         GameDeck,
-                                                                                                                        AllPlayers[nextPlayersIndex],
+                                                                                                                        AllPlayers[ nextPlayersIndex ],
                                                                                                                         PenaltyCards,
                                                                                                                         AllPlayers.Count);
 
@@ -181,7 +184,7 @@ namespace SolitaireUno
 
                 var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(PenaltyCards,
                                                                                         playerDecision,
-                                                                                        AllPlayers[nextPlayersIndex],
+                                                                                        AllPlayers[ nextPlayersIndex ],
                                                                                         CurrentGameSettings,
                                                                                         CurrentState);
                 uiMessage = message;
@@ -198,7 +201,7 @@ namespace SolitaireUno
                         var (potentialPlayMessage, targetSkipped, isDirectionReversed) = GameMethods.ApplySpecialCardEffect(CurrentState.VisualCard,
                                                                                                                             turnSkipped,
                                                                                                                             GameDeck,
-                                                                                                                            AllPlayers[nextPlayersIndex],
+                                                                                                                            AllPlayers[ nextPlayersIndex ],
                                                                                                                             PenaltyCards,
                                                                                                                             AllPlayers.Count);
 
@@ -226,7 +229,7 @@ namespace SolitaireUno
         private void StalemateMonitor(Card? cardPlayed, int handAmountPreTurn, int handAmountPostTurn)
         {
             bool isDeckDead = GameDeck.Length() == 0
-                              && GameDeck.ReshuffleCount >= (CurrentGameSettings.Mode == GameMode.Both ? 3 : 1);
+                              && GameDeck.ReshuffleCount >= (CurrentGameSettings.Mode == GameMode.Both ? 2 : 1);
 
             CurrentState.ConsecutivePasses = (cardPlayed is null && isDeckDead) ? CurrentState.ConsecutivePasses + 1 : 0;
             CurrentState.ConsecutivePickups = (cardPlayed is null && handAmountPreTurn < handAmountPostTurn) ? CurrentState.ConsecutivePickups + 1 : 0;

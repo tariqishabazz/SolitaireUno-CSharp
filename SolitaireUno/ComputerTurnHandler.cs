@@ -150,11 +150,11 @@ namespace SolitaireUno
 
             for (int i = 0; i < computerPotentialPenaltyCount; i++)
             {
-                Card? addtionalPenaltyCard = _deck.DealCard();
+                Card? additionalPenaltyCard = _deck.DealCard();
 
-                if (addtionalPenaltyCard is not null)
+                if (additionalPenaltyCard is not null)
                 {
-                    currentComputerPlayer.PickupCard(addtionalPenaltyCard);
+                    currentComputerPlayer.PickupCard(additionalPenaltyCard);
                     actualPickupCount++;
                 }
             }

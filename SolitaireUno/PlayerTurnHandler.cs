@@ -19,9 +19,10 @@ namespace SolitaireUno
         /// <returns>Tuple indicating whether the move was successful, a UI message, and the played card if any.</returns>
         public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(List<RegularCard> penaltyCards, string playerDecision, Player nextPlayer, GameSettings currentGameSettings, GameState currentGameState)
         {
-            int maxReshufflesGranted = currentGameSettings.Mode is GameMode.Both ? 3 : 1;
+            int maxReshufflesGranted = currentGameSettings.Mode is GameMode.Both ? 2 : 1;
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
 
+            // ---------------- PLAYER WANTS TO PULL LAST DISCARD ---------------- //
 
             if (playerDecision.Equals("gimmeTheLastDiscard", StringComparison.OrdinalIgnoreCase))
             {
@@ -76,6 +77,7 @@ namespace SolitaireUno
             if (validCard is null)
                 return (false, "Invalid choice! Please choose a valid card, pickup or pass!", null);
 
+            
             // --------------- PLAYS AND SETS CARD -------------- //
 
             player.PlayCard(validCard);
@@ -88,10 +90,11 @@ namespace SolitaireUno
 
             if (validCard is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
             {
-                return (true, $"You played: {validCard} and skipped {nextPlayer.Name}!", validCard);
+                return (sucessfulMove: true, message: $"You played: {validCard} and skipped {nextPlayer.Name}!", playedCard: validCard);
             }
 
-            else if ((validCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (validCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
+            else if ((validCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour)
+                || (validCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
             {
                 return (true, $"You played: {validCard}, so {nextPlayer.Name} had to draw!", validCard);
             }

@@ -7,10 +7,8 @@ namespace SolitaireUno
     /// </summary>
     public class Deck
     {
-        private readonly Random random = Random.Shared;
-
+        private readonly Random _random = Random.Shared;
         private readonly GameMode _currentGameMode;
-
         private List<Card> _gameDeck = [];
         private Stack<Card> _discardPile = [];
 
@@ -61,7 +59,7 @@ namespace SolitaireUno
 
             // ------------------ PENALTY CARD MANIPULATION ----------------- //
 
-            List<RegularCard> penaltyCards = [new(Suits.Spades, Values.Queen), new(Suits.Spades, Values.Ace)];
+            List<RegularCard> penaltyCards = [ new(Suits.Spades, Values.Queen), new(Suits.Spades, Values.Ace) ];
 
             _gameDeck.RemoveAll(card => card is RegularCard regularCard && penaltyCards.Any(penaltyCard => regularCard.IsEqual(penaltyCard)));
 
@@ -70,7 +68,7 @@ namespace SolitaireUno
 
             foreach (RegularCard penaltyCard in penaltyCards)
             {
-                int randomPosition = random.Next(firstPenaltyPositionIndex, secondPenaltyPositionIndex);
+                int randomPosition = _random.Next(firstPenaltyPositionIndex, secondPenaltyPositionIndex);
                 _gameDeck.Insert(randomPosition, penaltyCard);
             }
         }
@@ -89,7 +87,7 @@ namespace SolitaireUno
 
             while (firstCard is SpecialCard)
             {
-                List<Card> temporarySpecialCards = [firstCard];
+                List<Card> temporarySpecialCards = [ firstCard ];
 
                 if (Length() > 0)
                     firstCard = DealCard()!;
@@ -114,8 +112,8 @@ namespace SolitaireUno
         {
             for (int i = _gameDeck.Count - 1; i > 0; i--)
             {
-                int randomIndex = random.Next(0, i + 1);
-                (_gameDeck[randomIndex], _gameDeck[i]) = (_gameDeck[i], _gameDeck[randomIndex]);
+                int randomIndex = _random.Next(0, i + 1);
+                (_gameDeck[ randomIndex ], _gameDeck[ i ]) = (_gameDeck[ i ], _gameDeck[ randomIndex ]);
             }
         }
 
@@ -131,11 +129,11 @@ namespace SolitaireUno
         /// <returns>The dealt card, or null when no cards are available.</returns>
         public Card? DealCard()
         {
-            int maxAllowedReshuffles = _currentGameMode == GameMode.Both ? 3 : 1;
+            int maxAllowedReshuffles = _currentGameMode == GameMode.Both ? 2 : 1;
 
             if (_gameDeck.Count > 0)
             {
-                Card dealtCard = _gameDeck[0];
+                Card dealtCard = _gameDeck[ 0 ];
                 _gameDeck.RemoveAt(0);
 
                 return dealtCard;

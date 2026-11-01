@@ -137,7 +137,7 @@
                         }
 
                         <span class="badge rounded-pill text-start text-wrap py-2 px-2" style="background-color: #b3e917; color: #000;">
-                            Deck shuffled: @gameEngine?.GameDeck.ReshuffleCount/@(gameEngine?.CurrentGameSettings.Mode is GameMode.Both ? 3 : 1 ) time(s)
+                            Deck shuffled: @gameEngine?.GameDeck.ReshuffleCount/@(gameEngine?.CurrentGameSettings.Mode is GameMode.Both ? 2 : 1 ) time(s)
                         </span>
 
                         @if(gameEngine?.CurrentState.LeapFrogMode == true)
@@ -262,7 +262,8 @@
                             int totalCards = gameEngine?.AllPlayers[0].Hand.Count ?? 1;
 
                             <div @key="card" class="card-draw-wrapper animate-draw" >
-                                <div class="radial-card-fan @(totalCards >=12 ? "flat-card-fan" : "") mb-3" style="--index: @i; --total: @totalCards">
+                                <div class="radial-card-fan mb-3" data-flat="@(totalCards >= 12)" 
+                                     style="--index: @i; --total: @totalCards">
 
                                         <div class="solitaire-card" @onclick='() => PlayTurn(buttonIndex.ToString())'>
                                             <img src="@GetCardImagePath(card)" alt="@card?.ToString()" />

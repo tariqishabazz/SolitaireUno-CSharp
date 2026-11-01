@@ -24,10 +24,6 @@ namespace SolitaireUno
         /// </summary>
         /// <param name="otherCard">The other card to compare against.</param>
         /// <returns>True if both cards have the same suit and value; otherwise false.</returns>
-        public bool IsEqual(Card otherCard)
-        {
-            return otherCard is not null and RegularCard regularCard
-                && this.Value == regularCard.Value && this.Suit == regularCard.Suit;
-        }
+        public bool IsEqual(Card otherCard) => (otherCard is not null and RegularCard regularCard) && (this.Value == regularCard.Value && this.Suit == regularCard.Suit);
     }
 }

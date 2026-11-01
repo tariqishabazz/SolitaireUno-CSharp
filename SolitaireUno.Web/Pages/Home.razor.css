@@ -269,11 +269,14 @@ footer.player-zone div.d-flex {
    ====================================================================== */
 
 .solitaire-table .game-over-message {
+
 }
 
     .solitaire-table .game-over-message .btn {
         background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);    
+        margin-right: 2px;
+
     }
 
 .solitaire-table .btn:hover {
@@ -298,7 +301,7 @@ footer.player-zone div.d-flex {
     box-shadow: 0 0 1px transparent;
 }
 
-.radial-fan.flat-fan {
+.radial-card-fan[data-flat="True"] {
     transform: rotate(0deg) translateY(0px);
 }
 
