@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using System.Globalization;
 using System.Text;
 
 namespace SolitaireUno.Web.Pages
@@ -23,27 +24,19 @@ namespace SolitaireUno.Web.Pages
         // ============= ALL GAME PROPERTIES ============= //
 
         private MainGame? gameEngine;
+        private GameMode selectedMode = GameMode.Ascending;
+        private GameDifficulty selectedDifficulty = GameDifficulty.Easy;
 
         private bool gameStarted = false;
-        private bool aComputerIsThinking = false;
         private bool suitEnforcement = false;
 
         private string gameOverMessage = string.Empty;
         private string actionLog = "Welcome to Solitaire Uno!";
-
-        private GameMode selectedMode = GameMode.Ascending;
-        private GameDifficulty selectedDifficulty = GameDifficulty.Easy;
-
         private string selectedCardColor = "yellow";
         private string selectedSortMethod = "None";
+        private string playerName = string.Empty;
 
         private int selectedPlayerCount = 1;
-
-        /*
-         Returns the human player instance from the game engine's AllPlayers list.
-         The code looks up a player whose Name equals "Human". If the engine is null,
-         this property returns null.
-        */
 
         public Player? HumanPlayer
         {
@@ -52,14 +45,20 @@ namespace SolitaireUno.Web.Pages
                 if (gameEngine is null)
                     return null;
 
-                return gameEngine?.AllPlayers.First(p => p.Name == "Human");
+                return gameEngine.AllPlayers.First(player => player.Name == playerName);
             }
         }
 
-        /*
-         Indicates whether it is currently the human player's turn.
-         Compares the player at CurrentTurnIndex to the expected "Human" player name.
-        */
+        public Player? ComputerPlayer
+        {
+            get
+            {
+                if (gameEngine is null || gameEngine.CurrentState is null)
+                    return null;
+
+                return gameEngine.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ];
+            }
+        }
 
         public bool IsHumanTurn
         {
@@ -68,7 +67,18 @@ namespace SolitaireUno.Web.Pages
                 if (gameEngine is null || gameEngine?.CurrentState is null)
                     return false;
 
-                return gameEngine?.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name == "Human";
+                return gameEngine?.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name == playerName;
+            }
+        }
+
+        public bool IsComputerTurn
+        {
+            get
+            {
+                if (gameEngine is null || gameEngine?.CurrentState is null)
+                    return false;
+
+                return gameEngine.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ] is Computer;
             }
         }
 
@@ -78,20 +88,16 @@ namespace SolitaireUno.Web.Pages
         /// Initializes and starts a new game using the selected settings.
         /// Deals a fresh deck into a new MainGame instance and prepares the UI state.
         /// </summary>
-        private void StartNewGame()
+        private async void StartNewGame()
         {
-            /* Reset game states and properties to their initial values.
-             *      This ensures that starting a new game
-             *      will clear any previous game data and UI messages. */
-
             gameOverMessage = string.Empty;
-            aComputerIsThinking = false;
             _gameUptime = TimeSpan.Zero;
 
-            // Create and start game with desired configurations //
+            playerName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(playerName);
 
-            GameSettings currentGameSettings = new GameSettings(selectedMode, selectedDifficulty, suitEnforcement, selectedPlayerCount);
-            Deck freshDeck = new Deck(currentGameSettings.Mode);
+            GameSettings currentGameSettings = new(selectedMode, selectedDifficulty, suitEnforcement, selectedPlayerCount, playerName);
+            Deck freshDeck = new(currentGameSettings.Mode);
+
             gameEngine = new MainGame(freshDeck, currentGameSettings);
             gameEngine.StartGame();
 
@@ -99,113 +105,112 @@ namespace SolitaireUno.Web.Pages
             SortHand();
 
             gameStarted = true;
-            actionLog = "Cards Dealt. It is your turn.";
+
+            if (gameEngine is not null && gameEngine.CurrentState is not null)
+                actionLog = $"Cards Dealt. It is {gameEngine.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name}'s turn.";
+
+            if (IsComputerTurn)
+                await PlayComputerTurn();
         }
 
-        // =================== PLAYTURN() ==================== //
-
-        /// <summary>
-        /// Handles a play attempt by the human player and advances the game until
-        /// it returns control to the human (after other players/computers have taken
-        /// their turns).
-        /// </summary>
-        /// <param name="decision">A string describing the player's decision (card id or action).</param>
-        private async Task PlayTurn(string decision)
+        private async Task PlayComputerTurn()
         {
-            if (gameEngine is null)
+            if (!IsComputerTurn)
                 return;
 
-            /*
-                 If the AI is thinking or the game has ended, ignore input.
-                 This prevents race conditions and multiple actions from being processed
-                 while a computer turn is resolving or the game is finished.
-            */
-            if (aComputerIsThinking || gameOverMessage != string.Empty)
+            if (gameEngine is null || gameEngine.CurrentState is null || ComputerPlayer is null)
                 return;
 
-            // ===================== PLAYER'S TURN ===================== //
-            /*
-                 Record that the player's turn is beginning for the UI/log. The game engine
-                 will return a message and success flag describing the play result.
-            */
+            while (!IsHumanTurn && string.IsNullOrEmpty(gameOverMessage))
+            {
+                await UpdateMessageAndUI($"{gameEngine?.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name} is thinking...");
+
+                if (gameEngine is null)
+                    return;
+
+                (string message, bool successfulDecision) = gameEngine.AdvanceTurn(string.Empty);
+
+                if (!string.IsNullOrEmpty(message))
+                    await UpdateMessageAndUI(message);
+
+                if (LongUIMessage(message) && gameOverMessage != "")
+                    await Task.Delay(5000);
+
+                if (!successfulDecision)
+                    return;
+            }
+
+            EndGameCondition();
+
             if (IsHumanTurn)
-                actionLog += "\n\nYour Turn.";
+                await UpdateMessageAndUI("Your Turn");
+        }
 
-            // Holds the amount of cards the human player had before playing a turn
-            int? playerHandCountBeforeEveryoneGoes = HumanPlayer?.Hand.Count;
 
-            (string message, bool successfulDecision) humanTurnResult = gameEngine.AdvanceTurn(decision);
 
-            if (!string.IsNullOrEmpty(humanTurnResult.message))
-                await UpdateMessageAndUI(humanTurnResult.message);
 
-            if (LongUIMessage(humanTurnResult.message) && gameOverMessage != "")
+
+
+        private async Task PlayHumanTurn(string decision)
+        {
+            if (gameEngine is null || gameEngine.CurrentState is null || HumanPlayer is null)
+                return;
+
+            if (!IsHumanTurn || !string.IsNullOrEmpty(gameOverMessage))
+                return;
+
+            int playerHandCountBeforeEveryoneGoes = HumanPlayer.Hand.Count;
+
+            (string message, bool successfulDecision) = gameEngine.AdvanceTurn(decision);
+
+            if (!string.IsNullOrEmpty(message))
+                await UpdateMessageAndUI(message);
+
+            if (LongUIMessage(message) && gameOverMessage != "")
                 await Task.Delay(5000);
 
-            if (!humanTurnResult.successfulDecision)
+            if (!successfulDecision)
                 return;
 
-            // Check if the human player has emptied their hand and thus won.
-            Player? winner = ShowWinCondition();
-            if (winner is not null)
-            {
-                gameOverMessage = "You have Won! 🎉";
-                return;
-            }
+            int playerHandCountAfterEveryoneGoes = HumanPlayer.Hand.Count;
 
-            // ===================== COMPUTER'S TURN ===================== //
-
-            /*
-             Continue advancing turns while it is not the human's turn and the game
-             has not been won. This loop will let each computer player act in sequence
-             by calling AdvanceTurn with an empty decision string.
-            */
-            while (IsHumanTurn == false && gameOverMessage == string.Empty)
-            {
-                aComputerIsThinking = true;
-
-                if (gameEngine?.CurrentState is not null)
-                    await UpdateMessageAndUI($"{gameEngine?.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name} is thinking...");
-
-                if (gameEngine is not null)
-                {
-                    (string message, bool successfulDecision) = gameEngine.AdvanceTurn(string.Empty);
-
-                    if (!string.IsNullOrEmpty(message))
-                        await UpdateMessageAndUI(message);
-
-                    if (LongUIMessage(message) && gameOverMessage != "")
-                        await Task.Delay(5000);
-
-                    if (!successfulDecision)
-                        return;
-                }
-
-                // Check if a computer player has just won
-                winner = ShowWinCondition();
-                if (winner is not null)
-                {
-                    gameOverMessage = $"{winner.Name} has Won! 🎉";
-                    return;
-                }
-
-                aComputerIsThinking = false;
-            }
-
-            // Holds the amount of cards human player had after everyone went
-            int? playerHandCountAfterEveryoneGoes = HumanPlayer?.Hand.Count;
-
-            /*
-             If the human player has more cards than before the round and the user has
-             chosen a sorting method, re-apply sorting so the UI reflects the chosen order.
-            */
             if (playerHandCountAfterEveryoneGoes > playerHandCountBeforeEveryoneGoes && selectedSortMethod is not null)
                 SortHand();
 
-            await UpdateMessageAndUI("Your Turn");
+            EndGameCondition();
+
+            if (IsComputerTurn)
+                await PlayComputerTurn();
         }
 
+
+
+
+
+
         // ========================== HELPER METHODS ========================= //
+
+        private void EndGameCondition()
+        {
+            Player? winner = ShowWinCondition();
+
+            if (winner is null)
+            {
+
+            }
+            else
+            {
+                if (winner.Name == playerName)
+                {
+                    gameOverMessage = "You have Won! 🎉";
+                    return;
+                }
+
+                gameOverMessage = $"{winner.Name} has Won! 🎉";
+                return;
+            }
+        }
+
 
         /// <summary>
         /// Sets the proper card image path for a given card based on its concrete type
@@ -302,6 +307,32 @@ namespace SolitaireUno.Web.Pages
 
             return null;
         }
+        private static bool LongUIMessage(string message)
+        {
+            // create new string to hold current word being built from characters in message
+            StringBuilder currentSentence = new StringBuilder();
+
+            int numberOfWords = 0;
+
+            // loop over each character in the message to find individual words
+            for (int character = 0; character < message.Length; character++)
+            {
+                // if character is not a space, keep adding to current word string until space is found
+                if (char.IsLetterOrDigit(message[ character ]) || char.IsPunctuation(message[ character ]))
+                {
+                    currentSentence.Append(message[ character ]);
+                }
+
+                // if character is a space, add previous index elements to form word in new string
+                if (char.IsWhiteSpace(message[ character ]))
+                {
+                    currentSentence.Append(message[ character ]);
+                    numberOfWords++;
+                }
+            }
+
+            return numberOfWords >= 7;
+        }
 
         /* ================== TIMER METHODS ================= */
 
@@ -333,33 +364,6 @@ namespace SolitaireUno.Web.Pages
         {
             _cts.Cancel();
             _timer?.Dispose();
-        }
-
-        private static bool LongUIMessage(string message)
-        {
-            // create new string to hold current word being built from characters in message
-            StringBuilder currentSentence = new StringBuilder();
-
-            int numberOfWords = 0;
-
-            // loop over each character in the message to find individual words
-            for (int character = 0; character < message.Length; character++)
-            {
-                // if character is not a space, keep adding to current word string until space is found
-                if (char.IsLetterOrDigit(message[ character ]) || char.IsPunctuation(message[ character ]))
-                {
-                    currentSentence.Append(message[ character ]);
-                }
-
-                // if character is a space, add previous index elements to form word in new string
-                if (char.IsWhiteSpace(message[ character ]))
-                {
-                    currentSentence.Append(message[ character ]);
-                    numberOfWords++;
-                }
-            }
-
-            return numberOfWords >= 7;
         }
     }
 }

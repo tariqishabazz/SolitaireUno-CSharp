@@ -19,7 +19,10 @@ namespace SolitaireUno
     public class MainGame
     {
         public List<Player> AllPlayers { get; private set; } = [];
-        public string[] RandomComputerNames { get; } = [ "Trace", "Sally", "Viper" ];
+        private string[] RandomComputerNames { get; } = [
+            "Kai", "Soren", "Zara", "Milan", "Nova",
+            "Luca", "Aria", "Ezra", "Milo", "Lyra"
+        ];
         internal List<RegularCard> PenaltyCards { get; private set; }
 
         public Deck GameDeck { get; set; }
@@ -41,14 +44,27 @@ namespace SolitaireUno
             CurrentGameSettings = currentGameSettings;
             _gameRules = new GameRules(currentGameSettings);
 
-            Player humanPlayer = new() { Name = "Human" };
+            Player humanPlayer = new()
+            {
+                Name = currentGameSettings.PlayerName
+            };
+
             AllPlayers.Add(humanPlayer);
 
             // Add computer players
             for (int i = 0; i < currentGameSettings.NumberOfPlayers; i++)
             {
-                Computer computerPlayer = new() { Name = $"{RandomComputerNames[ i ]}" };
-                AllPlayers.Add(computerPlayer);
+                string randomOpponentName = $"{RandomComputerNames[ Random.Shared.Next(RandomComputerNames.Length) ]}";
+
+                if (!AllPlayers.Any(player => player.Name == randomOpponentName))
+                {
+                    Computer computerPlayer = new()
+                    {
+                        Name = randomOpponentName
+                    };
+
+                    AllPlayers.Add(computerPlayer);
+                }
             }
 
             // Initialize penalty cards and game deck
@@ -72,7 +88,7 @@ namespace SolitaireUno
             {
                 LogicCard = initialCard,
                 VisualCard = initialCard,
-                CurrentTurnIndex = Random.Shared.Next(4),
+                CurrentTurnIndex = Random.Shared.Next(AllPlayers.Count),
                 ConsecutivePasses = 0,
                 PlayDirection = 1,
                 ConsecutivePickups = 0,
@@ -163,6 +179,16 @@ namespace SolitaireUno
             else
                 throw new InvalidOperationException("The game's state did not render correctly.");
         }
+
+
+
+
+
+
+
+
+
+
         /// <summary>
         /// Processes the result of a turn: applies special card effects and determines next move distance.
         /// </summary>

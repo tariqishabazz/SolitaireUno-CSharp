@@ -12,5 +12,5 @@ namespace SolitaireUno
     /// </summary>
     public enum GameDifficulty { Easy, Medium, Hard }
 
-    public readonly record struct GameSettings(GameMode Mode, GameDifficulty Difficulty, bool SuitsEnforced, int NumberOfPlayers);
+    public readonly record struct GameSettings(GameMode Mode, GameDifficulty Difficulty, bool SuitsEnforced, int NumberOfPlayers, string PlayerName);
 }
