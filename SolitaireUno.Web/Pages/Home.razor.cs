@@ -82,12 +82,9 @@ namespace SolitaireUno.Web.Pages
             }
         }
 
+
         // =================== STARTGAME() ==================== //
 
-        /// <summary>
-        /// Initializes and starts a new game using the selected settings.
-        /// Deals a fresh deck into a new MainGame instance and prepares the UI state.
-        /// </summary>
         private async void StartNewGame()
         {
             gameOverMessage = string.Empty;
@@ -146,11 +143,6 @@ namespace SolitaireUno.Web.Pages
                 await UpdateMessageAndUI("Your Turn");
         }
 
-
-
-
-
-
         private async Task PlayHumanTurn(string decision)
         {
             if (gameEngine is null || gameEngine.CurrentState is null || HumanPlayer is null)
@@ -182,10 +174,6 @@ namespace SolitaireUno.Web.Pages
             if (IsComputerTurn)
                 await PlayComputerTurn();
         }
-
-
-
-
 
 
         // ========================== HELPER METHODS ========================= //
