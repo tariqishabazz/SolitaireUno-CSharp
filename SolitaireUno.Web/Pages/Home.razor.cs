@@ -18,7 +18,7 @@ namespace SolitaireUno.Web.Pages
         // ============= ALL TIMER PROPERTIES ============= //
 
         private PeriodicTimer? _timer;
-        private CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
         private TimeSpan _gameUptime = TimeSpan.Zero;
 
         // ============= ALL GAME PROPERTIES ============= //
@@ -137,9 +137,8 @@ namespace SolitaireUno.Web.Pages
                     return;
             }
 
-            EndGameCondition();
-
-            if (IsHumanTurn)
+            Player? potentialWinner = ShowWinCondition();
+            if (IsHumanTurn && potentialWinner is null)
                 await UpdateMessageAndUI("Your Turn");
         }
 
@@ -169,36 +168,14 @@ namespace SolitaireUno.Web.Pages
             if (playerHandCountAfterEveryoneGoes > playerHandCountBeforeEveryoneGoes && selectedSortMethod is not null)
                 SortHand();
 
-            EndGameCondition();
-
-            if (IsComputerTurn)
+            Player? potentialWinner = ShowWinCondition();
+            if (IsComputerTurn && potentialWinner is null)
                 await PlayComputerTurn();
         }
 
 
+
         // ========================== HELPER METHODS ========================= //
-
-        private void EndGameCondition()
-        {
-            Player? winner = ShowWinCondition();
-
-            if (winner is null)
-            {
-
-            }
-            else
-            {
-                if (winner.Name == playerName)
-                {
-                    gameOverMessage = "You have Won! 🎉";
-                    return;
-                }
-
-                gameOverMessage = $"{winner.Name} has Won! 🎉";
-                return;
-            }
-        }
-
 
         /// <summary>
         /// Sets the proper card image path for a given card based on its concrete type
@@ -213,6 +190,7 @@ namespace SolitaireUno.Web.Pages
 
             if (card is RegularCard regularCard)
                 return $"images/cards/{regularCard.Value.ToString().ToLower()}_of_{regularCard.Suit.ToString().ToLower()}.png";
+
             else if (card is SpecialCard specialCard)
             {
                 return specialCard.CardType switch
@@ -290,28 +268,41 @@ namespace SolitaireUno.Web.Pages
                 return null;
 
             foreach (Player player in gameEngine.AllPlayers)
-                if (player.Hand.Count == 0)
+            {
+                if (player.Hand.Count > 0)
+                    continue;
+
+                if (player.Name == playerName)
+                {
+                    gameOverMessage = "You have Won! 🎉";
                     return player;
+                }
+
+                gameOverMessage = $"{player.Name} has Won! 🎉";
+                return player;
+            }
 
             return null;
         }
+
+        /// <summary>
+        /// Checks to see if the returned UI message is lengthy, 
+        /// and leaves on screen for longer to ensure proper reading
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns>A bool on whether the message is long</returns>
         private static bool LongUIMessage(string message)
         {
-            // create new string to hold current word being built from characters in message
             StringBuilder currentSentence = new StringBuilder();
-
             int numberOfWords = 0;
 
-            // loop over each character in the message to find individual words
             for (int character = 0; character < message.Length; character++)
             {
-                // if character is not a space, keep adding to current word string until space is found
                 if (char.IsLetterOrDigit(message[ character ]) || char.IsPunctuation(message[ character ]))
                 {
                     currentSentence.Append(message[ character ]);
                 }
 
-                // if character is a space, add previous index elements to form word in new string
                 if (char.IsWhiteSpace(message[ character ]))
                 {
                     currentSentence.Append(message[ character ]);
