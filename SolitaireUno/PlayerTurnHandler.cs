@@ -19,7 +19,7 @@ namespace SolitaireUno
         /// <param name="nextPlayer">The player who will act next (used for messages and penalty application).</param>
         /// <param name="currentGameSettings">Current game settings (mode, difficulty, suit enforcement, player count).</param>
         /// <returns>Tuple indicating whether the move was successful, a UI message, and the played card if any.</returns>
-        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(List<RegularCard> penaltyCards, string playerDecision, Player nextPlayer, GameSettings currentGameSettings, GameState currentGameState)
+        public (bool sucessfulMove, string message, Card? playedCard) HandleTurn(string playerDecision, Player nextPlayer, GameSettings currentGameSettings, GameState currentGameState)
         {
             int maxReshufflesGranted = currentGameSettings.Mode is GameMode.Both ? 2 : 1;
             playerDecision = playerDecision?.ToLower().Trim() ?? "";
@@ -49,7 +49,6 @@ namespace SolitaireUno
             {
                 if (deck.Length() > 0 || (deck.Length() == 0 && (deck.ReshuffleCount < maxReshufflesGranted)))
                     return (false, "The deck still has cards or can be reshuffled!\n Either pick up or play!", null);
-
                 else
                     return (true, "You decided to pass!", null);
             }
@@ -58,14 +57,13 @@ namespace SolitaireUno
             if (playerDecision == "pickup")
             {
                 if (deck.Length() > 0 || (deck.Length() == 0 && (deck.ReshuffleCount < maxReshufflesGranted)))
-                    return HandlePickup(penaltyCards);
-
+                    return HandlePickup(currentGameState);
                 else
                     return (false, "The deck is empty and has been reshuffled! You can't pick up, you must pass or play!", null);
             }
 
             // Validate the player's card choice
-            Card? validCard = ValidateDecision(playerDecision, currentGameState.LogicCard, currentGameSettings, currentGameState.LeapFrogMode);
+            Card? validCard = ValidateDecision(playerDecision, currentGameSettings, currentGameState);
 
             if (validCard is null)
                 return (false, "Invalid choice! Please choose a valid card, pickup or pass!", null);
@@ -79,12 +77,11 @@ namespace SolitaireUno
             if (validCard is RegularCard)
                 currentGameState.LogicCard = validCard;
 
-            if (validCard is SpecialCard specialCard && specialCard.CardType == SpecialCardType.Skip)
+            if (validCard is SpecialCard specialCard && specialCard.CardType == TypeOfSpecialCard.Skip)
             {
                 return (sucessfulMove: true, message: $"You played: {validCard} and skipped {nextPlayer.Name}!", playedCard: validCard);
             }
-
-            else if ((validCard is SpecialCard specialCard2 && specialCard2.CardType == SpecialCardType.DrawFour) || (validCard is SpecialCard specialCard3 && specialCard3.CardType == SpecialCardType.DrawTwo))
+            else if ((validCard is SpecialCard specialCard2 && specialCard2.CardType == TypeOfSpecialCard.DrawFour) || (validCard is SpecialCard specialCard3 && specialCard3.CardType == TypeOfSpecialCard.DrawTwo))
             {
                 return (true, $"You played: {validCard}, so {nextPlayer.Name} had to draw!", validCard);
             }
@@ -100,9 +97,9 @@ namespace SolitaireUno
         /// need to pick up.</param>
         /// <returns>A tuple containing a value indicating whether the move was successful, a message describing the outcome, and
         /// the card played, if any. The played card is always null in this context.</returns>
-        public (bool sucessfulMove, string message, Card? playedCard) HandlePickup(List<RegularCard> penaltyCards)
+        public (bool sucessfulMove, string message, Card? playedCard) HandlePickup(GameState currentGameState)
         {
-            var (drawnCard, penaltyCount, actualPenaltyCardsDealt) = PickupProcessor.ProcessPickup(deck, player, penaltyCards);
+            var (drawnCard, penaltyCount, actualPenaltyCardsDealt) = PickupProcessor.ProcessPickup(deck, player, currentGameState);
 
             if (drawnCard is null)
                 return (true, "The deck is empty! You must pass.", null);
@@ -113,7 +110,7 @@ namespace SolitaireUno
             return (true, "You decided to pick up!", null);
         }
 
-        private Card? ValidateDecision(ReadOnlySpan<char> playerDecision, Card logicCard, GameSettings currentGameSettings, bool isLeapFrog)
+        private Card? ValidateDecision(ReadOnlySpan<char> playerDecision, GameSettings currentGameSettings, GameState currentGameState)
         {
             if (!int.TryParse(playerDecision, out int decisionAsNumber))
                 return null;
@@ -121,13 +118,12 @@ namespace SolitaireUno
             if (decisionAsNumber <= 0 || decisionAsNumber > player.Hand.Count)
                 return null;
 
-            Card potentialCard = player.Hand[ decisionAsNumber - 1 ];
+            Card potentialCard = player.Hand[decisionAsNumber - 1];
 
-            if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog))
+            if (!CardValidation.ValidCard(potentialCard, currentGameSettings, currentGameState))
                 return null;
 
             return potentialCard;
         }
     }
 }
-

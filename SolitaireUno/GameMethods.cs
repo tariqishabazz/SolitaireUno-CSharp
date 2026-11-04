@@ -13,7 +13,7 @@ namespace SolitaireUno
         /// <param name="gameDeck">The deck used to draw cards from.</param>
         /// <param name="penaltyCards">The configured penalty cards used to detect chained penalties.</param>
         /// <returns>An optional UI message describing the penalty outcome.</returns>
-        public static string? ProcessDraw(int drawAmount, Player unfortunateSoul, Deck gameDeck, List<RegularCard> penaltyCards)
+        public static string? ProcessDraw(int drawAmount, Player unfortunateSoul, Deck gameDeck, GameState gameState)
         {
             bool penaltyCardSpotted = false;
             int awardedPenaltyCount = 0;
@@ -26,7 +26,7 @@ namespace SolitaireUno
                 if (drawnCard is null)
                     break;
 
-                int awardedPenalty = PenaltyHandler.GetPenaltyCount(drawnCard, penaltyCards);
+                int awardedPenalty = PenaltyHandler.GetPenaltyCount(drawnCard, gameState);
 
                 if (awardedPenalty > 0)
                 {

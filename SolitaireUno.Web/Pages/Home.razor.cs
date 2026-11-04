@@ -56,7 +56,7 @@ namespace SolitaireUno.Web.Pages
                 if (gameEngine is null || gameEngine.CurrentState is null)
                     return null;
 
-                return gameEngine.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ];
+                return gameEngine.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex];
             }
         }
 
@@ -67,7 +67,7 @@ namespace SolitaireUno.Web.Pages
                 if (gameEngine is null || gameEngine?.CurrentState is null)
                     return false;
 
-                return gameEngine?.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name == playerName;
+                return gameEngine?.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex].Name == playerName;
             }
         }
 
@@ -78,10 +78,9 @@ namespace SolitaireUno.Web.Pages
                 if (gameEngine is null || gameEngine?.CurrentState is null)
                     return false;
 
-                return gameEngine.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ] is Computer;
+                return gameEngine.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex] is Computer;
             }
         }
-
 
         // =================== STARTGAME() ==================== //
 
@@ -104,7 +103,7 @@ namespace SolitaireUno.Web.Pages
             gameStarted = true;
 
             if (gameEngine is not null && gameEngine.CurrentState is not null)
-                actionLog = $"Cards Dealt. It is {gameEngine.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name}'s turn.";
+                actionLog = $"Cards Dealt. It is {gameEngine.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex].Name}'s turn.";
 
             if (IsComputerTurn)
                 await PlayComputerTurn();
@@ -120,7 +119,7 @@ namespace SolitaireUno.Web.Pages
 
             while (!IsHumanTurn && string.IsNullOrEmpty(gameOverMessage))
             {
-                await UpdateMessageAndUI($"{gameEngine?.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name} is thinking...");
+                await UpdateMessageAndUI($"{gameEngine?.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex].Name} is thinking...");
 
                 if (gameEngine is null)
                     return;
@@ -173,8 +172,6 @@ namespace SolitaireUno.Web.Pages
                 await PlayComputerTurn();
         }
 
-
-
         // ========================== HELPER METHODS ========================= //
 
         /// <summary>
@@ -190,15 +187,14 @@ namespace SolitaireUno.Web.Pages
 
             if (card is RegularCard regularCard)
                 return $"images/cards/{regularCard.Value.ToString().ToLower()}_of_{regularCard.Suit.ToString().ToLower()}.png";
-
             else if (card is SpecialCard specialCard)
             {
                 return specialCard.CardType switch
                 {
-                    SpecialCardType.DrawFour => $"images/cards/draw_four.png",
-                    SpecialCardType.DrawTwo => $"images/cards/{selectedCardColor}_draw_two.png",
-                    SpecialCardType.Skip => $"images/cards/{selectedCardColor}_skip.png",
-                    SpecialCardType.Reverse => $"images/cards/{selectedCardColor}_reverse.png",
+                    TypeOfSpecialCard.DrawFour => $"images/cards/draw_four.png",
+                    TypeOfSpecialCard.DrawTwo => $"images/cards/{selectedCardColor}_draw_two.png",
+                    TypeOfSpecialCard.Skip => $"images/cards/{selectedCardColor}_skip.png",
+                    TypeOfSpecialCard.Reverse => $"images/cards/{selectedCardColor}_reverse.png",
                     _ => $"Card image not found"
                 };
             }
@@ -286,7 +282,7 @@ namespace SolitaireUno.Web.Pages
         }
 
         /// <summary>
-        /// Checks to see if the returned UI message is lengthy, 
+        /// Checks to see if the returned UI message is lengthy,
         /// and leaves on screen for longer to ensure proper reading
         /// </summary>
         /// <param name="message"></param>
@@ -298,14 +294,14 @@ namespace SolitaireUno.Web.Pages
 
             for (int character = 0; character < message.Length; character++)
             {
-                if (char.IsLetterOrDigit(message[ character ]) || char.IsPunctuation(message[ character ]))
+                if (char.IsLetterOrDigit(message[character]) || char.IsPunctuation(message[character]))
                 {
-                    currentSentence.Append(message[ character ]);
+                    currentSentence.Append(message[character]);
                 }
 
-                if (char.IsWhiteSpace(message[ character ]))
+                if (char.IsWhiteSpace(message[character]))
                 {
-                    currentSentence.Append(message[ character ]);
+                    currentSentence.Append(message[character]);
                     numberOfWords++;
                 }
             }

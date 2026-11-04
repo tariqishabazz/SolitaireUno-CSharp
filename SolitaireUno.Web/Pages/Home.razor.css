@@ -156,7 +156,6 @@ body {
         flex-direction: row !important;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 0.5rem !important;
     }
 
 .player-zone {
@@ -231,21 +230,19 @@ footer.player-zone div.d-flex {
    Purpose: semi-transparent HUD used for opponents and small informational widgets
    ====================================================================== */
 .opponent-hud {
-    background: rgba(255, 255, 255, 0.1); /* semi-transparent white */
-    backdrop-filter: blur(10px); /* frosted blur effect */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
-    padding: 10px 15px;
     color: white;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 120px;
-    padding: clamp(4px, 1vh, 5px) 15px;
-    flex: 1 1 45%;
-    margin: 0;
-    min-width: 0;
+    padding: clamp(6px, 1vh, 10px) 12px;
+    flex: 1 1 calc(33.33% - 0.5rem); /* Allows fluid grid wrapping onto secondary lines */
+    min-width: 80px;
+    box-sizing: border-box;
 }
 
     .opponent-hud .card-count {
@@ -259,6 +256,7 @@ footer.player-zone div.d-flex {
     flex-direction: column;
     flex-grow: 1;
     justify-content: space-between;
+    width: 100%; 
 }
 
 /* ======================================================================

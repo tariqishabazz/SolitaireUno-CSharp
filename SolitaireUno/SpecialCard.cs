@@ -5,12 +5,12 @@ namespace SolitaireUno
     /// <summary>
     /// Represents a special card that triggers game effects like skip, draw, or reverse.
     /// </summary>
-    public class SpecialCard(SpecialCardType specialCardType) : Card
+    public class SpecialCard(TypeOfSpecialCard specialCardType) : Card
     {
         /// <summary>
         /// Gets or sets the special card type which determines its effect.
         /// </summary>
-        public SpecialCardType CardType { get; set; } = specialCardType;
+        public TypeOfSpecialCard CardType { get; set; } = specialCardType;
 
         /// <summary>
         /// Returns the display string for the special card.

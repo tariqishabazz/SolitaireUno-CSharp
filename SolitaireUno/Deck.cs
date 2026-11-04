@@ -44,7 +44,7 @@ namespace SolitaireUno
                 }
             }
 
-            foreach (SpecialCardType specialCard in Enum.GetValues<SpecialCardType>())
+            foreach (TypeOfSpecialCard specialCard in Enum.GetValues<TypeOfSpecialCard>())
             {
                 _gameDeck.Add(new SpecialCard(specialCard));
                 for (int i = 0; i < _additionalSpecialCards; i++)
@@ -61,7 +61,7 @@ namespace SolitaireUno
             for (int i = _gameDeck.Count - 1; i > 0; i--)
             {
                 int randomIndex = _random.Next(i + 1);
-                (_gameDeck[ randomIndex ], _gameDeck[ i ]) = (_gameDeck[ i ], _gameDeck[ randomIndex ]);
+                (_gameDeck[randomIndex], _gameDeck[i]) = (_gameDeck[i], _gameDeck[randomIndex]);
             }
         }
 
@@ -73,7 +73,7 @@ namespace SolitaireUno
 
             if (_gameDeck.Count > 0)
             {
-                Card dealt = _gameDeck[ 0 ];
+                Card dealt = _gameDeck[0];
                 _gameDeck.RemoveAt(0);
                 return dealt;
             }

@@ -13,50 +13,39 @@ namespace SolitaireUno
         /// Returns true when <paramref name="potentialPlay"/> is a legal play against <paramref name="logicCardShown"/> under <paramref name="gameSettings"/>.
         /// Regular cards must follow sequence and optional suit rules; special cards are always valid.
         /// </summary>
-        public static bool ValidCard(Card potentialPlay, Card logicCardShown, GameSettings gameSettings, bool isLeapFrog)
+        public static bool ValidCard(Card potentialPlay, GameSettings gameSettings, GameState currentGameState)
         {
-            // If the potential play or the logic card shown are not regular cards,
-            // check to see if the potential play is a special card.
+            if (potentialPlay is null || currentGameState.LogicCard is null)
+                throw new ArgumentNullException("Cards cannot be null for validation.");
 
-            if (potentialPlay is not RegularCard firstCard || logicCardShown is not RegularCard secondCard)
-                return IsSpecialCard(potentialPlay);
+            if (IsSpecialCard(potentialPlay)) return true;
 
-            // If the first card and the second card have the same value,
-            // check to see if we're enforcing suits. If we are, make sure
-            // they're not the same color. If we aren't, it's still valid regardless.
-
-            if (IsSameValue(firstCard, secondCard))
-                return !gameSettings.SuitsEnforced || !SameColor(firstCard, secondCard);
-
-            int potentialCardValue = (int)firstCard.Value;
-            int currentCardValue = (int)secondCard.Value;
-
-            bool isValidSequence = false;
-
-            // ================ IF MODE IS ASC/BOTH ================ //
-
-            if (gameSettings.Mode is GameMode.Ascending or GameMode.Both)
+            if (potentialPlay is RegularCard potenchPlay && currentGameState.LogicCard is RegularCard logicCard)
             {
-                int stepsForward = potentialCardValue > currentCardValue ?
-                    potentialCardValue - currentCardValue : potentialCardValue - currentCardValue + 13;
+                bool suitEnforcementValidation = !gameSettings.SuitsEnforced || !SameColor(potenchPlay, logicCard);
+                bool sameValueValidation = IsSameValue(potenchPlay, logicCard);
 
-                isValidSequence = isLeapFrog || stepsForward is 1; // REMOVED IF CONDITION CHECK, NEAT!
+                if (sameValueValidation) return suitEnforcementValidation;
+
+                int potentialCardValue = (int)potenchPlay.Value;
+                int currentCardValue = (int)logicCard.Value;
+                bool isValidSequence = false;
+
+                if (currentGameState.LeapFrogMode)
+                    isValidSequence = true;
+
+                if (!isValidSequence && gameSettings.Mode is GameMode.Ascending or GameMode.Both)
+                    isValidSequence = potentialCardValue == (currentCardValue + 1) % 13;
+
+                if (!isValidSequence && (gameSettings.Mode is GameMode.Descending or GameMode.Both))
+                    isValidSequence = potentialCardValue == (currentCardValue - 1 + 13) % 13;
+
+                if (!isValidSequence) return false;
+
+                return suitEnforcementValidation;
             }
 
-            // ================= IF MODE IS DESC/BOTH ================= //
-
-            if (!isValidSequence && (gameSettings.Mode is GameMode.Descending or GameMode.Both))
-            {
-                int stepsBackward = currentCardValue > potentialCardValue ?
-                    currentCardValue - potentialCardValue : currentCardValue - potentialCardValue + 13;
-
-                isValidSequence = isLeapFrog || stepsBackward is 1;
-            }
-
-            if (!isValidSequence)
-                return false;
-
-            return !gameSettings.SuitsEnforced || !SameColor(firstCard, secondCard);
+            return false;
         }
 
         /// <summary>
@@ -65,7 +54,7 @@ namespace SolitaireUno
         public static bool IsSpecialCard(Card potentialPlay) => potentialPlay is SpecialCard;
 
         /// <summary>
-        /// Returns true when the two regular cards are different color groups (red vs black).
+        /// Returns true when the two regular cards are same color groups (hearts vs diamonds).
         /// </summary>
         public static bool SameColor(RegularCard firstRegularCard, RegularCard secondRegularCard)
         {

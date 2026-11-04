@@ -5,7 +5,7 @@ namespace SolitaireUno
     /// <summary>
     /// Types of special cards that cause game effects.
     /// </summary>
-    public enum SpecialCardType
+    public enum TypeOfSpecialCard
     {
         /// <summary>
         /// Skips the next player's turn.

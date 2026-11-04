@@ -16,15 +16,15 @@ namespace SolitaireUno
         /// <param name="currentDeckSize">The current number of cards remaining in the deck.</param>
         /// <param name="currentGameSettings">The game settings (mode, difficulty, suit enforcement, player count).</param>
         /// <returns>The chosen card to play, or null if no valid move exists.</returns>
-        public Card? MakeMove(Card logicCard, int opponentHandSize, int currentDeckSize, GameSettings currentGameSettings, bool isLeapFrog)
+        public Card? MakeMove(int opponentHandSize, GameSettings currentGameSettings, GameState currentGameState)
         {
             List<Card> regularMoves = [];
             List<Card> specialMoves = [];
 
             foreach (Card potentialCard in Hand)
             {
-                if (logicCard is not null)
-                    if (!CardValidation.ValidCard(potentialCard, logicCard, currentGameSettings, isLeapFrog))
+                if (currentGameState.LogicCard is not null)
+                    if (!CardValidation.ValidCard(potentialCard, currentGameSettings, currentGameState))
                         continue;
 
                 if (potentialCard is SpecialCard)
@@ -41,13 +41,13 @@ namespace SolitaireUno
             // Easy mode: make random moves while considering deck size
             if (currentGameSettings.Difficulty is GameDifficulty.Easy)
             {
-                if (currentDeckSize <= 15 && specialMoves.Count > 0)
+                if (currentGameState.CurrentDeckSize <= 15 && specialMoves.Count > 0)
                 {
                     foreach (Card specialCard in specialMoves)
                     {
                         if (specialCard is SpecialCard special)
                         {
-                            if (special.CardType is SpecialCardType.DrawTwo or SpecialCardType.DrawFour)
+                            if (special.CardType is TypeOfSpecialCard.DrawTwo or TypeOfSpecialCard.DrawFour)
                                 return special;
                         }
                     }
@@ -61,20 +61,16 @@ namespace SolitaireUno
             int panicThreshold = currentGameSettings.Difficulty == GameDifficulty.Hard ? 4 : 7;
 
             // If deck is running low, prioritize penalty cards
-            if (currentDeckSize <= 10 && specialMoves.Count > 0)
+            if (currentGameState.CurrentDeckSize <= 10 && specialMoves.Count > 0)
             {
                 Card? fallbackSpecial = null;
 
                 foreach (Card specialCard in specialMoves)
-                {
                     if (specialCard is SpecialCard special)
-                    {
-                        if (special.CardType is SpecialCardType.DrawTwo or SpecialCardType.DrawFour)
+                        if (special.CardType is TypeOfSpecialCard.DrawTwo or TypeOfSpecialCard.DrawFour)
                             return special;
                         else
                             fallbackSpecial = special;
-                    }
-                }
 
                 if (fallbackSpecial is not null)
                     return fallbackSpecial;
@@ -87,7 +83,7 @@ namespace SolitaireUno
                     if (regularMoves.Count > 0)
                         return regularMoves[Random.Shared.Next(regularMoves.Count)];
 
-                if (totalValidMoves == 1 && specialMoves[0] is SpecialCard special && special.CardType == SpecialCardType.Skip)
+                if (totalValidMoves == 1 && specialMoves[0] is SpecialCard special && special.CardType == TypeOfSpecialCard.Skip)
                     return special;
 
                 return specialMoves[Random.Shared.Next(specialMoves.Count)];

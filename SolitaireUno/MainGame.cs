@@ -2,6 +2,8 @@ namespace SolitaireUno
 {
     public class GameState
     {
+        public List<RegularCard>? PenaltyCards = null;
+
         public Card? LogicCard = null;
         public Card? VisualCard = null;
 
@@ -9,6 +11,10 @@ namespace SolitaireUno
         public int ConsecutivePasses = 0;
         public int ConsecutivePickups = 0;
         public int PlayDirection = 1;
+        public int CurrentDeckSize = 0;
+        public int DeckReshuffleCount = 0;
+        public int DiscardPileCount = 0;
+
         public string? UIMessage = null;
 
         public bool LeapFrogMode = false;
@@ -20,11 +26,11 @@ namespace SolitaireUno
     public class MainGame
     {
         public List<Player> AllPlayers { get; private set; } = [];
+
         private string[] RandomComputerNames { get; } = [
             "Kai", "Soren", "Zara", "Milan", "Nova",
             "Luca", "Aria", "Ezra", "Milo", "Lyra"
         ];
-        internal List<RegularCard> PenaltyCards { get; private set; }
 
         public Deck GameDeck { get; set; }
 
@@ -45,31 +51,22 @@ namespace SolitaireUno
             CurrentGameSettings = currentGameSettings;
             _gameRules = new GameRules(currentGameSettings);
 
-            Player humanPlayer = new()
-            {
-                Name = currentGameSettings.PlayerName
-            };
-
+            Player humanPlayer = new() { Name = currentGameSettings.PlayerName };
             AllPlayers.Add(humanPlayer);
 
             // Add computer players
-            for (int i = 0; i < currentGameSettings.NumberOfPlayers; i++)
+            while (AllPlayers.Count < currentGameSettings.NumberOfPlayers)
             {
-                string randomOpponentName = $"{RandomComputerNames[ Random.Shared.Next(RandomComputerNames.Length) ]}";
+                string randomOpponentName = $"{RandomComputerNames[Random.Shared.Next(RandomComputerNames.Length)]}";
 
-                if (!AllPlayers.Any(player => player.Name == randomOpponentName))
+                bool playerExists = AllPlayers.Any(player => player.Name.Equals(randomOpponentName, StringComparison.OrdinalIgnoreCase));
+
+                if (!playerExists)
                 {
-                    Computer computerPlayer = new()
-                    {
-                        Name = randomOpponentName
-                    };
-
+                    Computer computerPlayer = new() { Name = randomOpponentName };
                     AllPlayers.Add(computerPlayer);
                 }
             }
-
-            // Initialize penalty cards and game deck
-            PenaltyCards = [ new(Suits.Spades, Values.Ace), new(Suits.Spades, Values.Queen) ];
 
             GameDeck = deck;
 
@@ -83,19 +80,34 @@ namespace SolitaireUno
         /// </summary>
         public void StartGame()
         {
-            Card initialCard = new GameInitialization(GameDeck).PreventInitialSpecialCard()!;
+            Card? initialCard = new GameInitialization(GameDeck).PreventInitialSpecialCard() ??
+                throw new InvalidOperationException("The game could not start because the initial card was null.");
 
             CurrentState = new GameState
             {
+                PenaltyCards = [
+                    new(Suits.Spades, Values.Ace),
+                    new(Suits.Spades, Values.Queen)
+                ],
+
                 LogicCard = initialCard,
                 VisualCard = initialCard,
+
                 CurrentTurnIndex = Random.Shared.Next(AllPlayers.Count),
                 ConsecutivePasses = 0,
                 PlayDirection = 1,
                 UIMessage = "",
                 ConsecutivePickups = 0,
+
                 LeapFrogMode = false,
+
+                CurrentDeckSize = GameDeck.Length(),
+                DeckReshuffleCount = GameDeck.ReshuffleCount,
+                DiscardPileCount = GameDeck.DiscardPile.Count,
             };
+
+            if (CurrentState is null)
+                throw new InvalidOperationException("The game's state did not render correctly.");
 
             int maxNumberOfCardsToDeal = 20;
             int startingHandSize = maxNumberOfCardsToDeal / AllPlayers.Count;
@@ -103,9 +115,6 @@ namespace SolitaireUno
             foreach (Player player in AllPlayers)
                 for (int i = 0; i < startingHandSize; i++)
                     player.PickupCard(GameDeck.DealCard()!);
-
-            if (CurrentState.LogicCard is null)
-                return;
 
             GameDeck.AddToDiscardPile(CurrentState.LogicCard);
 
@@ -128,21 +137,22 @@ namespace SolitaireUno
 
             int stepsToMove = 1;
 
-            Player currentPlayer = AllPlayers[ CurrentState.CurrentTurnIndex ];
+            Player currentPlayer = AllPlayers[CurrentState.CurrentTurnIndex];
 
             // Process computer player's turn
             if (currentPlayer is Computer computerPlayer)
             {
                 int computerHandAmountPreTurn = computerPlayer.Hand.Count;
+
                 int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
-                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, PenaltyCards, AllPlayers[ nextPlayersIndex ], CurrentGameSettings, CurrentState);
+                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, AllPlayers[nextPlayersIndex], CurrentGameSettings, CurrentState);
                 CurrentState.UIMessage = message;
 
                 int computerHandAmountPostTurn = computerPlayer.Hand.Count;
 
                 // Monitor for stalemate conditions
-                _gameRules.CheckStalemateConditions(cardPlayed, computerHandAmountPreTurn, computerHandAmountPostTurn, GameDeck.Length(), GameDeck.ReshuffleCount, CurrentState);
+                _gameRules.CheckStalemateConditions(cardPlayed, computerHandAmountPreTurn, computerHandAmountPostTurn, CurrentState);
 
                 if (cardPlayed is not null)
                     (CurrentState.UIMessage, stepsToMove) = ProcessTurnResult(cardPlayed, nextPlayersIndex, CurrentState.UIMessage);
@@ -157,16 +167,18 @@ namespace SolitaireUno
             else
             {
                 int playerHandAmountPreTurn = currentPlayer.Hand.Count;
+
                 int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
-                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(PenaltyCards, playerDecision, AllPlayers[ nextPlayersIndex ], CurrentGameSettings, CurrentState);
+                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(playerDecision, AllPlayers[nextPlayersIndex], CurrentGameSettings, CurrentState);
                 CurrentState.UIMessage = message;
+
                 int playerHandAmountPostTurn = currentPlayer.Hand.Count;
 
                 if (isSuccessful)
                 {
                     // Monitor for stalemate conditions
-                    _gameRules.CheckStalemateConditions(cardPlayed, playerHandAmountPreTurn, playerHandAmountPostTurn, GameDeck.Length(), GameDeck.ReshuffleCount, CurrentState);
+                    _gameRules.CheckStalemateConditions(cardPlayed, playerHandAmountPreTurn, playerHandAmountPostTurn, CurrentState);
 
                     if (cardPlayed is not null)
                         (CurrentState.UIMessage, stepsToMove) = ProcessTurnResult(cardPlayed, nextPlayersIndex, CurrentState.UIMessage);
@@ -178,9 +190,6 @@ namespace SolitaireUno
             }
         }
 
-
-
-
         /// <summary>
         /// Processes the result of a turn: applies special card effects and determines next move distance.
         /// </summary>
@@ -190,7 +199,10 @@ namespace SolitaireUno
         /// <returns>Updated message and steps to move for the next turn advancement.</returns>
         private (string message, int stepsToMove) ProcessTurnResult(Card cardPlayed, int nextPlayersIndex, string currentMessage)
         {
-            var (potentialPlayMessage, targetSkipped, isDirectionReversed) = SpecialEffectHandler.ApplyEffect(CurrentState!.VisualCard, false, GameDeck, AllPlayers[ nextPlayersIndex ], PenaltyCards, AllPlayers.Count);
+            if (CurrentState is null)
+                throw new InvalidOperationException("The game's state did not render correctly.");
+
+            var (potentialPlayMessage, targetSkipped, isDirectionReversed) = SpecialEffectHandler.ApplyEffect(cardPlayed, false, GameDeck, AllPlayers[nextPlayersIndex], AllPlayers.Count, CurrentState);
 
             string updatedMessage = currentMessage;
 

@@ -10,9 +10,9 @@ namespace SolitaireUno
         /// </summary>
         /// <param name="deck">The deck to draw cards from.</param>
         /// <param name="player">The player receiving the cards.</param>
-        /// <param name="penaltyCards">The configured penalty cards to check against.</param>
+        /// <param name="currentGameState">The current game state containing penalty cards.</param>
         /// <returns>A tuple containing the card drawn, penalty count detected, and actual penalty cards dealt.</returns>
-        public static (Card? drawnCard, int penaltyCount, int actualPenaltyCardsDealt) ProcessPickup(Deck deck, Player player, List<RegularCard> penaltyCards)
+        public static (Card? drawnCard, int penaltyCount, int actualPenaltyCardsDealt) ProcessPickup(Deck deck, Player player, GameState currentGameState)
         {
             Card? drawnCard = deck.DealCard();
 
@@ -21,7 +21,7 @@ namespace SolitaireUno
 
             player.PickupCard(drawnCard);
 
-            int penaltyCount = PenaltyHandler.GetPenaltyCount(drawnCard, penaltyCards);
+            int penaltyCount = PenaltyHandler.GetPenaltyCount(drawnCard, currentGameState);
             int actualPenaltyCardsDealt = 0;
 
             if (penaltyCount > 0)

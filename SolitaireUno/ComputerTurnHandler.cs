@@ -20,25 +20,28 @@ namespace SolitaireUno
         /// <param name="nextPlayer">The player who will act next (used for messages and penalty application).</param>
         /// <param name="currentGameSettings">Current game settings (mode, difficulty, suit enforcement, player count).</param>
         /// <returns>Tuple containing a UI message, the card played (if any), and whether the move was successful.</returns>
-        public (string message, Card? playedCard, bool successfulMove) HandleTurn(Computer currentComputerPlayer, List<RegularCard> penaltyCards, Player nextPlayer, GameSettings currentGameSettings, GameState currentGameState)
+        public (string message, Card? playedCard, bool successfulMove) HandleTurn(Computer currentComputerPlayer, Player nextPlayer, GameSettings currentGameSettings, GameState currentGameState)
         {
-            Card? potentialComputerPlay = currentComputerPlayer.MakeMove(currentGameState.LogicCard, nextPlayer.Hand.Count, _deck.Length(), currentGameSettings, currentGameState.LeapFrogMode);
+            Card? potentialComputerPlay = currentComputerPlayer.MakeMove(nextPlayer.Hand.Count, currentGameSettings, currentGameState);
 
             // Computer has no valid play available
             if (potentialComputerPlay is null)
             {
                 int maxAllowedReshuffles = currentGameSettings.Mode is GameMode.Both ? 2 : 1;
 
-                if (_deck.Length() > 0 || _deck.Length() == 0 && (_deck.ReshuffleCount < maxAllowedReshuffles))
-                    return HandlePickup(currentComputerPlayer, penaltyCards);
+                if (currentGameState.CurrentDeckSize > 0 || currentGameState.CurrentDeckSize == 0 && (_deck.ReshuffleCount < maxAllowedReshuffles))
+                    return HandlePickup(currentComputerPlayer, currentGameState);
 
                 // Computer cannot pick up, check for reverse discard option
                 else
                 {
                     // Check if discard pile has at least 2 cards to enable reverse
-                    if (_deck.DiscardPile.Count > 1)
+                    if (currentGameState.DiscardPileCount > 1)
                     {
-                        Card potentialDiscard = _deck.ReverseDiscard()!;
+                        Card? potentialDiscard = _deck.ReverseDiscard();
+
+                        if (potentialDiscard is null)
+                            return (message: $"{currentComputerPlayer.Name} couldn't reverse the discard, discard pile is empty!", playedCard: null, successfulMove: true);
 
                         // Peek at discard pile after pulling the last card
                         if (_deck.DiscardPile.TryPeek(out Card? potentialFutureVisualCard))
@@ -47,7 +50,7 @@ namespace SolitaireUno
                             Card potentialFutureLogicCard = _deck.DiscardPile.FirstOrDefault(card => card is RegularCard) ?? potentialFutureVisualCard;
 
                             // Check if computer can play a card in their hand against the future logical card
-                            bool iCanPlayCardInHand = currentComputerPlayer.Hand.Any(card => CardValidation.ValidCard(card, potentialFutureLogicCard, currentGameSettings, currentGameState.LeapFrogMode));
+                            bool iCanPlayCardInHand = currentComputerPlayer.Hand.Any(card => CardValidation.ValidCard(card, currentGameSettings, currentGameState));
 
                             // If the computer can play, update the game state cards
                             if (iCanPlayCardInHand)
@@ -81,9 +84,11 @@ namespace SolitaireUno
                 currentComputerPlayer.PlayCard(potentialComputerPlay);
                 _deck.AddToDiscardPile(potentialComputerPlay);
 
-                bool isSkipCard = potentialComputerPlay is SpecialCard specialCard && specialCard.CardType is SpecialCardType.Skip;
-                bool isDrawTwoCard = potentialComputerPlay is SpecialCard specialCard2 && specialCard2.CardType is SpecialCardType.DrawTwo;
-                bool isDrawFourCard = potentialComputerPlay is SpecialCard specialCard3 && specialCard3.CardType is SpecialCardType.DrawFour;
+                TypeOfSpecialCard? specialCardType = potentialComputerPlay is SpecialCard specialCard ? specialCard.CardType : null;
+
+                bool isSkipCard = specialCardType is TypeOfSpecialCard.Skip;
+                bool isDrawTwoCard = specialCardType is TypeOfSpecialCard.DrawTwo;
+                bool isDrawFourCard = specialCardType is TypeOfSpecialCard.DrawFour;
 
                 if (isSkipCard)
                 {
@@ -115,9 +120,9 @@ namespace SolitaireUno
         /// <param name="penaltyCards">The penalty cards that may trigger additional cards to be picked up, depending on the game rules.</param>
         /// <returns>A tuple containing a message describing the action taken, the card played (always null in this context), and
         /// a value indicating whether the move was successful.</returns>
-        private (string message, Card? playedCard, bool successfulMove) HandlePickup(Player currentComputerPlayer, List<RegularCard> penaltyCards)
+        private (string message, Card? playedCard, bool successfulMove) HandlePickup(Player currentComputerPlayer, GameState currentGameState)
         {
-            var (drawnCard, penaltyCount, actualPenaltyCardsDealt) = PickupProcessor.ProcessPickup(_deck, currentComputerPlayer, penaltyCards);
+            var (drawnCard, penaltyCount, actualPenaltyCardsDealt) = PickupProcessor.ProcessPickup(_deck, currentComputerPlayer, currentGameState);
 
             if (drawnCard is null)
                 return (message: $"{currentComputerPlayer.Name} couldn't pick up, deck is empty!", playedCard: null, successfulMove: true);

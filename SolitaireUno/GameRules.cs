@@ -16,10 +16,10 @@ namespace SolitaireUno
         /// <param name="deckLength">Current draw pile size.</param>
         /// <param name="deckReshuffleCount">Current reshuffle count.</param>
         /// <param name="gameState">Current game state to update.</param>
-        public void CheckStalemateConditions(Card? cardPlayed, int handCountBefore, int handCountAfter, int deckLength, int deckReshuffleCount, GameState gameState)
+        public void CheckStalemateConditions(Card? cardPlayed, int handCountBefore, int handCountAfter, GameState gameState)
         {
             int maxReshuffles = GetMaxReshuffles(_gameSettings.Mode);
-            bool isDeckDead = deckLength == 0 && deckReshuffleCount >= maxReshuffles;
+            bool isDeckDead = gameState.CurrentDeckSize == 0 && gameState.DeckReshuffleCount >= maxReshuffles;
 
             // Track consecutive passes (when deck is dead and no card was played)
             gameState.ConsecutivePasses = (cardPlayed is null && isDeckDead) ? gameState.ConsecutivePasses + 1 : 0;
