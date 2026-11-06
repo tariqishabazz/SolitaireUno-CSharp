@@ -19,7 +19,7 @@ namespace SolitaireUno
         public void CheckStalemateConditions(Card? cardPlayed, int handCountBefore, int handCountAfter, GameState gameState)
         {
             int maxReshuffles = GetMaxReshuffles(_gameSettings.Mode);
-            bool isDeckDead = gameState.CurrentDeckSize == 0 && gameState.DeckReshuffleCount >= maxReshuffles;
+            bool isDeckDead = gameState.CurrentDeckSize == 0 && gameState.DeckReshuffleCount == maxReshuffles;
 
             // Track consecutive passes (when deck is dead and no card was played)
             gameState.ConsecutivePasses = (cardPlayed is null && isDeckDead) ? gameState.ConsecutivePasses + 1 : 0;
@@ -36,11 +36,11 @@ namespace SolitaireUno
         /// </summary>
         private bool ShouldActivateLeapFrog(GameState gameState, int maxReshuffles)
         {
-            // Leapfrog activates if:
-            // 1) All players have passed when deck is dead, OR
-            // 2) All players have picked up for multiple consecutive rounds
-            return gameState.ConsecutivePasses >= maxReshuffles ||
-                   gameState.ConsecutivePickups >= (1 * 3); // Allow 3 pickup rounds before stalemate
+            int reshuffleLimit = maxReshuffles;
+            bool hitReshuffleLimit = reshuffleLimit == maxReshuffles;
+
+            // * 2 REPRESENTS EVERYONE PICKING UP FOR TWO WHOLE ROUNDS
+            return (hitReshuffleLimit && gameState.ConsecutivePasses == gameState.CurrentPlayers.Count) || gameState.ConsecutivePickups == (gameState.CurrentPlayers.Count * 2);
         }
 
         /// <summary>

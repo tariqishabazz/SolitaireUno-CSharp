@@ -35,10 +35,10 @@ namespace SolitaireUno
                     isValidSequence = true;
 
                 if (!isValidSequence && gameSettings.Mode is GameMode.Ascending or GameMode.Both)
-                    isValidSequence = potentialCardValue == (currentCardValue + 1) % 13;
+                    isValidSequence = (potentialCardValue == currentCardValue + 1) || (potentialCardValue == 1 && currentCardValue == 13);
 
                 if (!isValidSequence && (gameSettings.Mode is GameMode.Descending or GameMode.Both))
-                    isValidSequence = potentialCardValue == (currentCardValue - 1 + 13) % 13;
+                    isValidSequence = (potentialCardValue == currentCardValue - 1) || (potentialCardValue == 13 && currentCardValue == 1);
 
                 if (!isValidSequence) return false;
 

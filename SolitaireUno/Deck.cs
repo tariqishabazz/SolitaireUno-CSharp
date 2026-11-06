@@ -61,7 +61,7 @@ namespace SolitaireUno
             for (int i = _gameDeck.Count - 1; i > 0; i--)
             {
                 int randomIndex = _random.Next(i + 1);
-                (_gameDeck[randomIndex], _gameDeck[i]) = (_gameDeck[i], _gameDeck[randomIndex]);
+                (_gameDeck[ randomIndex ], _gameDeck[ i ]) = (_gameDeck[ i ], _gameDeck[ randomIndex ]);
             }
         }
 
@@ -73,7 +73,7 @@ namespace SolitaireUno
 
             if (_gameDeck.Count > 0)
             {
-                Card dealt = _gameDeck[0];
+                Card dealt = _gameDeck[ 0 ];
                 _gameDeck.RemoveAt(0);
                 return dealt;
             }
@@ -86,9 +86,8 @@ namespace SolitaireUno
         public Card? ReverseDiscard()
         {
             if (_discardPile.Count > 1 && _discardPile.TryPop(out Card? pulledCard))
-            {
                 return pulledCard;
-            }
+
             return null;
         }
 

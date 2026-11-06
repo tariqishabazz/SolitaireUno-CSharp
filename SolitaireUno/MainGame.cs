@@ -2,22 +2,24 @@ namespace SolitaireUno
 {
     public class GameState
     {
-        public List<RegularCard>? PenaltyCards = null;
+        public List<Player> CurrentPlayers { get; set; } = [];
 
-        public Card? LogicCard = null;
-        public Card? VisualCard = null;
+        public List<RegularCard> PenaltyCards { get; set; } = [];
 
-        public int CurrentTurnIndex;
-        public int ConsecutivePasses = 0;
-        public int ConsecutivePickups = 0;
-        public int PlayDirection = 1;
-        public int CurrentDeckSize = 0;
-        public int DeckReshuffleCount = 0;
-        public int DiscardPileCount = 0;
+        public Card? LogicCard { get; set; } = null;
+        public Card? VisualCard { get; set; } = null;
 
-        public string? UIMessage = null;
+        public int CurrentTurnIndex { get; set; }
+        public int ConsecutivePasses { get; set; } = 0;
+        public int ConsecutivePickups { get; set; } = 0;
+        public int PlayDirection { get; set; } = 1;
+        public int CurrentDeckSize { get; set; } = 0;
+        public int DeckReshuffleCount { get; set; } = 0;
+        public int DiscardPileCount { get; set; } = 0;
 
-        public bool LeapFrogMode = false;
+        public string UIMessage { get; set; } = string.Empty;
+
+        public bool LeapFrogMode { get; set; } = false;
     }
 
     /// <summary>
@@ -55,9 +57,9 @@ namespace SolitaireUno
             AllPlayers.Add(humanPlayer);
 
             // Add computer players
-            while (AllPlayers.Count < currentGameSettings.NumberOfPlayers)
+            while (AllPlayers.Count - 1 < currentGameSettings.NumberOfPlayers)
             {
-                string randomOpponentName = $"{RandomComputerNames[Random.Shared.Next(RandomComputerNames.Length)]}";
+                string randomOpponentName = $"{RandomComputerNames[ Random.Shared.Next(RandomComputerNames.Length) ]}";
 
                 bool playerExists = AllPlayers.Any(player => player.Name.Equals(randomOpponentName, StringComparison.OrdinalIgnoreCase));
 
@@ -85,6 +87,8 @@ namespace SolitaireUno
 
             CurrentState = new GameState
             {
+                CurrentPlayers = [ .. AllPlayers ],
+
                 PenaltyCards = [
                     new(Suits.Spades, Values.Ace),
                     new(Suits.Spades, Values.Queen)
@@ -104,19 +108,18 @@ namespace SolitaireUno
                 CurrentDeckSize = GameDeck.Length(),
                 DeckReshuffleCount = GameDeck.ReshuffleCount,
                 DiscardPileCount = GameDeck.DiscardPile.Count,
-            };
 
-            if (CurrentState is null)
-                throw new InvalidOperationException("The game's state did not render correctly.");
+            } ?? throw new InvalidOperationException("The game's state did not render correctly.");
 
             int maxNumberOfCardsToDeal = 20;
-            int startingHandSize = maxNumberOfCardsToDeal / AllPlayers.Count;
+            int startingHandSize = maxNumberOfCardsToDeal / CurrentState.CurrentPlayers.Count;
 
-            foreach (Player player in AllPlayers)
+            foreach (Player player in CurrentState.CurrentPlayers)
                 for (int i = 0; i < startingHandSize; i++)
                     player.PickupCard(GameDeck.DealCard()!);
 
-            GameDeck.AddToDiscardPile(CurrentState.LogicCard);
+            if (CurrentState.LogicCard is not null)
+                GameDeck.AddToDiscardPile(CurrentState.LogicCard);
 
             // Reset reshuffle count for the new game
             GameDeck.ReshuffleCount = 0;
@@ -132,12 +135,9 @@ namespace SolitaireUno
             if (CurrentState is null)
                 throw new InvalidOperationException("The game's state did not render correctly.");
 
-            if (CurrentState.LogicCard is null || CurrentState.VisualCard is null)
-                return (string.Empty, false);
-
             int stepsToMove = 1;
 
-            Player currentPlayer = AllPlayers[CurrentState.CurrentTurnIndex];
+            Player currentPlayer = CurrentState.CurrentPlayers[ CurrentState.CurrentTurnIndex ];
 
             // Process computer player's turn
             if (currentPlayer is Computer computerPlayer)
@@ -146,7 +146,7 @@ namespace SolitaireUno
 
                 int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
-                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, AllPlayers[nextPlayersIndex], CurrentGameSettings, CurrentState);
+                var (message, cardPlayed, successfulDecision) = _computerTurnHandler.HandleTurn(computerPlayer, AllPlayers[ nextPlayersIndex ], CurrentGameSettings, CurrentState);
                 CurrentState.UIMessage = message;
 
                 int computerHandAmountPostTurn = computerPlayer.Hand.Count;
@@ -160,6 +160,7 @@ namespace SolitaireUno
                 // Advance to next player (skip +1 if previous player was skipped)
                 CurrentState.CurrentTurnIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
+                UpdateGameState(CurrentState);
                 return (CurrentState.UIMessage, successfulDecision);
             }
 
@@ -170,7 +171,7 @@ namespace SolitaireUno
 
                 int nextPlayersIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
 
-                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(playerDecision, AllPlayers[nextPlayersIndex], CurrentGameSettings, CurrentState);
+                var (isSuccessful, message, cardPlayed) = _playerTurnHandler.HandleTurn(playerDecision, AllPlayers[ nextPlayersIndex ], CurrentGameSettings, CurrentState);
                 CurrentState.UIMessage = message;
 
                 int playerHandAmountPostTurn = currentPlayer.Hand.Count;
@@ -186,6 +187,7 @@ namespace SolitaireUno
                     CurrentState.CurrentTurnIndex = GetNextPlayerIndex(CurrentState.CurrentTurnIndex, stepsToMove, CurrentState.PlayDirection, AllPlayers.Count);
                 }
 
+                UpdateGameState(CurrentState);
                 return (CurrentState.UIMessage, isSuccessful);
             }
         }
@@ -202,7 +204,7 @@ namespace SolitaireUno
             if (CurrentState is null)
                 throw new InvalidOperationException("The game's state did not render correctly.");
 
-            var (potentialPlayMessage, targetSkipped, isDirectionReversed) = SpecialEffectHandler.ApplyEffect(cardPlayed, false, GameDeck, AllPlayers[nextPlayersIndex], AllPlayers.Count, CurrentState);
+            var (potentialPlayMessage, targetSkipped, isDirectionReversed) = SpecialEffectHandler.ApplyEffect(cardPlayed, false, GameDeck, AllPlayers[ nextPlayersIndex ], AllPlayers.Count, CurrentState);
 
             string updatedMessage = currentMessage;
 
@@ -216,6 +218,31 @@ namespace SolitaireUno
 
             return (updatedMessage, stepsToMove);
         }
+
+        private void UpdateGameState(GameState currentGameState)
+        {
+            currentGameState.CurrentPlayers = currentGameState.CurrentPlayers;
+
+            currentGameState.PenaltyCards = currentGameState.PenaltyCards;
+            currentGameState.LogicCard = currentGameState.LogicCard;
+            currentGameState.VisualCard = currentGameState.VisualCard;
+
+            currentGameState.CurrentTurnIndex = currentGameState.CurrentTurnIndex;
+            currentGameState.PlayDirection = currentGameState.PlayDirection;
+
+            currentGameState.ConsecutivePasses = currentGameState.ConsecutivePasses;
+            currentGameState.ConsecutivePickups = currentGameState.ConsecutivePickups;
+
+            currentGameState.DeckReshuffleCount = GameDeck.ReshuffleCount;
+            currentGameState.CurrentDeckSize = GameDeck.Length();
+            currentGameState.DiscardPileCount = GameDeck.DiscardPile.Count;
+
+            currentGameState.LeapFrogMode = currentGameState.LeapFrogMode;
+
+            currentGameState.UIMessage = currentGameState.UIMessage;
+        }
+
+
 
         /// <summary>
         /// Retrieves the next player's index determined on the games current <paramref name="direction"/>

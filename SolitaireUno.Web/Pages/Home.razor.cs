@@ -56,7 +56,7 @@ namespace SolitaireUno.Web.Pages
                 if (gameEngine is null || gameEngine.CurrentState is null)
                     return null;
 
-                return gameEngine.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex];
+                return gameEngine.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ];
             }
         }
 
@@ -67,7 +67,7 @@ namespace SolitaireUno.Web.Pages
                 if (gameEngine is null || gameEngine?.CurrentState is null)
                     return false;
 
-                return gameEngine?.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex].Name == playerName;
+                return gameEngine?.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name == playerName;
             }
         }
 
@@ -78,13 +78,13 @@ namespace SolitaireUno.Web.Pages
                 if (gameEngine is null || gameEngine?.CurrentState is null)
                     return false;
 
-                return gameEngine.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex] is Computer;
+                return gameEngine.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ] is Computer;
             }
         }
 
         // =================== STARTGAME() ==================== //
 
-        private async void StartNewGame()
+        private async Task StartNewGame()
         {
             gameOverMessage = string.Empty;
             _gameUptime = TimeSpan.Zero;
@@ -103,10 +103,13 @@ namespace SolitaireUno.Web.Pages
             gameStarted = true;
 
             if (gameEngine is not null && gameEngine.CurrentState is not null)
-                actionLog = $"Cards Dealt. It is {gameEngine.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex].Name}'s turn.";
+                actionLog = $"Cards Dealt. It is {gameEngine.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name}'s turn.";
 
             if (IsComputerTurn)
+            {
+                await Task.Delay(5000);
                 await PlayComputerTurn();
+            }
         }
 
         private async Task PlayComputerTurn()
@@ -119,7 +122,7 @@ namespace SolitaireUno.Web.Pages
 
             while (!IsHumanTurn && string.IsNullOrEmpty(gameOverMessage))
             {
-                await UpdateMessageAndUI($"{gameEngine?.AllPlayers[gameEngine.CurrentState.CurrentTurnIndex].Name} is thinking...");
+                await UpdateMessageAndUI($"{gameEngine?.AllPlayers[ gameEngine.CurrentState.CurrentTurnIndex ].Name} is thinking...");
 
                 if (gameEngine is null)
                     return;
@@ -129,7 +132,7 @@ namespace SolitaireUno.Web.Pages
                 if (!string.IsNullOrEmpty(message))
                     await UpdateMessageAndUI(message);
 
-                if (LongUIMessage(message) && gameOverMessage != "")
+                if (LongUIMessage(message) && gameOverMessage == string.Empty)
                     await Task.Delay(5000);
 
                 if (!successfulDecision)
@@ -294,14 +297,14 @@ namespace SolitaireUno.Web.Pages
 
             for (int character = 0; character < message.Length; character++)
             {
-                if (char.IsLetterOrDigit(message[character]) || char.IsPunctuation(message[character]))
+                if (char.IsLetterOrDigit(message[ character ]) || char.IsPunctuation(message[ character ]))
                 {
-                    currentSentence.Append(message[character]);
+                    currentSentence.Append(message[ character ]);
                 }
 
-                if (char.IsWhiteSpace(message[character]))
+                if (char.IsWhiteSpace(message[ character ]))
                 {
-                    currentSentence.Append(message[character]);
+                    currentSentence.Append(message[ character ]);
                     numberOfWords++;
                 }
             }

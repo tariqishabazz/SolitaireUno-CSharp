@@ -142,7 +142,7 @@
 
                         @if(gameEngine?.CurrentState is not null && gameEngine?.CurrentState.LeapFrogMode == true)
                         {
-                            <span class="badge rounded-pill text-start py-2 px-2-" style="background-color: #dc3545;">
+                            <span class="badge rounded-pill text-start text-wrap py-1 px-2 small" style="background-color: #dc3545;">
                                 Leapfrog Mode is on
                             </span>
                         }
@@ -156,12 +156,14 @@
                     <div class="d-flex flex-row flex-md-column flex-wrap gap-1">
                         @if (gameEngine is not null)
                         {
-                            @foreach (Computer computerOpponent in gameEngine.AllPlayers.Skip(1))
+                            @foreach (Player player in gameEngine.AllPlayers)
                             {
                                 <div class="opponent-hud m-0">
-                                    <span class="fw-bold">@computerOpponent.Name</span>
-                                    <span class="card-count">@computerOpponent.Hand.Count</span>
-                                    <small>Card(s)</small>
+                                    <span class="fw-bold">@player.Name</span>
+                                    <span class="card-count">@player.Hand.Count</span>
+                                    
+                                    @if (player.Hand.Count > 1 || player.Hand.Count == 0) { <small>Cards</small> }
+                                    @if(player.Hand.Count == 1) { <small>Card</small> }
                                 </div>
                             }
                         }

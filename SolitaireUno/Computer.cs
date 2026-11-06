@@ -23,9 +23,8 @@ namespace SolitaireUno
 
             foreach (Card potentialCard in Hand)
             {
-                if (currentGameState.LogicCard is not null)
-                    if (!CardValidation.ValidCard(potentialCard, currentGameSettings, currentGameState))
-                        continue;
+                if (!CardValidation.ValidCard(potentialCard, currentGameSettings, currentGameState))
+                    continue;
 
                 if (potentialCard is SpecialCard)
                     specialMoves.Add(potentialCard);
@@ -39,22 +38,19 @@ namespace SolitaireUno
                 return null;
 
             // Easy mode: make random moves while considering deck size
-            if (currentGameSettings.Difficulty is GameDifficulty.Easy)
+            if (currentGameSettings.Difficulty is GameDifficulty.Easy && currentGameState.CurrentDeckSize <= 15 && specialMoves.Count > 0)
             {
-                if (currentGameState.CurrentDeckSize <= 15 && specialMoves.Count > 0)
+                foreach (Card specialCard in specialMoves)
                 {
-                    foreach (Card specialCard in specialMoves)
-                    {
-                        if (specialCard is SpecialCard special)
-                        {
-                            if (special.CardType is TypeOfSpecialCard.DrawTwo or TypeOfSpecialCard.DrawFour)
-                                return special;
-                        }
-                    }
+                    if (specialCard is not SpecialCard special)
+                        continue;
+
+                    if (special.CardType is TypeOfSpecialCard.DrawTwo or TypeOfSpecialCard.DrawFour)
+                        return special;
                 }
 
                 int randomIndex = Random.Shared.Next(totalValidMoves);
-                return randomIndex < regularMoves.Count ? regularMoves[randomIndex] : specialMoves[randomIndex - regularMoves.Count];
+                return randomIndex < regularMoves.Count ? regularMoves[ randomIndex ] : specialMoves[ randomIndex - regularMoves.Count ];
             }
 
             // Calculate panic threshold based on difficulty
@@ -66,14 +62,17 @@ namespace SolitaireUno
                 Card? fallbackSpecial = null;
 
                 foreach (Card specialCard in specialMoves)
-                    if (specialCard is SpecialCard special)
-                        if (special.CardType is TypeOfSpecialCard.DrawTwo or TypeOfSpecialCard.DrawFour)
-                            return special;
-                        else
-                            fallbackSpecial = special;
+                {
+                    if (specialCard is not SpecialCard special)
+                        continue;
 
-                if (fallbackSpecial is not null)
-                    return fallbackSpecial;
+                    if (special.CardType is TypeOfSpecialCard.DrawTwo or TypeOfSpecialCard.DrawFour)
+                        return special;
+                    else
+                        fallbackSpecial = special;
+                }
+
+                if (fallbackSpecial is not null) return fallbackSpecial;
             }
 
             // If opponent's hand size is getting smaller, play special cards
@@ -81,19 +80,19 @@ namespace SolitaireUno
             {
                 if (specialMoves.Count == 0)
                     if (regularMoves.Count > 0)
-                        return regularMoves[Random.Shared.Next(regularMoves.Count)];
+                        return regularMoves[ Random.Shared.Next(regularMoves.Count) ];
 
-                if (totalValidMoves == 1 && specialMoves[0] is SpecialCard special && special.CardType == TypeOfSpecialCard.Skip)
+                if (totalValidMoves == 1 && specialMoves[ 0 ] is SpecialCard special && special.CardType == TypeOfSpecialCard.Skip)
                     return special;
 
-                return specialMoves[Random.Shared.Next(specialMoves.Count)];
+                return specialMoves[ Random.Shared.Next(specialMoves.Count) ];
             }
 
             // Otherwise, make a random valid move
             if (regularMoves.Count > 0)
-                return regularMoves[Random.Shared.Next(regularMoves.Count)];
+                return regularMoves[ Random.Shared.Next(regularMoves.Count) ];
 
-            return specialMoves[Random.Shared.Next(specialMoves.Count)];
+            return specialMoves[ Random.Shared.Next(specialMoves.Count) ];
         }
     }
 }

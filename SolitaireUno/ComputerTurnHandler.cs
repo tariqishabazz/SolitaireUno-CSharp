@@ -24,7 +24,6 @@ namespace SolitaireUno
         {
             Card? potentialComputerPlay = currentComputerPlayer.MakeMove(nextPlayer.Hand.Count, currentGameSettings, currentGameState);
 
-            // Computer has no valid play available
             if (potentialComputerPlay is null)
             {
                 int maxAllowedReshuffles = currentGameSettings.Mode is GameMode.Both ? 2 : 1;
@@ -32,82 +31,73 @@ namespace SolitaireUno
                 if (currentGameState.CurrentDeckSize > 0 || currentGameState.CurrentDeckSize == 0 && (_deck.ReshuffleCount < maxAllowedReshuffles))
                     return HandlePickup(currentComputerPlayer, currentGameState);
 
-                // Computer cannot pick up, check for reverse discard option
-                else
+                if (currentComputerPlayer.Hand.Count > 7)
+                    return (message: $"{currentComputerPlayer.Name} decided to pass!", playedCard: null, successfulMove: true);
+
+
+                Card potentialDiscard = _deck.ReverseDiscard()!;
+
+                if (_deck.DiscardPile.TryPeek(out Card? potentialFutureVisualCard))
                 {
-                    // Check if discard pile has at least 2 cards to enable reverse
-                    if (currentGameState.DiscardPileCount > 1)
+                    Card potentialFutureLogicCard = _deck.DiscardPile.FirstOrDefault(card => card is RegularCard) ?? potentialFutureVisualCard;
+
+                    GameState temporaryLookAheadState = new GameState
                     {
-                        Card? potentialDiscard = _deck.ReverseDiscard();
+                        LogicCard = potentialFutureLogicCard,
+                        LeapFrogMode = currentGameState.LeapFrogMode
+                    };
 
-                        if (potentialDiscard is null)
-                            return (message: $"{currentComputerPlayer.Name} couldn't reverse the discard, discard pile is empty!", playedCard: null, successfulMove: true);
+                    bool iCanPlayCardInHand = currentComputerPlayer.Hand.Any(card => CardValidation.ValidCard(card, currentGameSettings, temporaryLookAheadState));
 
-                        // Peek at discard pile after pulling the last card
-                        if (_deck.DiscardPile.TryPeek(out Card? potentialFutureVisualCard))
-                        {
-                            // Determine the logic card to validate against after pulling discard
-                            Card potentialFutureLogicCard = _deck.DiscardPile.FirstOrDefault(card => card is RegularCard) ?? potentialFutureVisualCard;
+                    if (iCanPlayCardInHand)
+                    {
+                        currentGameState.VisualCard = potentialFutureVisualCard;
+                        currentGameState.LogicCard = potentialFutureLogicCard;
 
-                            // Check if computer can play a card in their hand against the future logical card
-                            bool iCanPlayCardInHand = currentComputerPlayer.Hand.Any(card => CardValidation.ValidCard(card, currentGameSettings, currentGameState));
-
-                            // If the computer can play, update the game state cards
-                            if (iCanPlayCardInHand)
-                            {
-                                currentGameState.VisualCard = potentialFutureVisualCard;
-                                currentGameState.LogicCard = potentialFutureLogicCard;
-
-                                // Add the pulled discard to their hand
-                                currentComputerPlayer.Hand.Add(potentialDiscard);
-
-                                return (message: $"Reverse Reverse! {currentComputerPlayer.Name} pulled a card, showing the {currentGameState.LogicCard}", playedCard: null, successfulMove: true);
-                            }
-                        }
-
-                        // Reverse strategy failed, restore the card to the discard pile
-                        _deck.AddToDiscardPile(potentialDiscard);
+                        currentComputerPlayer.Hand.Add(potentialDiscard);
+                        return (message: $"Reverse Reverse! {currentComputerPlayer.Name} pulled a card, showing the {currentGameState.LogicCard}", playedCard: null, successfulMove: true);
                     }
 
-                    return (message: $"{currentComputerPlayer.Name} decided to pass!", playedCard: null, successfulMove: true);
+
+                    _deck.AddToDiscardPile(potentialDiscard);
                 }
+                return (message: $"{currentComputerPlayer.Name} decided to pass!", playedCard: null, successfulMove: true);
             }
+
 
             // Computer has valid play available
-            else
+            currentGameState.VisualCard = potentialComputerPlay;
+
+            if (potentialComputerPlay is RegularCard)
+                currentGameState.LogicCard = potentialComputerPlay;
+
+            currentComputerPlayer.PlayCard(potentialComputerPlay);
+            _deck.AddToDiscardPile(potentialComputerPlay);
+
+            TypeOfSpecialCard? specialCardType = potentialComputerPlay is SpecialCard specialCard ? specialCard.CardType : null;
+
+            bool isSkipCard = specialCardType is TypeOfSpecialCard.Skip;
+            bool isDrawTwoCard = specialCardType is TypeOfSpecialCard.DrawTwo;
+            bool isDrawFourCard = specialCardType is TypeOfSpecialCard.DrawFour;
+
+            if (isSkipCard)
             {
-                currentGameState.VisualCard = potentialComputerPlay;
+                if (nextPlayer is not Computer)
+                    return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped your turn!", playedCard: potentialComputerPlay, successfulMove: true);
 
-                if (potentialComputerPlay is RegularCard)
-                    currentGameState.LogicCard = potentialComputerPlay;
-
-                currentComputerPlayer.PlayCard(potentialComputerPlay);
-                _deck.AddToDiscardPile(potentialComputerPlay);
-
-                TypeOfSpecialCard? specialCardType = potentialComputerPlay is SpecialCard specialCard ? specialCard.CardType : null;
-
-                bool isSkipCard = specialCardType is TypeOfSpecialCard.Skip;
-                bool isDrawTwoCard = specialCardType is TypeOfSpecialCard.DrawTwo;
-                bool isDrawFourCard = specialCardType is TypeOfSpecialCard.DrawFour;
-
-                if (isSkipCard)
-                {
-                    if (nextPlayer is not Computer)
-                        return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped your turn!", playedCard: potentialComputerPlay, successfulMove: true);
-
-                    return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped {nextPlayer.Name}!", playedCard: potentialComputerPlay, successfulMove: true);
-                }
-                else if (isDrawFourCard || isDrawTwoCard)
-                {
-                    if (nextPlayer is not Computer)
-                        return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so you had to draw!", playedCard: potentialComputerPlay, successfulMove: true);
-
-                    return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so {nextPlayer.Name} had to draw!", playedCard: potentialComputerPlay, successfulMove: true);
-                }
-
-                return (message: $"{currentComputerPlayer.Name} decided to play: {potentialComputerPlay}!", playedCard: potentialComputerPlay, successfulMove: true);
+                return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay} and skipped {nextPlayer.Name}!", playedCard: potentialComputerPlay, successfulMove: true);
             }
+            else if (isDrawFourCard || isDrawTwoCard)
+            {
+                if (nextPlayer is not Computer)
+                    return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so you had to draw!", playedCard: potentialComputerPlay, successfulMove: true);
+
+                return (message: $"{currentComputerPlayer.Name} played: {potentialComputerPlay}, so {nextPlayer.Name} had to draw!", playedCard: potentialComputerPlay, successfulMove: true);
+            }
+
+            return (message: $"{currentComputerPlayer.Name} decided to play: {potentialComputerPlay}!", playedCard: potentialComputerPlay, successfulMove: true);
         }
+
 
         /// <summary>
         /// Handles the logic for a computer player to pick up a card in non-both game modes, applying any penalty cards
